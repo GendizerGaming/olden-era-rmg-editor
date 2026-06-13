@@ -175,7 +175,7 @@ export function loadInitialState(): InitialState {
     initialVariantSnapshots = {};
   }
 
-  let initialTheme: 'dark' | 'light' = 'dark';
+  let initialTheme: 'dark' | 'light' = 'light';
   try {
     const savedTheme = localStorage.getItem('olden-era-rmg-visual-editor-theme');
     if (savedTheme === 'light' || savedTheme === 'dark') {

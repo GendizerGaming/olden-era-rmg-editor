@@ -8,7 +8,7 @@ import { TranslationContext } from './context';
 const dictionaries: Record<string, Record<string, string>> = { ru, en };
 
 export const TranslationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const language = useEditorStore((state) => state.settings.language) || 'ru';
+  const language = useEditorStore((state) => state.settings.language) || 'en';
 
   const t = React.useCallback((key: string, params: Record<string, string | number> = {}): string => {
     const dict = dictionaries[language] || ru;
