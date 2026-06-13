@@ -4,6 +4,8 @@ A visual editor for random-map (RMG) templates of **Heroes of Might and Magic: O
 
 > _This project was developed with the help of AI assistants (Claude, Codex, Antigravity)._
 
+**▶ Live app: https://gendizergaming.github.io/olden-era-rmg-editor/**
+
 **[English](#english)** · **[Русский](#русский)**
 
 ![Screenshot of the editor](docs/screenshot.png)
