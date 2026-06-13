@@ -164,7 +164,7 @@ export const initialSettings: MapSettings = {
   bannedHeroes: [],
   startingBonuses: [],
   valueOverrides: [],
-  language: "ru",
+  language: "en",
   gladiatorArenaEnabled: false,
   gladiatorArenaDaysDelayStart: 30,
   gladiatorArenaCountDay: 3,
