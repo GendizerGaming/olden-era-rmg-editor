@@ -63,7 +63,7 @@ function spread(values: number[]): number {
  * problems (disconnected graphs etc.) belong to the validator, not here.
  */
 export function analyzeBalance(
-  settings: MapSettings,
+  _settings: MapSettings,
   zones: Zone[],
   edges: Edge[],
   t: TranslateFn

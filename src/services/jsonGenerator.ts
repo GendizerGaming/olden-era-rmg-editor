@@ -766,9 +766,9 @@ export function generateTemplate(
 
   const rmgZones = zones.map((zone) => toRmgZone(zone, edges, presets, settings));
   const connections: RmgConnection[] = edges.map((edgeData) => {
-    const isProximity = edgeData.connectionType === 'Proximity';
-
-    if (isProximity) {
+    // Check the discriminant directly (not via a boolean) so TypeScript
+    // narrows connectionType to the non-Proximity union after this branch.
+    if (edgeData.connectionType === 'Proximity') {
       const connection: RmgProximityConnection = {
         ...(edgeData.rawFields || {}),
         name: connectionName(edgeData),

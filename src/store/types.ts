@@ -100,7 +100,7 @@ export interface EditorActions {
   deleteSelected: () => void;
   updateZoneField: (zoneId: string, updates: Partial<Zone>) => void;
   updateEdgeField: (edgeId: string, updates: Partial<Edge>) => void;
-  setSelected: (selected: { type: 'zone' | 'edge' | 'edgePair' | 'preset' | 'customList' | 'elementsList' | 'terrainProfile'; id: string } | null) => void;
+  setSelected: (selected: { type: 'zone' | 'edge' | 'edgePair' | 'preset' | 'customList' | 'elementsList' | 'terrainProfile' | 'contentLimits' | 'contentPool'; id: string } | null) => void;
   setMode: (mode: 'select' | 'connect') => void;
   setConnectStart: (zoneId: string | null) => void;
   connectZones: (fromId: string, toId: string, connectionType?: ConnectionType) => void;
