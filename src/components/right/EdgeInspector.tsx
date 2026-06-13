@@ -1,0 +1,262 @@
+import React from 'react';
+import { useEditorStore } from '../../store/useEditorStore';
+import type { EditorActions } from '../../store/useEditorStore';
+import type { TranslationFunction } from '../../i18n/context';
+import type { Edge, ConnectionType } from '../../types/editor';
+import { CONNECTION_TYPES } from '../../types/editor';
+import { edgePairKey } from '../../store/zones';
+import { LazyDetails } from '../shared/LazyDetails';
+import { NumberField } from '../shared/NumberField';
+import { ValueBadge } from '../shared/ValueBadge';
+import { ArrowLeft } from 'lucide-react';
+
+interface EdgeInspectorProps {
+  edge: Edge;
+  edges: Edge[];
+  actions: EditorActions;
+  t: TranslationFunction;
+}
+
+export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actions, t }) => {
+  const isExpert = useEditorStore((state) => state.uiMode) === 'expert';
+  const isProximity = edge.connectionType === 'Proximity';
+  const isPortal = edge.connectionType === 'Portal';
+  const pairId = edgePairKey(edge.from, edge.to);
+  const pairCount = edges.filter((e) => edgePairKey(e.from, e.to) === pairId).length;
+
+  // The one-spring-per-pair rule is enforced by the store: a blocked switch
+  // leaves the edge unchanged and raises an error toast.
+  const handleTypeChange = (next: ConnectionType) => {
+    if (next === 'Proximity') {
+      actions.updateEdgeField(edge.id, { connectionType: next, length: edge.length ?? 0.1 });
+    } else {
+      actions.updateEdgeField(edge.id, { connectionType: next });
+    }
+  };
+
+  return (
+    <div style={{ display: 'grid', gap: '8px' }}>
+      {pairCount > 1 && (
+        <button
+          type="button"
+          className="compact-button"
+          style={{ justifySelf: 'start', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+          onClick={() => actions.setSelected({ type: 'edgePair', id: pairId })}
+        >
+          <ArrowLeft size={12} />
+          {t('backToPairList')} ({pairCount})
+        </button>
+      )}
+
+      <div className="field-row">
+        <label>
+          {t('from')}
+          <input type="text" value={edge.from} disabled />
+        </label>
+
+        <label>
+          {t('to')}
+          <input type="text" value={edge.to} disabled />
+        </label>
+      </div>
+
+      <label>
+        {t('connectionPurpose')}
+        <select
+          value={edge.connectionType}
+          onChange={(e) => handleTypeChange(e.target.value as ConnectionType)}
+        >
+          {CONNECTION_TYPES.map((type) => (
+            <option key={type} value={type}>{t(`connType${type}`)}</option>
+          ))}
+        </select>
+      </label>
+      <p className="field-note" style={{ marginTop: 0 }}>{t(`connTypeHelp${edge.connectionType}`)}</p>
+
+      {!isProximity ? (
+        <div style={{ display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginTop: '4px' }}>
+          <label>
+            <span>{t('passGuard')}<ValueBadge kind="guardStrength" value={edge.guardValue} /></span>
+            <NumberField
+              min={0}
+              step={5000}
+              value={edge.guardValue}
+              onCommit={(v) => actions.updateEdgeField(edge.id, { guardValue: v })}
+            />
+          </label>
+
+          {isExpert && (
+          <>
+          {/* guardRandomization is deliberately not offered here: the field
+              exists on zones and main objects, but the game's Connection
+              model ignores it (imported values still round-trip). */}
+          <label>
+            {t('guardWeeklyIncrement')}
+            <NumberField
+              min={0}
+              max={1}
+              step={0.05}
+              value={edge.guardWeeklyIncrement ?? 0}
+              onCommit={(v) => actions.updateEdgeField(edge.id, { guardWeeklyIncrement: v })}
+            />
+          </label>
+          <p className="field-note" style={{ marginTop: 0 }}>{t('guardTuningHelp')}</p>
+
+          <label className="toggle-line" style={{ margin: '0' }}>
+            <input
+              type="checkbox"
+              checked={edge.guardEscape ?? true}
+              onChange={(e) => actions.updateEdgeField(edge.id, { guardEscape: e.target.checked })}
+            />
+            <span>{t('guardEscape')}</span>
+          </label>
+          <p className="field-note" style={{ marginTop: 0 }}>{t('guardEscapeHelp')}</p>
+          </>
+          )}
+
+          {isExpert && (
+          <LazyDetails
+            className="inspector-subsection"
+            style={{
+              border: '1px solid var(--line)',
+              borderRadius: '6px',
+              background: 'var(--panel-2)',
+              overflow: 'hidden'
+            }}
+            summary={
+              <strong style={{ fontSize: '12px' }}>
+                {t('edgeAdvancedSection')}
+              </strong>
+            }
+            renderContent={() => {
+              const guardZone = edge.guardZone ?? '';
+              const guardZoneKnown = ['', 'Center', edge.from, edge.to].includes(guardZone);
+              const gatePlacement = edge.gatePlacement ?? '';
+              const gateKnown = ['', 'Center'].includes(gatePlacement);
+              const matchGroups = [...new Set(
+                edges.map((e) => e.guardMatchGroup).filter((g): g is string => Boolean(g))
+              )].sort();
+              return (
+                <div style={{ display: 'grid', gap: '8px', padding: '6px 8px 10px' }}>
+                  <label style={{ marginBottom: 0 }}>
+                    <span>{t('edgeGuardZone')}</span>
+                    <select
+                      value={guardZone}
+                      onChange={(e) => actions.updateEdgeField(edge.id, { guardZone: e.target.value || undefined })}
+                    >
+                      <option value="">{t('edgeGuardZoneAuto')}</option>
+                      <option value="Center">{t('edgeGuardZoneCenter')}</option>
+                      <option value={edge.from}>{t('edgeGuardZoneIn', { id: edge.from })}</option>
+                      <option value={edge.to}>{t('edgeGuardZoneIn', { id: edge.to })}</option>
+                      {!guardZoneKnown && <option value={guardZone}>{guardZone}</option>}
+                    </select>
+                  </label>
+                  <p className="field-note" style={{ margin: 0 }}>{t('edgeGuardZoneHelp')}</p>
+
+                  <label style={{ marginBottom: 0 }}>
+                    <span>{t('edgeGuardMatchGroup')}</span>
+                    <input
+                      type="text"
+                      list="edge-guard-match-groups"
+                      autoComplete="off"
+                      value={edge.guardMatchGroup ?? ''}
+                      onChange={(e) => actions.updateEdgeField(edge.id, { guardMatchGroup: e.target.value || undefined })}
+                      placeholder={t('edgeGuardMatchGroupPlaceholder')}
+                    />
+                    <datalist id="edge-guard-match-groups">
+                      {matchGroups.map((group) => <option key={group} value={group} />)}
+                    </datalist>
+                  </label>
+                  <p className="field-note" style={{ margin: 0 }}>{t('edgeGuardMatchGroupHelp')}</p>
+
+                  <label style={{ marginBottom: 0 }}>
+                    <span>{t('edgeGatePlacement')}</span>
+                    <select
+                      value={gatePlacement}
+                      onChange={(e) => actions.updateEdgeField(edge.id, { gatePlacement: e.target.value || undefined })}
+                    >
+                      <option value="">{t('edgeGatePlacementAuto')}</option>
+                      <option value="Center">{t('edgeGatePlacementCenter')}</option>
+                      {!gateKnown && <option value={gatePlacement}>{gatePlacement}</option>}
+                    </select>
+                  </label>
+                  <p className="field-note" style={{ margin: 0 }}>{t('edgeGatePlacementHelp')}</p>
+                </div>
+              );
+            }}
+          />
+          )}
+
+          <div className="control-label" style={{ marginTop: '4px' }}>
+            {t(isPortal ? 'connectionRoutePortal' : 'connectionRoute')}
+          </div>
+          <div className="segmented-control" role="group" aria-label={t(isPortal ? 'connectionRoutePortal' : 'connectionRoute')}>
+            <label>
+              <input
+                type="radio"
+                name="edge-route"
+                value="true"
+                checked={edge.road}
+                onChange={() => actions.updateEdgeField(edge.id, { road: true })}
+              />
+              <span>{t('routeRoad')}</span>
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="edge-route"
+                value="false"
+                checked={!edge.road}
+                onChange={() => actions.updateEdgeField(edge.id, { road: false })}
+              />
+              <span>{t('routePath')}</span>
+            </label>
+          </div>
+          <p className="field-note">{t(isPortal ? 'routeHelpPortal' : 'routeHelp')}</p>
+
+          {edge.road && (
+            <>
+              <label style={{ marginBottom: 0 }}>
+                <span>{t('roadTypeLabel')}</span>
+                <select
+                  value={edge.roadType ?? 'Stone'}
+                  onChange={(e) => actions.updateEdgeField(edge.id, { roadType: e.target.value === 'Dirt' ? 'Dirt' : 'Stone' })}
+                >
+                  <option value="Stone">{t('roadTypeStone')}</option>
+                  <option value="Dirt">{t('roadTypeDirt')}</option>
+                </select>
+              </label>
+              <p className="field-note" style={{ marginTop: 0 }}>{t('roadTypeHelp')}</p>
+            </>
+          )}
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginTop: '4px' }}>
+          <div className="control-label">{t('springBehavior')}</div>
+          <div style={{ display: 'grid', gap: '6px', padding: '4px 0' }}>
+            {[
+              { val: 0.1, key: 'springDistSnap' },
+              { val: 0.5, key: 'springDistClose' },
+              { val: 1.5, key: 'springDistMedium' },
+              { val: 4.0, key: 'springDistFar' },
+              { val: 6.0, key: 'springDistMax' }
+            ].map((item) => (
+              <label key={item.val} className="toggle-line" style={{ cursor: 'pointer', margin: 0 }}>
+                <input
+                  type="radio"
+                  name="proximity-length"
+                  value={item.val}
+                  checked={Math.abs((edge.length ?? 0.1) - item.val) < 0.01}
+                  onChange={() => actions.updateEdgeField(edge.id, { length: item.val })}
+                />
+                <span style={{ fontSize: '12px' }}>{t(item.key)}</span>
+              </label>
+            ))}
+          </div>
+          <p className="field-note">{t('springHelp')}</p>
+          <p className="field-note" style={{ color: 'var(--accent-2)' }}>{t('springWarning')}</p>
+        </div>
+      )}
+    </div>
+  );
+};
