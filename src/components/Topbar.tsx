@@ -6,7 +6,8 @@ import {
   createTemplateDocument,
   createVisualDesignDocument
 } from '../services/editorDocuments';
-import { downloadJsonDocument } from '../services/jsonDocument';
+import { downloadBlob, downloadJsonDocument } from '../services/jsonDocument';
+import { renderTemplatePreview, previewFilename } from '../services/mapPreview';
 import { collectVariants } from '../store/variants';
 import type { DesignVariant } from '../services/editorDocuments';
 import { TopologyWizard } from './TopologyWizard';
@@ -21,7 +22,7 @@ import {
   pickGameFolder,
   writeFileToFolder
 } from '../services/gameFolder';
-import { Upload, Download, FileJson, Languages, Sun, Moon, Wand2, LayoutTemplate, Coffee } from 'lucide-react';
+import { Upload, Download, FileJson, Image, Languages, Sun, Moon, Wand2, LayoutTemplate, Coffee } from 'lucide-react';
 import { DONATION_URL } from '../constants/donations';
 
 export const Topbar: React.FC = () => {
@@ -147,18 +148,15 @@ export const Topbar: React.FC = () => {
    * the file straight into map_templates, otherwise it downloads as before.
    * Shift+click picks/changes the folder, Ctrl+click forces a download.
    */
-  const handleExportTemplate = async (event: React.MouseEvent) => {
-    const templateDocument = createTemplateDocument({
-      settings,
-      zones,
-      edges,
-      objectLibrary,
-      artifactLists,
-      presets,
-      customObjectLists,
-      extraVariants: collectDesignVariants().filter((variant) => variant.id !== activeVariantId)
-    });
-
+  // Shared write-to-game-folder-or-download flow used by both the .rmg.json
+  // and the PNG-preview export, so they behave identically (Shift = pick
+  // folder, Ctrl = force download, overwrite confirmation, fallback download).
+  const saveToGameOrDownload = async (
+    event: React.MouseEvent,
+    fileName: string,
+    content: string | Blob,
+    download: () => void
+  ): Promise<void> => {
     const forceDownload = event.ctrlKey;
     const forcePick = event.shiftKey;
 
@@ -185,7 +183,6 @@ export const Topbar: React.FC = () => {
 
       if (folder) {
         try {
-          const fileName = templateDocument.filename;
           if (
             !confirmedOverwritesRef.current.has(fileName) &&
             (await fileExistsInFolder(folder, fileName)) &&
@@ -194,7 +191,7 @@ export const Topbar: React.FC = () => {
             return;
           }
           confirmedOverwritesRef.current.add(fileName);
-          await writeFileToFolder(folder, fileName, templateDocument.json);
+          await writeFileToFolder(folder, fileName, content);
           actions.addNotification('notificationSavedToGame', { name: fileName }, 'success');
           return;
         } catch {
@@ -208,7 +205,37 @@ export const Topbar: React.FC = () => {
       actions.addNotification('notificationFsUnsupported', {}, 'error');
     }
 
-    downloadJsonDocument(templateDocument);
+    download();
+  };
+
+  const handleExportTemplate = async (event: React.MouseEvent) => {
+    const templateDocument = createTemplateDocument({
+      settings,
+      zones,
+      edges,
+      objectLibrary,
+      artifactLists,
+      presets,
+      customObjectLists,
+      extraVariants: collectDesignVariants().filter((variant) => variant.id !== activeVariantId)
+    });
+    await saveToGameOrDownload(
+      event,
+      templateDocument.filename,
+      templateDocument.json,
+      () => downloadJsonDocument(templateDocument)
+    );
+  };
+
+  const handleExportPng = async (event: React.MouseEvent) => {
+    if (!zones.length) {
+      actions.addNotification('notificationPngNoZones', {}, 'info');
+      return;
+    }
+    // Render the active variant's graph in the game's parchment style.
+    const blob = await renderTemplatePreview(zones, edges);
+    const fileName = previewFilename(settings.name);
+    await saveToGameOrDownload(event, fileName, blob, () => downloadBlob(blob, fileName));
   };
 
   return (
@@ -277,6 +304,15 @@ export const Topbar: React.FC = () => {
         >
           <FileJson size={14} />
           {t('exportTemplate')}
+        </button>
+        <button
+          id="exportPngBtn"
+          type="button"
+          className="icon-button"
+          onClick={(e) => { void handleExportPng(e); }}
+          title={t('exportPngTitle')}
+        >
+          <Image size={14} />
         </button>
 
         <div className="ui-mode-toggle" role="group" aria-label={t('uiModeLabel')}>

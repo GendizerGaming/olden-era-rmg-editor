@@ -32,18 +32,21 @@ export function createJsonDocument<T>(filename: string, value: T): JsonDocument<
   };
 }
 
-export function downloadJsonDocument<T>(jsonDocument: JsonDocument<T>): void {
-  const blob = new Blob([jsonDocument.json], { type: "application/json" });
+export function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
 
   try {
     anchor.href = url;
-    anchor.download = jsonDocument.filename;
+    anchor.download = filename;
     document.body.appendChild(anchor);
     anchor.click();
   } finally {
     anchor.remove();
     URL.revokeObjectURL(url);
   }
+}
+
+export function downloadJsonDocument<T>(jsonDocument: JsonDocument<T>): void {
+  downloadBlob(new Blob([jsonDocument.json], { type: "application/json" }), jsonDocument.filename);
 }
