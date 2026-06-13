@@ -83,6 +83,8 @@
   "exportDesignTitle": "Save the editor design with all coordinates and presets to a file (.visual-design.json)",
   "exportTemplate": "Export .rmg.json",
   "exportTemplateTitle": "Export the game-ready .rmg.json. With the map_templates folder picked it writes straight into the game, otherwise it downloads. Shift+click picks/changes the game folder (Chrome/Edge), Ctrl+click forces a download.",
+  "exportPngTitle": "Export a PNG preview (game style) next to the template, so it shows in the game's template list. Same as the export button: writes into the game folder if picked, otherwise downloads. Shift+click picks the folder, Ctrl+click forces a download.",
+  "notificationPngNoZones": "Add at least one zone before exporting a preview.",
   "languageTitle": "Switch language",
   "donateTitle": "Support the development",
   "themeLight": "Light",

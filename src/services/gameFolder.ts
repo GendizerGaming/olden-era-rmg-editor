@@ -17,7 +17,7 @@ interface DirectoryHandle {
 
 interface FileHandle {
   createWritable(): Promise<{
-    write(data: string): Promise<void>;
+    write(data: string | Blob): Promise<void>;
     close(): Promise<void>;
   }>;
 }
@@ -131,7 +131,7 @@ export async function fileExistsInFolder(handle: DirectoryHandle, name: string):
   }
 }
 
-export async function writeFileToFolder(handle: DirectoryHandle, name: string, content: string): Promise<void> {
+export async function writeFileToFolder(handle: DirectoryHandle, name: string, content: string | Blob): Promise<void> {
   const file = await handle.getFileHandle(name, { create: true });
   const writable = await file.createWritable();
   await writable.write(content);
