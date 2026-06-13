@@ -1,0 +1,24 @@
+name: CI
+
+# Runs on every PR to main and on pushes to main. Branch protection can
+# require this check to pass before a PR is merged, so broken code can't reach
+# main (and therefore can't be deployed).
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - run: npm run lint
