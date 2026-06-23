@@ -669,6 +669,18 @@ input.weight-field::-webkit-inner-spin-button {
   vertical-align: middle;
 }
 
+/* Status pill shown when a win-condition preset's flags were customised. */
+.preset-modified-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
 .list-contents {
   margin-top: 8px;
   border-top: 1px solid var(--line);

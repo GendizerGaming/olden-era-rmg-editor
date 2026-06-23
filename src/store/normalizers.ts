@@ -6,6 +6,7 @@ import { uniqueKey } from './ids';
 import { uniqueZoneId, zoneIdPrefix } from './zones';
 import { defaultPresets } from './presets';
 import { distancePresets, zoneTypes, biomeIds, defaultTemplateDescription, defaultTerrainProfiles, defaultContentLimitPresets } from './constants';
+import { primaryVictoryMode } from './winConditions';
 
 const normalizeTerrainProfiles = (value: unknown): TerrainProfile[] => {
   if (!Array.isArray(value)) return defaultTerrainProfiles();
@@ -481,6 +482,30 @@ const normalizeStartingBonuses = (value: unknown): StartingBonus[] =>
     : [];
 
 export const normalizeSettings = (settings: Partial<MapSettings>): MapSettings => {
+    // Win conditions are independent flags (the source of truth). Migrate legacy
+    // designs that only stored a single victoryMode (no lostStartCity/cityHold
+    // flag fields) into the flag set; gladiator/tournament already had their own
+    // fields. victoryMode itself is then derived from the flags.
+    const legacyVictory = settings.lostStartCityEnabled === undefined
+      && settings.cityHoldEnabled === undefined
+      && settings.classicEnabled === undefined;
+    const legacyMode = legacyVictory ? settings.victoryMode : undefined;
+    const legacyDays = Math.max(1, Number((settings as { victoryDays?: number }).victoryDays) || 3);
+
+    const classicEnabled = legacyVictory ? true : settings.classicEnabled !== false;
+    const lostStartCityEnabled = legacyVictory
+      ? (legacyMode === 'capitalCapture' || legacyMode === 'capitalHold')
+      : Boolean(settings.lostStartCityEnabled);
+    const lostStartCityDay = legacyVictory
+      ? (legacyMode === 'capitalCapture' ? 0 : legacyMode === 'capitalHold' ? legacyDays : 0)
+      : Math.max(0, Number(settings.lostStartCityDay) || 0);
+    const cityHoldEnabled = legacyVictory ? legacyMode === 'cityHold' : Boolean(settings.cityHoldEnabled);
+    const cityHoldDays = legacyVictory && legacyMode === 'cityHold'
+      ? legacyDays
+      : Math.max(1, Number(settings.cityHoldDays) || 6);
+    const gladiatorArenaEnabled = Boolean(settings.gladiatorArenaEnabled);
+    const tournamentEnabled = Boolean(settings.tournamentEnabled);
+
     return {
       name: settings.name || "Custom RMG Template",
       description: typeof settings.description === "string" ? settings.description : defaultTemplateDescription,
@@ -488,9 +513,18 @@ export const normalizeSettings = (settings: Partial<MapSettings>): MapSettings =
       sizeZ: settings.sizeZ || 128,
       // The game supports 2..8 players
       players: Math.min(8, Math.max(2, Number(settings.players) || 2)),
-      victoryMode: ["classic", "capitalCapture", "capitalHold", "cityHold", "gladiatorArena", "tournament"].includes(settings.victoryMode || '') ? settings.victoryMode! : "classic",
+      victoryMode: primaryVictoryMode({
+        tournamentEnabled, gladiatorArenaEnabled, cityHoldEnabled, lostStartCityEnabled, lostStartCityDay
+      }),
+      displayWinCondition: typeof settings.displayWinCondition === 'string' && settings.displayWinCondition
+        ? settings.displayWinCondition
+        : "win_condition_1",
+      classicEnabled,
+      lostStartCityEnabled,
+      lostStartCityDay,
+      cityHoldEnabled,
+      cityHoldDays,
       victoryCityZoneId: settings.victoryCityZoneId || "",
-      victoryDays: Math.max(1, Number(settings.victoryDays) || 3),
       singleHero: Boolean(settings.singleHero),
       desertionEnabled: settings.desertionEnabled !== false,
       desertionDay: Math.max(1, Number(settings.desertionDay) || 3),
@@ -531,7 +565,9 @@ export const normalizeSettings = (settings: Partial<MapSettings>): MapSettings =
         : [],
       language: settings.language || "ru",
       gladiatorArenaEnabled: Boolean(settings.gladiatorArenaEnabled),
-      gladiatorArenaDaysDelayStart: Math.max(1, Number(settings.gladiatorArenaDaysDelayStart) || 30),
+      // 0 is a valid "start immediately" value (e.g. the Battle-for-Capital
+      // preset), so don't treat it as missing or clamp it up to 1.
+      gladiatorArenaDaysDelayStart: Math.max(0, Number.isFinite(Number(settings.gladiatorArenaDaysDelayStart)) ? Number(settings.gladiatorArenaDaysDelayStart) : 30),
       gladiatorArenaCountDay: Math.max(1, Number(settings.gladiatorArenaCountDay) || 3),
       gladiatorArenaRegistrationStartFight: settings.gladiatorArenaRegistrationStartFight !== false,
       gladiatorArenaChampionRule: typeof settings.gladiatorArenaChampionRule === 'string' ? settings.gladiatorArenaChampionRule : 'StartHero',

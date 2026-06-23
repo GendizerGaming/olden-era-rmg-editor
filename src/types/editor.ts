@@ -341,9 +341,25 @@ export interface MapSettings {
   sizeX: number;
   sizeZ: number;
   players: number;
+  /** Derived single-select for the simple-mode UI (the normalizer always
+   *  recomputes it from the win-condition flags below; nothing writes it
+   *  directly). The flags are the source of truth. */
   victoryMode: VictoryMode;
+  /** Cosmetic label shown in the game's template picker (win_condition_1..6).
+   *  Independent of the actual win-condition flags. */
+  displayWinCondition: string;
+  /** Classic win: defeat all enemy heroes and capture every enemy city. */
+  classicEnabled: boolean;
+  /** Lose if your starting city is held by an enemy for lostStartCityDay days
+   *  (0 = immediately, i.e. "capital capture"). */
+  lostStartCityEnabled: boolean;
+  lostStartCityDay: number;
+  /** Win by holding a chosen city for cityHoldDays days. */
+  cityHoldEnabled: boolean;
+  cityHoldDays: number;
+  /** The city zone to hold (for cityHold). */
   victoryCityZoneId: string;
-  victoryDays: number;
+  /** Lose if your starting hero is lost (game's lostStartHero flag). */
   singleHero: boolean;
   desertionEnabled: boolean;
   desertionDay: number;

@@ -432,7 +432,7 @@ function toRmgZone(zone: Zone, edges: Edge[], presets: Record<string, Preset>, s
   }
   
   const rmgMainObjects = (zone.mainObjects || []).map((obj) => {
-    const isVictoryCity = settings.victoryMode === "cityHold" && zone.id === settings.victoryCityZoneId && obj.holdCityWinCon;
+    const isVictoryCity = settings.cityHoldEnabled && zone.id === settings.victoryCityZoneId && obj.holdCityWinCon;
     
     // Merge with rawFields to preserve unrecognized keys
     const baseObj: RmgMainObject = {
@@ -587,60 +587,49 @@ export function generateTemplate(
   const heroMin = settings.heroLimitMode === "fixed" ? max : Math.max(1, Number(settings.heroMin) || 1);
   const heroIncrement = settings.heroLimitMode === "fixed" ? 0 : Math.max(0, Number(settings.heroIncrement) || 0);
 
-  // Victory mode
-  const mode = settings.victoryMode;
-  const holdDays = Math.max(1, Number(settings.victoryDays) || 3);
-  const displayWinCondition = {
-    classic: "win_condition_1",
-    capitalCapture: "win_condition_2",
-    capitalHold: "win_condition_3",
-    gladiatorArena: "win_condition_4",
-    cityHold: "win_condition_5",
-    tournament: "win_condition_6"
-  }[mode] || "win_condition_1";
-  
-  // Merge win conditions to preserve classic: true
-  const winConditions: RmgWinConditions = {
-    ...(settings.originalWinConditions || {}),
-    classic: mode === "classic" || (settings.originalWinConditions?.classic ?? false),
-    desertion: Boolean(settings.desertionEnabled),
-    desertionDay: Number(settings.desertionDay) || 3,
-    desertionValue: Number(settings.desertionValue) || 3000,
-    heroLighting: Boolean(settings.heroLightingEnabled),
-    heroLightingDay: Number(settings.heroLightingDay) || 1,
-    lostStartCity: mode === "capitalCapture" || mode === "capitalHold",
-    lostStartHero: Boolean(settings.singleHero)
+  // Victory: win conditions are emitted from the independent flags (the source
+  // of truth — the engine reads these). The display label is its own field.
+  const displayWinCondition = settings.displayWinCondition || "win_condition_1";
+
+  const winConditions: RmgWinConditions = { ...(settings.originalWinConditions || {}) };
+  const hadOriginal = (key: string) =>
+    Boolean(settings.originalWinConditions && Object.hasOwn(settings.originalWinConditions, key));
+
+  // Flags that default ON in the engine (classic/desertion/heroLighting) must
+  // be written explicitly even when off, otherwise the engine re-enables them.
+  winConditions.classic = Boolean(settings.classicEnabled);
+  winConditions.desertion = Boolean(settings.desertionEnabled);
+  winConditions.heroLighting = Boolean(settings.heroLightingEnabled);
+
+  // Flags that default OFF are written only when on, or when the imported
+  // template carried them (so an explicit `false` round-trips); a false flag
+  // the original never had is dropped rather than invented.
+  const setOffFlag = (key: string, value: boolean) => {
+    if (value || hadOriginal(key)) winConditions[key] = value;
+    else delete winConditions[key];
   };
+  setOffFlag('lostStartCity', Boolean(settings.lostStartCityEnabled));
+  setOffFlag('cityHold', Boolean(settings.cityHoldEnabled));
+  setOffFlag('lostStartHero', Boolean(settings.singleHero));
 
-  // lostStartCityDay handling
-  if (winConditions.lostStartCity) {
-    winConditions.lostStartCityDay = mode === "capitalCapture" ? 0 : holdDays;
-  } else {
-    if (settings.originalWinConditions && Object.hasOwn(settings.originalWinConditions, 'lostStartCityDay')) {
-      winConditions.lostStartCityDay = settings.originalWinConditions.lostStartCityDay;
-    } else {
-      delete winConditions.lostStartCityDay;
-    }
-  }
-
-  // cityHold handling
-  winConditions.cityHold = mode === "cityHold";
-  if (winConditions.cityHold) {
-    winConditions.cityHoldDays = holdDays;
-  } else {
-    if (settings.originalWinConditions && Object.hasOwn(settings.originalWinConditions, 'cityHoldDays')) {
-      winConditions.cityHoldDays = settings.originalWinConditions.cityHoldDays;
-    } else {
-      delete winConditions.cityHoldDays;
-    }
-    if (!settings.originalWinConditions || !Object.hasOwn(settings.originalWinConditions, 'cityHold')) {
-      delete winConditions.cityHold;
-    }
-  }
-
-  if (!settings.singleHero && (!settings.originalWinConditions || !Object.hasOwn(settings.originalWinConditions, 'lostStartHero'))) {
-    delete winConditions.lostStartHero;
-  }
+  // A day/value parameter is written while its parent flag is on. When the flag
+  // is off we keep whatever the imported template carried (some official
+  // templates leave a dead day with the flag off) and only drop params that
+  // were never there. `omitAtDefault` lets a parameter that equals its engine
+  // default stay absent when the original didn't carry it — e.g. official
+  // immediate-capture templates ship `lostStartCity` with no `lostStartCityDay`
+  // (day 0), and we must not invent the key.
+  const setParam = (key: string, on: boolean, value: number, omitAtDefault?: number) => {
+    if (on) {
+      if (omitAtDefault !== undefined && value === omitAtDefault && !hadOriginal(key)) delete winConditions[key];
+      else winConditions[key] = value;
+    } else if (!hadOriginal(key)) delete winConditions[key];
+  };
+  setParam('desertionDay', Boolean(settings.desertionEnabled), Number(settings.desertionDay));
+  setParam('desertionValue', Boolean(settings.desertionEnabled), Number(settings.desertionValue));
+  setParam('heroLightingDay', Boolean(settings.heroLightingEnabled), Number(settings.heroLightingDay));
+  setParam('lostStartCityDay', Boolean(settings.lostStartCityEnabled), Number(settings.lostStartCityDay), 0);
+  setParam('cityHoldDays', Boolean(settings.cityHoldEnabled), Number(settings.cityHoldDays));
 
   // Gladiator Arena
   const hasGladiatorArena = settings.gladiatorArenaEnabled || Boolean(

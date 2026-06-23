@@ -12,6 +12,7 @@ import type {
   RmgZone
 } from '../types/rmg';
 import { uniqueKey, distancePresets } from '../store/useEditorStore';
+import { primaryVictoryMode } from '../store/winConditions';
 
 function pickUnknownFields(
   source: JsonObject,
@@ -286,7 +287,12 @@ export function importTemplateFromJson(
     sizeX: Number(template.sizeX) || 128,
     sizeZ: Number(template.sizeZ) || 128,
     victoryMode: "classic",
-    victoryDays: 3,
+    displayWinCondition: typeof template.displayWinCondition === 'string' ? template.displayWinCondition : "win_condition_1",
+    classicEnabled: true,
+    lostStartCityEnabled: false,
+    lostStartCityDay: 0,
+    cityHoldEnabled: false,
+    cityHoldDays: 6,
     singleHero: false,
     desertionEnabled: false,
     desertionDay: 3,
@@ -346,63 +352,45 @@ export function importTemplateFromJson(
 
     if (rules.winConditions) {
       const wc = rules.winConditions;
+      // Read each win-condition flag independently — they are the source of
+      // truth (the engine reads the flags; displayWinCondition is just the
+      // label). victoryMode is derived from these by the normalizer.
+      settings.classicEnabled = wc.classic !== false;
+      settings.lostStartCityEnabled = Boolean(wc.lostStartCity);
+      settings.lostStartCityDay = Number(wc.lostStartCityDay) || 0;
+      settings.cityHoldEnabled = Boolean(wc.cityHold);
+      settings.cityHoldDays = Number(wc.cityHoldDays) || 6;
       settings.singleHero = Boolean(wc.lostStartHero);
-      settings.desertionEnabled = Boolean(wc.desertion);
+      // classic/desertion/heroLighting default to TRUE in the engine
+      // (WinConditions.cs) — absent means on, so only an explicit false disables.
+      settings.desertionEnabled = wc.desertion !== false;
       settings.desertionDay = Number(wc.desertionDay) || 3;
       settings.desertionValue = Number(wc.desertionValue) || 3000;
-      settings.heroLightingEnabled = Boolean(wc.heroLighting);
+      settings.heroLightingEnabled = wc.heroLighting !== false;
       settings.heroLightingDay = Number(wc.heroLightingDay) || 1;
 
-      // Determine victoryMode
-      const displayMode = template.displayWinCondition;
-      if (displayMode === "win_condition_1") {
-        settings.victoryMode = "classic";
-      } else if (displayMode === "win_condition_2") {
-        settings.victoryMode = "capitalCapture";
-      } else if (displayMode === "win_condition_3") {
-        settings.victoryMode = "capitalHold";
-        settings.victoryDays = Number(wc.lostStartCityDay) || 3;
-      } else if (displayMode === "win_condition_4") {
-        settings.victoryMode = "gladiatorArena";
-      } else if (displayMode === "win_condition_5") {
-        settings.victoryMode = "cityHold";
-        settings.victoryDays = Number(wc.cityHoldDays) || 6;
-      } else if (displayMode === "win_condition_6") {
-        settings.victoryMode = "tournament";
-      } else {
-        // fallback to parsing winConditions
-        if (wc.tournament) {
-          settings.victoryMode = "tournament";
-        } else if (wc.gladiatorArena) {
-          settings.victoryMode = "gladiatorArena";
-        } else if (wc.cityHold) {
-          settings.victoryMode = "cityHold";
-          settings.victoryDays = Number(wc.cityHoldDays) || 6;
-        } else if (wc.lostStartCity) {
-          if (wc.lostStartCityDay === 0) {
-            settings.victoryMode = "capitalCapture";
-          } else {
-            settings.victoryMode = "capitalHold";
-            settings.victoryDays = Number(wc.lostStartCityDay) || 3;
-          }
-        } else {
-          settings.victoryMode = "classic";
-        }
-      }
-
-      // Gladiator Arena Import
-      settings.gladiatorArenaEnabled = settings.victoryMode === "gladiatorArena";
+      // Gladiator Arena
+      settings.gladiatorArenaEnabled = Boolean(wc.gladiatorArena);
       settings.gladiatorArenaDaysDelayStart = Number(wc.gladiatorArenaDaysDelayStart) || 30;
       settings.gladiatorArenaCountDay = Number(wc.gladiatorArenaCountDay) || 3;
       settings.gladiatorArenaRegistrationStartFight = wc.gladiatorArenaRegistrationStartFight !== false;
       settings.gladiatorArenaChampionRule = wc.championSelectRule || 'StartHero';
 
-      // Tournament Import
-      settings.tournamentEnabled = settings.victoryMode === "tournament";
+      // Tournament
+      settings.tournamentEnabled = Boolean(wc.tournament);
       settings.tournamentPointsToWin = Number(wc.tournamentPointsToWin) || 2;
       settings.tournamentSaveArmy = wc.tournamentSaveArmy !== false;
       settings.tournamentDays = Array.isArray(wc.tournamentDays) ? wc.tournamentDays.map(Number) : [3, 3, 3];
       settings.tournamentAnnounceDays = Array.isArray(wc.tournamentAnnounceDays) ? wc.tournamentAnnounceDays.map(Number) : [7, 14, 21];
+
+      // The simple-mode selector is derived from the flags above.
+      settings.victoryMode = primaryVictoryMode({
+        tournamentEnabled: Boolean(settings.tournamentEnabled),
+        gladiatorArenaEnabled: Boolean(settings.gladiatorArenaEnabled),
+        cityHoldEnabled: Boolean(settings.cityHoldEnabled),
+        lostStartCityEnabled: Boolean(settings.lostStartCityEnabled),
+        lostStartCityDay: Number(settings.lostStartCityDay) || 0
+      });
     }
   }
 
