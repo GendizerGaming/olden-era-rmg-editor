@@ -967,11 +967,21 @@ export function importTemplateFromJson(
       }
     });
   });
+  // When a template ties roads to connections (any connection is referenced by
+  // a zone.roads segment), those segments are the source of truth for whether a
+  // connection actually has a road — the connection's own `road` flag is a
+  // legacy/ignored field that official templates often leave unset on every
+  // connection (e.g. OctoJebus: 5 parallel passages per spoke, only one paved).
+  // Only templates that don't tie roads to connections fall back to the flag.
+  const connectionRoadsUsed = roadTypesByConnection.size > 0;
   edges.forEach((edge) => {
     const types = roadTypesByConnection.get(edge.id);
     if (types?.size === 1) {
       const only = [...types][0];
       if (only === 'Stone' || only === 'Dirt') edge.roadType = only;
+    }
+    if (connectionRoadsUsed && edge.connectionType !== 'Proximity') {
+      edge.road = roadTypesByConnection.has(edge.id);
     }
   });
 
