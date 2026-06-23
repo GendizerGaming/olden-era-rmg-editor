@@ -1,5 +1,6 @@
 import type { MapSettings } from '../types/editor';
 import type { TopologyOptions } from '../services/topologyGenerator';
+import { applyPreset } from './winConditions';
 
 export interface TemplateRecipeTopology extends TopologyOptions {
   spawnPresetId: string;
@@ -41,10 +42,8 @@ const tierPresets = {
  * inherit whatever mode the previous map had.
  */
 const classicSettings: Partial<MapSettings> = {
-  victoryMode: 'classic',
-  singleHeroMode: false,
-  gladiatorArenaEnabled: false,
-  tournamentEnabled: false
+  ...applyPreset('win_condition_1'),
+  singleHeroMode: false
 };
 
 const duelTopology: TemplateRecipeTopology = {
@@ -164,8 +163,7 @@ export const TEMPLATE_RECIPES: TemplateRecipe[] = [
     extraCitiesPerPlayer: 1,
     topology: duelTopology,
     settings: {
-      ...classicSettings, sizeX: 112, sizeZ: 112,
-      victoryMode: 'tournament', tournamentEnabled: true
+      ...classicSettings, ...applyPreset('win_condition_6'), sizeX: 112, sizeZ: 112
     }
   },
   // ——— Multiplayer ———
@@ -221,8 +219,7 @@ export const TEMPLATE_RECIPES: TemplateRecipe[] = [
       centerZone: true, isolatePlayers: true, ...tierPresets
     },
     settings: {
-      ...classicSettings, sizeX: 144, sizeZ: 144,
-      victoryMode: 'gladiatorArena', gladiatorArenaEnabled: true
+      ...classicSettings, ...applyPreset('win_condition_4'), sizeX: 144, sizeZ: 144
     },
     arenaInCenter: true
   }

@@ -1,4 +1,4 @@
-import { BIOME_MODES, CITY_FACTION_MODES, HERO_LIMIT_MODES, PRESET_BASE_TYPES, VICTORY_MODES } from '../../types/editor';
+import { BIOME_MODES, CITY_FACTION_MODES, HERO_LIMIT_MODES, PRESET_BASE_TYPES } from '../../types/editor';
 import type { BiomeMode, CityFactionMode, MapSettings, Preset } from '../../types/editor';
 
 export function isPresetBaseType(value: string): value is Preset['baseType'] {
@@ -11,10 +11,6 @@ export function isBiomeMode(value: string): value is BiomeMode {
 
 export function isCityFactionMode(value: string): value is CityFactionMode {
   return (CITY_FACTION_MODES as readonly string[]).includes(value);
-}
-
-export function isVictoryMode(value: string): value is MapSettings['victoryMode'] {
-  return (VICTORY_MODES as readonly string[]).includes(value);
 }
 
 export function isHeroLimitMode(value: string): value is MapSettings['heroLimitMode'] {

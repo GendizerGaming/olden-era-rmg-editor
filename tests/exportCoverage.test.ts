@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { generateTemplate } from "../src/services/jsonGenerator.ts";
 import { initialSettings } from "../src/store/constants.ts";
+import { applyPreset } from "../src/store/winConditions.ts";
 import { defaultPresets, makeZone } from "../src/store/useEditorStore.ts";
 import type { Edge, MapSettings, Zone, ZoneObject } from "../src/types/editor.ts";
 
@@ -83,39 +84,72 @@ describe("export coverage: map settings", () => {
     expect(gen(makeSettings({ singleHero: false })).gameRules.winConditions).not.toHaveProperty("lostStartHero");
   });
 
-  it("all six victory modes set displayWinCondition and the right flags", () => {
-    const classic = gen(makeSettings({ victoryMode: "classic" }));
+  it("each victory preset sets displayWinCondition and the right flags", () => {
+    const classic = gen(makeSettings(applyPreset("win_condition_1")));
     expect(classic.displayWinCondition).toBe("win_condition_1");
     expect(classic.gameRules.winConditions.classic).toBe(true);
 
-    const capture = gen(makeSettings({ victoryMode: "capitalCapture" }));
+    const capture = gen(makeSettings(applyPreset("win_condition_2")));
     expect(capture.displayWinCondition).toBe("win_condition_2");
     expect(capture.gameRules.winConditions.lostStartCity).toBe(true);
-    expect(capture.gameRules.winConditions.lostStartCityDay).toBe(0);
+    expect(capture.gameRules.winConditions.lostStartCityDay).toBe(1);
 
-    const hold = gen(makeSettings({ victoryMode: "capitalHold", victoryDays: 4 }));
+    const hold = gen(makeSettings({ ...applyPreset("win_condition_3"), lostStartCityDay: 4 }));
     expect(hold.displayWinCondition).toBe("win_condition_3");
     expect(hold.gameRules.winConditions.lostStartCity).toBe(true);
     expect(hold.gameRules.winConditions.lostStartCityDay).toBe(4);
 
-    const arena = gen(makeSettings({ victoryMode: "gladiatorArena", gladiatorArenaEnabled: true }));
+    const arena = gen(makeSettings(applyPreset("win_condition_4")));
     expect(arena.displayWinCondition).toBe("win_condition_4");
     expect(arena.gameRules.winConditions.gladiatorArena).toBe(true);
 
-    const cityHold = gen(makeSettings({ victoryMode: "cityHold", victoryDays: 6, victoryCityZoneId: "B" }));
+    const cityHold = gen(makeSettings({ ...applyPreset("win_condition_5"), cityHoldDays: 6, victoryCityZoneId: "B" }));
     expect(cityHold.displayWinCondition).toBe("win_condition_5");
     expect(cityHold.gameRules.winConditions.cityHold).toBe(true);
     expect(cityHold.gameRules.winConditions.cityHoldDays).toBe(6);
 
-    const tournament = gen(makeSettings({ victoryMode: "tournament", tournamentEnabled: true }));
+    const tournament = gen(makeSettings(applyPreset("win_condition_6")));
     expect(tournament.displayWinCondition).toBe("win_condition_6");
     expect(tournament.gameRules.winConditions.tournament).toBe(true);
   });
 
+  it("classic plus a hold-city loss is expressible at once (the OctoJebus case)", () => {
+    // classic win + lose-if-start-city-lost, with a plain 'classic' label.
+    const out = gen(makeSettings({
+      classicEnabled: true,
+      lostStartCityEnabled: true,
+      lostStartCityDay: 3,
+      displayWinCondition: "win_condition_1"
+    }));
+    expect(out.displayWinCondition).toBe("win_condition_1");
+    expect(out.gameRules.winConditions.classic).toBe(true);
+    expect(out.gameRules.winConditions.lostStartCity).toBe(true);
+    expect(out.gameRules.winConditions.lostStartCityDay).toBe(3);
+  });
+
+  it("preserves immediate-capture shape: lostStartCity without a day", () => {
+    // Official templates ship lostStartCity with no lostStartCityDay (day 0).
+    // We must not invent the key.
+    const immediate = gen(makeSettings({ lostStartCityEnabled: true, lostStartCityDay: 0 }));
+    expect(immediate.gameRules.winConditions.lostStartCity).toBe(true);
+    expect(immediate.gameRules.winConditions).not.toHaveProperty("lostStartCityDay");
+
+    // A non-default day is written.
+    const held = gen(makeSettings({ lostStartCityEnabled: true, lostStartCityDay: 2 }));
+    expect(held.gameRules.winConditions.lostStartCityDay).toBe(2);
+
+    // A day the original explicitly carried (even 0) is preserved.
+    const original = gen(makeSettings({
+      lostStartCityEnabled: true,
+      lostStartCityDay: 0,
+      originalWinConditions: { lostStartCity: true, lostStartCityDay: 0 }
+    } as Partial<MapSettings>));
+    expect(original.gameRules.winConditions.lostStartCityDay).toBe(0);
+  });
+
   it("gladiator arena parameters", () => {
     const out = gen(makeSettings({
-      victoryMode: "gladiatorArena",
-      gladiatorArenaEnabled: true,
+      ...applyPreset("win_condition_4"),
       gladiatorArenaDaysDelayStart: 10,
       gladiatorArenaCountDay: 4,
       gladiatorArenaRegistrationStartFight: false,
@@ -130,8 +164,7 @@ describe("export coverage: map settings", () => {
 
   it("tournament parameters", () => {
     const out = gen(makeSettings({
-      victoryMode: "tournament",
-      tournamentEnabled: true,
+      ...applyPreset("win_condition_6"),
       tournamentPointsToWin: 3,
       tournamentSaveArmy: false,
       tournamentDays: [2, 2],
@@ -146,7 +179,7 @@ describe("export coverage: map settings", () => {
   });
 
   it("non-victory templates emit none of the optional condition fields", () => {
-    const wc = gen(makeSettings({ victoryMode: "classic" })).gameRules.winConditions;
+    const wc = gen(makeSettings(applyPreset("win_condition_1"))).gameRules.winConditions;
     for (const key of ["cityHold", "cityHoldDays", "gladiatorArena", "tournament", "championSelectRule", "lostStartCityDay"]) {
       expect(wc).not.toHaveProperty(key);
     }

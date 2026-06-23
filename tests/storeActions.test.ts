@@ -123,7 +123,8 @@ describe("connection actions", () => {
 
 describe("settings, undo and presets", () => {
   it("updateSettings changes map settings", () => {
-    actions().updateSettings({ name: "Renamed", sizeX: 160, victoryMode: "cityHold" });
+    // victoryMode is derived from the win-condition flags by the normalizer.
+    actions().updateSettings({ name: "Renamed", sizeX: 160, cityHoldEnabled: true });
     expect(state().settings.name).toBe("Renamed");
     expect(state().settings.sizeX).toBe(160);
     expect(state().settings.victoryMode).toBe("cityHold");

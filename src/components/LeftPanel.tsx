@@ -15,7 +15,7 @@ import type {
 } from '../types/editor';
 import { fieldUpdate } from './shared/forms';
 import { LazyDetails } from './shared/LazyDetails';
-import { isPresetBaseType, isVictoryMode, isHeroLimitMode } from './shared/guards';
+import { isPresetBaseType, isHeroLimitMode } from './shared/guards';
 import { knownMapSizes, itemLabel, itemDescription, describeCatalogItem, sortedObjectLibrary } from './left/helpers';
 import { VariantsSection } from './left/VariantsSection';
 import { BansSection } from './left/BansSection';
@@ -24,6 +24,7 @@ import { ValueOverridesSection } from './left/ValueOverridesSection';
 import { NumberField } from './shared/NumberField';
 import { ValueBadge } from './shared/ValueBadge';
 import { presetDisplayName } from './shared/presetNames';
+import { applyPreset, matchesPreset, presetBySid, WIN_CONDITION_PRESETS } from '../store/winConditions';
 
 
 export const LeftPanel: React.FC = () => {
@@ -237,15 +238,85 @@ export const LeftPanel: React.FC = () => {
 
 
 
-  const getVictoryModeHelp = () => {
-    const { victoryMode } = settings;
-    if (victoryMode === 'capitalCapture') return t('victoryHelpCapitalCapture');
-    if (victoryMode === 'capitalHold') return t('victoryHelpCapitalHold');
-    if (victoryMode === 'cityHold') return t('victoryHelpCityHold');
-    if (victoryMode === 'gladiatorArena') return t('gladiatorArenaHelp');
-    if (victoryMode === 'tournament') return t('tournamentHelp');
-    return t('victoryHelpClassic');
-  };
+  // Shared win-condition parameter blocks (used by both the simple summary and
+  // the expert flag groups).
+  const indentedBlock = { display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginBottom: '8px', marginTop: '4px' } as const;
+  const victoryGroupLabelStyle = { fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, color: 'var(--muted-soft)', marginTop: '8px', marginBottom: '4px', borderTop: '1px solid var(--line)', paddingTop: '10px' } as const;
+
+  const renderLostStartCityDay = () => (
+    <div style={indentedBlock}>
+      <label style={{ marginBottom: 0 }}>
+        <span>{t('victoryHoldDays')}</span>
+        <NumberField min={0} max={30} step={1} value={settings.lostStartCityDay} onCommit={(v) => handleSettingChange('lostStartCityDay', v)} />
+      </label>
+    </div>
+  );
+
+  const renderCityHoldTarget = () => (
+    <div style={indentedBlock}>
+      <label style={{ marginBottom: 0 }}>
+        <span>{t('victoryCityZone')}</span>
+        <select value={settings.victoryCityZoneId} onChange={(e) => handleSettingChange('victoryCityZoneId', e.target.value)}>
+          <option value="">{t('selectVictoryCityZone')}</option>
+          {zones.filter(z => (z.mainObjects || []).some(obj => obj.type === 'City') && z.type !== 'spawn').map(z => (
+            <option key={z.id} value={z.id}>{z.id} ({z.label})</option>
+          ))}
+        </select>
+      </label>
+      <label style={{ marginBottom: 0 }}>
+        <span>{t('victoryHoldDays')}</span>
+        <NumberField min={1} max={30} step={1} value={settings.cityHoldDays} onCommit={(v) => handleSettingChange('cityHoldDays', v)} />
+      </label>
+    </div>
+  );
+
+  const renderGladiatorParams = () => (
+    <div style={indentedBlock}>
+      <div className="field-row">
+        <label>
+          <span>{t('gladiatorStartDay')}</span>
+          <NumberField min={0} max={99} value={settings.gladiatorArenaDaysDelayStart} onCommit={(v) => handleSettingChange('gladiatorArenaDaysDelayStart', v)} />
+        </label>
+        <label>
+          <span>{t('gladiatorPrepDays')}</span>
+          <NumberField min={1} max={28} value={settings.gladiatorArenaCountDay} onCommit={(v) => handleSettingChange('gladiatorArenaCountDay', v)} />
+        </label>
+      </div>
+      <label className="toggle-line" style={{ margin: '4px 0 0 0' }}>
+        <input type="checkbox" checked={settings.gladiatorArenaRegistrationStartFight} onChange={(e) => handleSettingChange('gladiatorArenaRegistrationStartFight', e.target.checked)} />
+        <span style={{ fontSize: '11px' }}>{t('gladiatorRegStartFight')}</span>
+      </label>
+      <p className="field-note" style={{ margin: '0 0 4px 0', fontSize: '10px' }}>{t('gladiatorRegStartFightHelp')}</p>
+    </div>
+  );
+
+  const renderTournamentParams = () => (
+    <div style={indentedBlock}>
+      <div className="field-row">
+        <label>
+          <span>{t('pointsToWin')}</span>
+          <NumberField min={1} max={10} value={settings.tournamentPointsToWin} onCommit={(v) => handleSettingChange('tournamentPointsToWin', v)} />
+        </label>
+        <label className="toggle-line" style={{ alignSelf: 'center', marginTop: '14px' }}>
+          <input type="checkbox" checked={settings.tournamentSaveArmy} onChange={(e) => handleSettingChange('tournamentSaveArmy', e.target.checked)} />
+          <span style={{ fontSize: '11px' }}>{t('saveArmy')}</span>
+        </label>
+      </div>
+      <label>
+        <span>{t('tournamentStageDays')}</span>
+        <input type="text" value={settings.tournamentDays.join(', ')} onChange={(e) => handleSettingChange('tournamentDays', e.target.value.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n)))} />
+      </label>
+      <p className="field-note" style={{ margin: '-4px 0 4px 0', fontSize: '10px' }}>{t('tournamentStageDaysHelp')}</p>
+      <label>
+        <span>{t('tournamentAnnounceDays')}</span>
+        <input type="text" value={settings.tournamentAnnounceDays.join(', ')} onChange={(e) => handleSettingChange('tournamentAnnounceDays', e.target.value.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n)))} />
+      </label>
+      <p className="field-note" style={{ margin: '-4px 0 4px 0', fontSize: '10px' }}>{t('tournamentAnnounceDaysHelp')}</p>
+    </div>
+  );
+
+  const selectedPreset = presetBySid(settings.displayWinCondition) ?? presetBySid('win_condition_1')!;
+  const presetIsModified = !matchesPreset(settings, settings.displayWinCondition);
 
   const getHeroRuleSummary = () => {
     const { heroLimitMode, heroMin, heroIncrement, heroMax } = settings;
@@ -475,221 +546,127 @@ export const LeftPanel: React.FC = () => {
               {t('settingsSectionVictory')}
             </span>
           </div>
+          {/* Win-condition preset = the game's named presets; sets both the
+              standard flags and the displayed label. */}
           <label>
-            <span>{t('victoryMode')}</span>
+            <span>{t('winConditionPreset')}</span>
             <select
-              value={settings.victoryMode}
-              onChange={(e) => {
-                const mode = e.target.value;
-                if (!isVictoryMode(mode)) return;
-                handleSettingChange('victoryMode', mode);
-                handleSettingChange('gladiatorArenaEnabled', mode === 'gladiatorArena');
-                handleSettingChange('tournamentEnabled', mode === 'tournament');
-              }}
+              value={selectedPreset.sid}
+              onChange={(e) => actions.updateSettings(applyPreset(e.target.value))}
             >
-              <option value="classic">{t('victoryClassic')}</option>
-              <option value="capitalCapture">{t('victoryCapitalCapture')}</option>
-              <option value="capitalHold">{t('victoryCapitalHold')}</option>
-              <option value="cityHold">{t('victoryCityHold')}</option>
-              <option value="gladiatorArena">{t('victoryGladiatorArena')}</option>
-              <option value="tournament">{t('victoryTournament')}</option>
+              {WIN_CONDITION_PRESETS.map((preset) => (
+                <option key={preset.sid} value={preset.sid}>{t(preset.nameKey)}</option>
+              ))}
             </select>
           </label>
-          
-          {settings.victoryMode === 'cityHold' && (
-            <div style={{ display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginBottom: '8px', marginTop: '4px' }}>
-              <label style={{ marginBottom: 0 }}>
-                <span>{t('victoryCityZone')}</span>
-                <select
-                  value={settings.victoryCityZoneId}
-                  onChange={(e) => handleSettingChange('victoryCityZoneId', e.target.value)}
-                >
-                  <option value="">{t('selectVictoryCityZone')}</option>
-                  {zones.filter(z => (z.mainObjects || []).some(obj => obj.type === 'City') && z.type !== 'spawn').map(z => (
-                    <option key={z.id} value={z.id}>{z.id} ({z.label})</option>
-                  ))}
-                </select>
-              </label>
-              <label style={{ marginBottom: 0 }}>
-                <span>{t('victoryHoldDays')}</span>
-                <NumberField
-                  min={1}
-                  max={30}
-                  step={1}
-                  value={settings.victoryDays}
-                  onCommit={(v) => handleSettingChange('victoryDays', v)}
-                />
-              </label>
-            </div>
-          )}
-          
-          {settings.victoryMode === 'capitalHold' && (
-            <div style={{ display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginBottom: '8px', marginTop: '4px' }}>
-              <label style={{ marginBottom: 0 }}>
-                <span>{t('victoryHoldDays')}</span>
-                <NumberField
-                  min={1}
-                  max={30}
-                  step={1}
-                  value={settings.victoryDays}
-                  onCommit={(v) => handleSettingChange('victoryDays', v)}
-                />
-              </label>
+          <p className="field-note" style={{ marginBottom: presetIsModified ? '6px' : '12px' }}>{t(selectedPreset.descKey)}</p>
+
+          {presetIsModified && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+              <span className="preset-modified-badge">{t('presetModified')}</span>
+              <span className="field-note" style={{ margin: 0, flex: '1 1 120px' }}>{t('presetModifiedNote')}</span>
+              <button
+                type="button"
+                className="compact-button"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                onClick={() => actions.updateSettings(applyPreset(selectedPreset.sid))}
+              >
+                <RotateCcw size={12} />{t('resetToPreset')}
+              </button>
             </div>
           )}
 
-          {settings.victoryMode === 'gladiatorArena' && (
-            <div style={{ display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginBottom: '8px', marginTop: '4px' }}>
-              <div className="field-row">
-                <label>
-                  <span>{t('gladiatorStartDay')}</span>
-                  <NumberField
-                    min={1}
-                    max={99}
-                    value={settings.gladiatorArenaDaysDelayStart}
-                    onCommit={(v) => handleSettingChange('gladiatorArenaDaysDelayStart', v)}
-                  />
-                </label>
-                <label>
-                  <span>{t('gladiatorPrepDays')}</span>
-                  <NumberField
-                    min={1}
-                    max={28}
-                    value={settings.gladiatorArenaCountDay}
-                    onCommit={(v) => handleSettingChange('gladiatorArenaCountDay', v)}
-                  />
-                </label>
-              </div>
-              <label className="toggle-line" style={{ margin: '4px 0 0 0' }}>
-                <input
-                  type="checkbox"
-                  checked={settings.gladiatorArenaRegistrationStartFight}
-                  onChange={(e) => handleSettingChange('gladiatorArenaRegistrationStartFight', e.target.checked)}
-                />
-                <span style={{ fontSize: '11px' }}>{t('gladiatorRegStartFight')}</span>
-              </label>
-              <p className="field-note" style={{ margin: '0 0 4px 0', fontSize: '10px' }}>{t('gladiatorRegStartFightHelp')}</p>
-            </div>
+          {/* Simple mode: only the parameters the active preset needs. */}
+          {!isExpert && (
+            <>
+              {settings.cityHoldEnabled && renderCityHoldTarget()}
+              {settings.lostStartCityEnabled && settings.lostStartCityDay > 0 && renderLostStartCityDay()}
+            </>
           )}
 
-          {settings.victoryMode === 'tournament' && (
-            <div style={{ display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginBottom: '8px', marginTop: '4px' }}>
-              <div className="field-row">
-                <label>
-                  <span>{t('pointsToWin')}</span>
-                  <NumberField
-                    min={1}
-                    max={10}
-                    value={settings.tournamentPointsToWin}
-                    onCommit={(v) => handleSettingChange('tournamentPointsToWin', v)}
-                  />
-                </label>
-                <label className="toggle-line" style={{ alignSelf: 'center', marginTop: '14px' }}>
-                  <input
-                    type="checkbox"
-                    checked={settings.tournamentSaveArmy}
-                    onChange={(e) => handleSettingChange('tournamentSaveArmy', e.target.checked)}
-                  />
-                  <span style={{ fontSize: '11px' }}>{t('saveArmy')}</span>
-                </label>
-              </div>
-              <label>
-                <span>{t('tournamentStageDays')}</span>
-                <input
-                  type="text"
-                  value={settings.tournamentDays.join(', ')}
-                  onChange={(e) => {
-                    const arr = e.target.value.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
-                    handleSettingChange('tournamentDays', arr);
-                  }}
-                />
-              </label>
-              <p className="field-note" style={{ margin: '-4px 0 4px 0', fontSize: '10px' }}>{t('tournamentStageDaysHelp')}</p>
-              <label>
-                <span>{t('tournamentAnnounceDays')}</span>
-                <input
-                  type="text"
-                  value={settings.tournamentAnnounceDays.join(', ')}
-                  onChange={(e) => {
-                    const arr = e.target.value.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
-                    handleSettingChange('tournamentAnnounceDays', arr);
-                  }}
-                />
-              </label>
-              <p className="field-note" style={{ margin: '-4px 0 4px 0', fontSize: '10px' }}>{t('tournamentAnnounceDaysHelp')}</p>
-            </div>
-          )}
-          <p className="field-note">{getVictoryModeHelp()}</p>
+          {/* Expert mode: every win-condition flag, grouped by meaning. */}
+          {isExpert && (
+            <>
+              <div style={victoryGroupLabelStyle}>{t('victoryGroupWin')}</div>
 
-          <label className="toggle-line" style={{ marginBottom: '4px' }}>
-            <input
-              type="checkbox"
-              checked={settings.singleHero}
-              onChange={(e) => handleSettingChange('singleHero', e.target.checked)}
-            />
-            <span>{t('lostStartHeroDefeat')}</span>
-          </label>
-          <p className="field-note" style={{ marginBottom: '12px' }}>{t('lostStartHeroDefeatHelp')}</p>
-
-          <label className="toggle-line" style={{ marginBottom: '4px' }}>
-            <input
-              type="checkbox"
-              checked={settings.desertionEnabled}
-              onChange={(e) => handleSettingChange('desertionEnabled', e.target.checked)}
-            />
-            <span>{t('desertionRule')}</span>
-          </label>
-          <p className="field-note" style={{ marginBottom: settings.desertionEnabled ? '6px' : '12px' }}>{t('desertionRuleHelp')}</p>
-          
-          {settings.desertionEnabled && (
-            <div style={{ display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginBottom: '8px', marginTop: '4px' }}>
-              <div className="field-row" style={{ marginBottom: 0 }}>
-                <label style={{ marginBottom: 0 }}>
-                  <span>{t('desertionDay')}</span>
-                  <NumberField
-                    min={1}
-                    max={14}
-                    step={1}
-                    value={settings.desertionDay}
-                    onCommit={(v) => handleSettingChange('desertionDay', v)}
-                  />
-                </label>
-                <label style={{ marginBottom: 0 }}>
-                  <span>{t('desertionValue')}</span>
-                  <NumberField
-                    min={0}
-                    step={500}
-                    value={settings.desertionValue}
-                    onCommit={(v) => handleSettingChange('desertionValue', v)}
-                  />
-                </label>
-              </div>
-            </div>
-          )}
-
-          <label className="toggle-line" style={{ marginBottom: '4px' }}>
-            <input
-              type="checkbox"
-              checked={settings.heroLightingEnabled}
-              onChange={(e) => handleSettingChange('heroLightingEnabled', e.target.checked)}
-            />
-            <span>{t('heroLightingRule')}</span>
-          </label>
-          <p className="field-note" style={{ marginBottom: settings.heroLightingEnabled ? '6px' : '12px' }}>{t('heroLightingRuleHelp')}</p>
-          
-          {settings.heroLightingEnabled && (
-            <div style={{ display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginBottom: '12px', marginTop: '4px' }}>
-              <label style={{ marginBottom: 0 }}>
-                <span>{t('heroLightingDay')}</span>
-                <NumberField
-                  min={1}
-                  max={14}
-                  step={1}
-                  value={settings.heroLightingDay}
-                  onCommit={(v) => handleSettingChange('heroLightingDay', v)}
-                />
+              <label className="toggle-line" style={{ marginBottom: '4px' }}>
+                <input type="checkbox" checked={settings.classicEnabled} onChange={(e) => handleSettingChange('classicEnabled', e.target.checked)} />
+                <span>{t('classicWinRule')}</span>
               </label>
-            </div>
+              <p className="field-note" style={{ marginBottom: '10px' }}>{t('classicWinRuleHelp')}</p>
+
+              <label className="toggle-line" style={{ marginBottom: '4px' }}>
+                <input type="checkbox" checked={settings.lostStartCityEnabled} onChange={(e) => handleSettingChange('lostStartCityEnabled', e.target.checked)} />
+                <span>{t('lostStartCityRule')}</span>
+              </label>
+              <p className="field-note" style={{ marginBottom: settings.lostStartCityEnabled ? '4px' : '10px' }}>{t('lostStartCityRuleHelp')}</p>
+              {settings.lostStartCityEnabled && renderLostStartCityDay()}
+
+              <label className="toggle-line" style={{ marginBottom: '4px' }}>
+                <input type="checkbox" checked={settings.cityHoldEnabled} onChange={(e) => handleSettingChange('cityHoldEnabled', e.target.checked)} />
+                <span>{t('cityHoldRule')}</span>
+              </label>
+              <p className="field-note" style={{ marginBottom: settings.cityHoldEnabled ? '4px' : '10px' }}>{t('cityHoldRuleHelp')}</p>
+              {settings.cityHoldEnabled && renderCityHoldTarget()}
+
+              <label className="toggle-line" style={{ marginBottom: '4px' }}>
+                <input type="checkbox" checked={settings.gladiatorArenaEnabled} onChange={(e) => handleSettingChange('gladiatorArenaEnabled', e.target.checked)} />
+                <span>{t('gladiatorArenaRule')}</span>
+              </label>
+              <p className="field-note" style={{ marginBottom: settings.gladiatorArenaEnabled ? '4px' : '10px' }}>{t('gladiatorArenaRuleHelp')}</p>
+              {settings.gladiatorArenaEnabled && renderGladiatorParams()}
+
+              <label className="toggle-line" style={{ marginBottom: '4px' }}>
+                <input type="checkbox" checked={settings.tournamentEnabled} onChange={(e) => handleSettingChange('tournamentEnabled', e.target.checked)} />
+                <span>{t('tournamentRule')}</span>
+              </label>
+              <p className="field-note" style={{ marginBottom: settings.tournamentEnabled ? '4px' : '10px' }}>{t('tournamentRuleHelp')}</p>
+              {settings.tournamentEnabled && renderTournamentParams()}
+
+              <div style={victoryGroupLabelStyle}>{t('victoryGroupLoss')}</div>
+
+              <label className="toggle-line" style={{ marginBottom: '4px' }}>
+                <input type="checkbox" checked={settings.singleHero} onChange={(e) => handleSettingChange('singleHero', e.target.checked)} />
+                <span>{t('lostStartHeroDefeat')}</span>
+              </label>
+              <p className="field-note" style={{ marginBottom: '10px' }}>{t('lostStartHeroDefeatHelp')}</p>
+
+              <div style={victoryGroupLabelStyle}>{t('victoryGroupExtra')}</div>
+
+              <label className="toggle-line" style={{ marginBottom: '4px' }}>
+                <input type="checkbox" checked={settings.desertionEnabled} onChange={(e) => handleSettingChange('desertionEnabled', e.target.checked)} />
+                <span>{t('desertionRule')}</span>
+              </label>
+              <p className="field-note" style={{ marginBottom: settings.desertionEnabled ? '4px' : '10px' }}>{t('desertionRuleHelp')}</p>
+              {settings.desertionEnabled && (
+                <div style={indentedBlock}>
+                  <div className="field-row" style={{ marginBottom: 0 }}>
+                    <label style={{ marginBottom: 0 }}>
+                      <span>{t('desertionDay')}</span>
+                      <NumberField min={1} max={14} step={1} value={settings.desertionDay} onCommit={(v) => handleSettingChange('desertionDay', v)} />
+                    </label>
+                    <label style={{ marginBottom: 0 }}>
+                      <span>{t('desertionValue')}</span>
+                      <NumberField min={0} step={500} value={settings.desertionValue} onCommit={(v) => handleSettingChange('desertionValue', v)} />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              <label className="toggle-line" style={{ marginBottom: '4px' }}>
+                <input type="checkbox" checked={settings.heroLightingEnabled} onChange={(e) => handleSettingChange('heroLightingEnabled', e.target.checked)} />
+                <span>{t('heroLightingRule')}</span>
+              </label>
+              <p className="field-note" style={{ marginBottom: settings.heroLightingEnabled ? '4px' : '10px' }}>{t('heroLightingRuleHelp')}</p>
+              {settings.heroLightingEnabled && (
+                <div style={indentedBlock}>
+                  <label style={{ marginBottom: 0 }}>
+                    <span>{t('heroLightingDay')}</span>
+                    <NumberField min={1} max={14} step={1} value={settings.heroLightingDay} onCommit={(v) => handleSettingChange('heroLightingDay', v)} />
+                  </label>
+                </div>
+              )}
+            </>
           )}
         </div>
 
