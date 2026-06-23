@@ -99,3 +99,53 @@ describe("road types", () => {
     ).toEqual([]);
   });
 });
+
+/**
+ * The OctoJebus case: several parallel passages between two zones, but only one
+ * is actually paved. The connection's own `road` flag is legacy and usually
+ * unset, so road presence must come from the zone.roads segments.
+ */
+function buildParallelTemplate(): RmgTemplate {
+  return {
+    name: "Parallel Roads Test",
+    gameMode: "Classic",
+    description: "synthetic",
+    sizeX: 128,
+    sizeZ: 128,
+    variants: [
+      {
+        zones: [
+          {
+            name: "Center",
+            size: 1,
+            roads: [
+              { type: "Stone", from: { type: "MainObject", args: ["0"] }, to: { type: "Connection", args: ["C-S-paved"] } },
+              { type: "Stone", from: { type: "MainObject", args: ["0"] }, to: { type: "Connection", args: ["C-S-flagFalse"] } }
+            ]
+          },
+          { name: "Spawn", size: 1, mainObjects: [{ type: "Spawn", spawn: "Player1" }] }
+        ],
+        connections: [
+          // No `road` field, and it IS paved -> has a road.
+          { name: "C-S-paved", from: "Center", to: "Spawn", connectionType: "Direct", guardValue: 1000 },
+          // No `road` field, NOT paved -> no road (the bug was showing it as a road).
+          { name: "C-S-bare", from: "Center", to: "Spawn", connectionType: "Direct", guardValue: 1000 },
+          // Explicit road:false but a segment exists -> the segment wins.
+          { name: "C-S-flagFalse", from: "Center", to: "Spawn", connectionType: "Direct", guardValue: 1000, road: false }
+        ]
+      }
+    ]
+  } as unknown as RmgTemplate;
+}
+
+describe("road presence from segments", () => {
+  it("marks a connection as a road only when a zone.roads segment paves it", () => {
+    const imported = importTemplateForRoundTrip(buildParallelTemplate());
+    const byId = new Map(imported.edges.map((edge) => [edge.id, edge]));
+
+    expect(byId.get("C-S-paved")?.road).toBe(true);
+    expect(byId.get("C-S-bare")?.road).toBe(false);
+    // A segment overrides an explicit road:false flag
+    expect(byId.get("C-S-flagFalse")?.road).toBe(true);
+  });
+});
