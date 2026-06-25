@@ -108,6 +108,9 @@ input,
 select,
 textarea {
   font: inherit;
+  /* The control standard is 12px (matches labels). Without this, a control
+     not wrapped in a <label> falls back to the 16px body size. */
+  font-size: 12px;
 }
 
 /* Scrollbar styling */

@@ -129,6 +129,7 @@ export const resolveSavedObjects = (
       }
       return [{
         ...cloneEntry(item),
+        name: saved.name,
         count: Math.max(1, Math.min(99, Math.trunc(Number(saved.count) || 1))),
         guarded: Boolean(saved.guarded),
         soloEncounter: Boolean(saved.soloEncounter),
@@ -158,6 +159,7 @@ export const normalizeSavedZoneObject = (
     return {
       key: saved.key || uniqueKey(),
       id,
+      name: saved.name,
       sid: kind === "sid" ? saved.sid || id : undefined,
       includeList: kind === "list" ? saved.includeList || id : undefined,
       label: saved.label || id,

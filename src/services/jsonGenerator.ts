@@ -132,10 +132,13 @@ function buildObjectPlacementRules(zone: Zone, entry: ZoneObject) {
 function toMandatoryObject(
   zone: Zone,
   entry: ZoneObject,
-  index: number
+  index: number,
+  useEntryName = false
 ): RmgMandatoryObject {
   const base: RmgMandatoryObject = {
-    name: `name_${safeName(zone.id).toLowerCase()}_${index + 1}_${safeName(entry.id).toLowerCase()}`
+    name: useEntryName && entry.name
+      ? entry.name
+      : `name_${safeName(zone.id).toLowerCase()}_${index + 1}_${safeName(entry.id).toLowerCase()}`
   };
   if (entry.kind === "list" && entry.includeList) {
     base.includeLists = [entry.includeList];
@@ -158,7 +161,9 @@ function buildMandatoryObjects(zone: Zone): RmgMandatoryObject[] {
   for (const entry of zone.objects) {
     const count = Math.max(1, Math.min(99, Math.trunc(Number(entry.count) || 1)));
     for (let copy = 0; copy < count; copy += 1) {
-      content.push(toMandatoryObject(zone, entry, content.length));
+      // A user-set name identifies one specific entry, so only the first copy
+      // carries it; the rest fall back to auto-generated names.
+      content.push(toMandatoryObject(zone, entry, content.length, copy === 0));
     }
   }
   return content;
@@ -479,18 +484,39 @@ function toRmgZone(zone: Zone, edges: Edge[], presets: Record<string, Preset>, s
         }
 
         if (obj.factionMode === 'spawn' && obj.factionSource) {
-          baseObj.faction = {
-            type: "Match" as const,
-            args: ["0", obj.factionSource]
-          };
+          // Keep the original Match rule when it already points at this source
+          // (preserves the one-arg same-zone form / the matched index); only
+          // synthesise a new one when the source changed or there was none. A
+          // same-zone match omits the zone arg, a cross-zone one names it.
+          const original = obj.rawFields?.faction as { type?: string; args?: unknown[] } | undefined;
+          const originalArgs = Array.isArray(original?.args) ? original!.args : [];
+          const originalMatchesSource = original?.type === 'Match' && (
+            originalArgs.length >= 2
+              ? originalArgs[1] === obj.factionSource
+              : originalArgs.length >= 1 && obj.factionSource === zone.id
+          );
+          if (!originalMatchesSource) {
+            baseObj.faction = {
+              type: "Match" as const,
+              args: obj.factionSource === zone.id ? ["0"] : ["0", obj.factionSource]
+            };
+          }
           delete baseObj.factions;
         } else if (obj.factionMode === 'specific' && obj.factionId) {
           // The engine reads candidate faction ids from faction.args only —
           // the `factions` array is not part of the C# model and is ignored.
-          baseObj.faction = {
-            type: "FromList" as const,
-            args: [obj.factionId]
-          };
+          // Keep the original FromList when it still leads with this id (so a
+          // random-from-subset list like ["castle","rampart"] isn't truncated);
+          // only synthesise a single-id list when the choice actually changed.
+          const original = obj.rawFields?.faction as { type?: string; args?: unknown[] } | undefined;
+          const originalArgs = Array.isArray(original?.args) ? original!.args : [];
+          const originalMatchesId = original?.type === 'FromList' && originalArgs[0] === obj.factionId;
+          if (!originalMatchesId) {
+            baseObj.faction = {
+              type: "FromList" as const,
+              args: [obj.factionId]
+            };
+          }
           delete baseObj.factions;
         } else if (obj.factionMode === 'random') {
           if (!obj.rawFields?.faction) delete baseObj.faction;
