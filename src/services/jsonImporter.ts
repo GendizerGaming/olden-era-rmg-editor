@@ -47,8 +47,9 @@ function getDistancePresetName(min: number, max: number): string {
 function groupZoneObjects(objects: ZoneObject[]): ZoneObject[] {
   const grouped: ZoneObject[] = [];
   for (const obj of objects) {
-    const existing = grouped.find(g => 
+    const existing = grouped.find(g =>
       g.id === obj.id &&
+      g.name === obj.name &&
       g.guarded === obj.guarded &&
       g.soloEncounter === obj.soloEncounter &&
       g.variant === obj.variant &&
@@ -701,8 +702,15 @@ export function importTemplateFromJson(
             if (obj.faction) {
               const fac = obj.faction;
               if (fac.type === "Match" && fac.args && fac.args.length >= 2) {
+                // Match [index, zoneName]: match the faction of a main object in
+                // the named zone (typically that zone's spawn → the player).
                 factionMode = "spawn";
-                factionSource = fac.args[1];
+                factionSource = String(fac.args[1]);
+              } else if (fac.type === "Match" && fac.args && fac.args.length >= 1) {
+                // Match [index]: no zone given → match within this same zone
+                // (e.g. a spawn-zone city matching its own spawn = the player).
+                factionMode = "spawn";
+                factionSource = z.name;
               } else if (fac.type === "FromList" && fac.args && fac.args.length > 0) {
                 factionMode = "specific";
                 factionId = fac.args[0];
@@ -782,7 +790,19 @@ export function importTemplateFromJson(
       // Gather mandatory objects
       const zoneObjects: ZoneObject[] = [];
       const mandatoryNames: string[] = z.mandatoryContent || [];
-      
+
+      // Only capture an entry's name if a road targets it — most official names
+      // are auto-generated positional noise (name_<zone>_<i>_<sid>) we don't want
+      // to surface; road-referenced names must be kept stable so roads resolve.
+      const roadMandatoryNames = new Set<string>();
+      for (const road of Array.isArray(z.roads) ? z.roads : []) {
+        for (const term of [road?.from, road?.to]) {
+          if (term && term.type === 'MandatoryContent' && typeof term.args?.[0] === 'string') {
+            roadMandatoryNames.add(term.args[0]);
+          }
+        }
+      }
+
       mandatoryNames.forEach((listName) => {
         const pool = template.mandatoryContent?.find((candidate) => candidate.name === listName);
         if (pool && Array.isArray(pool.content)) {
@@ -833,6 +853,7 @@ export function importTemplateFromJson(
             zoneObjects.push({
               key: uniqueKey(),
               id: catalogItem.id,
+              name: typeof obj.name === 'string' && roadMandatoryNames.has(obj.name) ? obj.name : undefined,
               sid: catalogItem.sid,
               includeList: catalogItem.includeList,
               label: catalogItem.label,
@@ -857,7 +878,9 @@ export function importTemplateFromJson(
         }
       });
 
-      // Group duplicate objects to keep UI clean
+      // Group duplicate objects to keep UI clean. Only road-referenced names
+      // were captured above; other objects stay unnamed (a default name is
+      // assigned lazily when the object is first used as a road target).
       const groupedObjects = groupZoneObjects(zoneObjects);
 
       const knownZoneKeys = [

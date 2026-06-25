@@ -1,15 +1,57 @@
 import type { StoreContext } from '../context';
 import type { EditorActions } from '../types';
 import type { Zone } from '../../types/editor';
+import type { RmgRoad } from '../../types/rmg';
 import { defaultPresets } from '../presets';
 import { zoneTypes, biomeIds } from '../constants';
 import { uniqueKey, safeName } from '../ids';
 import { captureHistory, pushHistory, edgePairKey, makeDefaultSpawnObject, makeZone, nextPlayerNumber, scalePresetValues, uniqueZoneId, zoneContentScale, zoneIdPrefix } from '../zones';
 import { resolvePresetToZoneObjects } from '../catalog';
 
-export function createZoneActions(ctx: StoreContext): Pick<EditorActions, 'addZone' | 'deleteSelected' | 'updateZoneField' | 'setZonePosition' | 'rescaleZoneValues' | 'duplicateSelected'> {
+export function createZoneActions(ctx: StoreContext): Pick<EditorActions, 'addZone' | 'deleteSelected' | 'updateZoneField' | 'setZoneRoads' | 'setZonePosition' | 'rescaleZoneValues' | 'duplicateSelected'> {
   const { set, saveToStorage } = ctx;
   return {
+      setZoneRoads: (zoneId, roads, objectNames) => {
+        set((state) => {
+          const zone = state.zones.find((z) => z.id === zoneId);
+          if (!zone) return {};
+          const snapshot = captureHistory(state);
+          const nextRoads: RmgRoad[] = roads.map((road) => ({ ...road }));
+          const hasNames = objectNames && Object.keys(objectNames).length > 0;
+
+          // A connection road draws one surface in the game, so the per-zone
+          // segment type is the source of truth: mirror it onto the touched
+          // connection's derived roadType (the generator rewrites the matching
+          // segments on export, keeping both sides of the connection in sync).
+          const typeByConnection = new Map<string, 'Stone' | 'Dirt' | undefined>();
+          for (const road of nextRoads) {
+            for (const term of [road.from, road.to]) {
+              if (term?.type === 'Connection' && term.args?.[0]) {
+                const t = road.type === 'Stone' || road.type === 'Dirt' ? road.type : undefined;
+                typeByConnection.set(term.args[0], t);
+              }
+            }
+          }
+          const nextEdges = state.edges.map((edge) =>
+            typeByConnection.has(edge.id) ? { ...edge, roadType: typeByConnection.get(edge.id) } : edge
+          );
+
+          const nextZones = state.zones.map((z) => {
+            if (z.id !== zoneId) return z;
+            const objects = hasNames
+              ? z.objects.map((o) => (objectNames![o.key] ? { ...o, name: objectNames![o.key] } : o))
+              : z.objects;
+            return { ...z, roads: nextRoads, objects };
+          });
+          const nextState = {
+            zones: nextZones,
+            edges: nextEdges,
+            history: pushHistory(state, snapshot)
+          };
+          saveToStorage({ ...state, ...nextState });
+          return nextState;
+        });
+      },
       addZone: (type) => {
         set((state) => {
           const preset = state.presets[type] || defaultPresets[type] || defaultPresets.neutral;

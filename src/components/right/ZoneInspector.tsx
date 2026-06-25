@@ -9,6 +9,7 @@ import type { Edge, Faction, MainObjectPlacement, MainObjectType, Zone, ZoneMain
 import { fieldUpdate } from '../shared/forms';
 import { GuardReactionEditor } from '../shared/GuardReactionEditor';
 import { LazyDetails } from '../shared/LazyDetails';
+import { RoadsSection } from './RoadsSection';
 import { isBiomeMode, isCityFactionMode } from '../shared/guards';
 import { NumberField } from '../shared/NumberField';
 import { ValueBadge } from '../shared/ValueBadge';
@@ -1206,6 +1207,18 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
         </div>
       </div>
 
+      {/* Roads Section */}
+      <LazyDetails
+        className="inspector-subsection"
+        style={{ border: '1px solid var(--line)', borderRadius: '6px', background: 'var(--panel-2)', overflow: 'hidden', marginTop: '8px' }}
+        summary={<strong style={{ fontSize: '12px' }}>{t('zoneRoadsSection')}</strong>}
+        renderContent={() => (
+          <div style={{ padding: '6px 8px 10px' }}>
+            <RoadsSection zone={zone} edges={edges} />
+          </div>
+        )}
+      />
+
       {/* Biome Section */}
       <div style={{ marginTop: '4px' }}>
         <SectionHeader icon={<Leaf size={12} style={{ color: 'var(--accent)' }} />} label={t('zoneBiome')} />
@@ -1320,6 +1333,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
       {/* Objects list */}
       <div style={{ marginTop: '4px' }}>
         <SectionHeader icon={<Boxes size={12} style={{ color: 'var(--accent)' }} />} label={t('zoneObjects')} />
+        <p className="field-note" style={{ marginTop: 0 }}>{t('zoneObjectsMandatoryHelp')}</p>
         <div className="object-list">
           {zone.objects.map((obj) => {
             const label = obj.labelByLang?.[language] || obj.label || obj.sid || obj.includeList || obj.id || '';
@@ -1397,7 +1411,22 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                       </label>
                     </div>
                     <p className="field-note object-field-help">{t('objectVariantHelp')}</p>
-                    
+
+                    {isExpert && (
+                      <>
+                        <label>
+                          {t('objectName')}
+                          <input
+                            type="text"
+                            placeholder={t('objectNameAuto')}
+                            value={obj.name ?? ''}
+                            onChange={(e) => handleObjectFieldChange(obj.key, 'name', e.target.value.trim() || undefined)}
+                          />
+                        </label>
+                        <p className="field-note object-field-help">{t('objectNameHelp')}</p>
+                      </>
+                    )}
+
                     <label className="toggle-line">
                       <input
                         type="checkbox"

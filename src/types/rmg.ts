@@ -92,7 +92,7 @@ export interface RmgRule extends JsonObject {
 
 
 export interface RoadTerm extends JsonObject {
-  type: "Crossroads" | "MainObject" | "Connection";
+  type: "Crossroads" | "MainObject" | "Connection" | "MandatoryContent";
   args?: string[];
 }
 

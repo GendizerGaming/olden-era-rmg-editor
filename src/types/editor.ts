@@ -80,6 +80,9 @@ export interface CatalogContentEntry {
 export interface ZoneObject {
   key: string; // unique runtime key
   id: string;
+  /** Optional stable mandatory-content entry name; lets a zone road target this
+   *  specific object (RoadTerm MandatoryContent). Absent = auto-named on export. */
+  name?: string;
   sid?: string;
   includeList?: string;
   label: string;

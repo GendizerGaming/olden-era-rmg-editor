@@ -147,6 +147,32 @@ describe("export coverage: map settings", () => {
     expect(original.gameRules.winConditions.lostStartCityDay).toBe(0);
   });
 
+  it("a named mandatory object exports its name and can be a road target", () => {
+    const namedMine: ZoneObject = {
+      key: "k1", id: "mine_gold", name: "my_mine", sid: "mine_gold",
+      label: "Gold Mine", description: "", kind: "sid",
+      guarded: false, count: 1, soloEncounter: false, variant: null,
+      roadDistance: "any", townDistance: "any", isMine: true
+    };
+    const zones = [
+      zone("A", "spawn", {
+        objects: [namedMine],
+        roads: [{ type: "Dirt", from: { type: "Crossroads" }, to: { type: "MandatoryContent", args: ["my_mine"] } }]
+      }, 1),
+      zone("B", "neutral")
+    ];
+    const out = gen(makeSettings({}), zones, baseEdges());
+
+    // The mandatory-content entry keeps the user name (so the road resolves).
+    const presetName = out.variants[0].zones.find((z) => z.name === "A")?.mandatoryContent?.[0];
+    const preset = out.mandatoryContent?.find((p) => p.name === presetName);
+    expect(preset?.content?.some((entry) => entry.name === "my_mine")).toBe(true);
+
+    // The road to the named object survives export.
+    const road = out.variants[0].zones.find((z) => z.name === "A")?.roads?.find((r) => r.to?.type === "MandatoryContent");
+    expect(road?.to?.args?.[0]).toBe("my_mine");
+  });
+
   it("gladiator arena parameters", () => {
     const out = gen(makeSettings({
       ...applyPreset("win_condition_4"),

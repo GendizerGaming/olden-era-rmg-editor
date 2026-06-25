@@ -1,6 +1,6 @@
 import type { EditorState, MapSettings, Zone, Edge, CatalogItem, ContentLimitPreset, ContentPoolPreset, Faction, CoreCatalog, ZoneObject, ZoneType, CityFactionMode, ConnectionType, Preset, ZoneMainObject, CustomObjectList, CustomObjectListEntry, VariantMeta, VariantSnapshot, TerrainProfile } from '../types/editor';
 import type { TemplateRecipe, TemplateRecipeTopology } from './templateRecipes';
-import type { RmgBorder, RmgContentListEntry, RmgOrientation } from '../types/rmg';
+import type { RmgBorder, RmgContentListEntry, RmgOrientation, RmgRoad } from '../types/rmg';
 
 export type StoredRecord = Record<string, unknown>;
 
@@ -99,6 +99,11 @@ export interface EditorActions {
   addZone: (type: ZoneType) => void;
   deleteSelected: () => void;
   updateZoneField: (zoneId: string, updates: Partial<Zone>) => void;
+  /** Replace a zone's internal roads; keeps each touched connection's derived
+   *  roadType in sync. `objectNames` optionally assigns names to zone objects
+   *  (by object key) in the same step — used when a road targets an as-yet
+   *  unnamed object. */
+  setZoneRoads: (zoneId: string, roads: RmgRoad[], objectNames?: Record<string, string>) => void;
   updateEdgeField: (edgeId: string, updates: Partial<Edge>) => void;
   setSelected: (selected: { type: 'zone' | 'edge' | 'edgePair' | 'preset' | 'customList' | 'elementsList' | 'terrainProfile' | 'contentLimits' | 'contentPool'; id: string } | null) => void;
   setMode: (mode: 'select' | 'connect') => void;

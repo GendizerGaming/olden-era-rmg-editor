@@ -17,6 +17,8 @@ export function createObjectActions(ctx: StoreContext): Pick<EditorActions, 'add
           const zone = { ...updatedZones[zoneIndex] };
           
           const newObj = cloneEntry(item);
+          // No name by default; a stable one is assigned lazily when the object
+          // is first used as a road target.
           zone.objects = [...zone.objects, newObj];
           zone.type = 'custom';
           updatedZones[zoneIndex] = zone;
