@@ -182,7 +182,9 @@ function toMandatoryObject(
   if (entry.owner) base.owner = `Player${entry.owner}`;
   if (entry.designatedEncounter) base.designatedEncounter = true;
   if (entry.nestedContent?.length) base.content = entry.nestedContent.map((c) => ({ sid: c.sid, weight: c.weight }));
-  base.isGuarded = Boolean(entry.guarded);
+  // Tri-state: omit isGuarded entirely when unset, so the engine applies its
+  // own default instead of being pinned to false.
+  if (entry.guarded !== undefined) base.isGuarded = entry.guarded;
   base.soloEncounter = Boolean(entry.soloEncounter);
   const rules = buildObjectPlacementRules(zone, entry);
   if (rules.length) base.rules = rules;

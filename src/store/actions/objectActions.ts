@@ -18,7 +18,10 @@ export function createObjectActions(ctx: StoreContext): Pick<EditorActions, 'add
           
           const newObj = cloneEntry(item);
           // No name by default; a stable one is assigned lazily when the object
-          // is first used as a road target.
+          // is first used as a road target. Guard state starts "unset" so the
+          // engine applies its own default (most likely guarded) until the user
+          // explicitly chooses guarded/unguarded.
+          newObj.guarded = undefined;
           zone.objects = [...zone.objects, newObj];
           zone.type = 'custom';
           updatedZones[zoneIndex] = zone;

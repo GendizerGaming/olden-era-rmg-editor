@@ -879,7 +879,9 @@ export function importTemplateFromJson(
               labelByLang: catalogItem.labelByLang,
               descriptionByLang: catalogItem.descriptionByLang,
               kind: catalogItem.kind,
-              guarded: Boolean(obj.isGuarded),
+              // Tri-state: keep "field omitted" (undefined) distinct from an
+              // explicit false, so the engine default is preserved on export.
+              guarded: obj.isGuarded === undefined ? undefined : Boolean(obj.isGuarded),
               count: 1, // Will group them later
               soloEncounter: Boolean(obj.soloEncounter),
               variant: obj.variant === undefined || obj.variant === null ? null : Number(obj.variant),
