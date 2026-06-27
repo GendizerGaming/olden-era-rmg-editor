@@ -3,10 +3,13 @@ import { useEditorStore } from '../../store/useEditorStore';
 import type { EditorActions } from '../../store/useEditorStore';
 import type { TranslationFunction } from '../../i18n/context';
 import type { Edge, ConnectionType } from '../../types/editor';
+import type { RmgPlacementRule } from '../../types/rmg';
 import { CONNECTION_TYPES } from '../../types/editor';
 import { edgePairKey } from '../../store/zones';
+import { resolveDistance, encodeDistance, ruleBounds } from '../../store/constants';
 import { LazyDetails } from '../shared/LazyDetails';
 import { NumberField } from '../shared/NumberField';
+import { DistanceField } from '../shared/DistanceField';
 import { ValueBadge } from '../shared/ValueBadge';
 import { ArrowLeft } from 'lucide-react';
 
@@ -23,6 +26,23 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
   const isPortal = edge.connectionType === 'Portal';
   const pairId = edgePairKey(edge.from, edge.to);
   const pairCount = edges.filter((e) => edgePairKey(e.from, e.to) === pairId).length;
+
+  // Portal mouth distance: the DistanceField shows the leading rule's bounds;
+  // editing it rewrites that rule's distance and keeps the rest (type, weight,
+  // any extra rules) verbatim. "any" clears the portal rules for that side.
+  const portalValue = (rules?: RmgPlacementRule[]): string => {
+    const bounds = rules?.[0] ? ruleBounds(rules[0]) : null;
+    return bounds ? encodeDistance(bounds.min, bounds.max) : 'any';
+  };
+  const buildPortalRules = (current: RmgPlacementRule[] | undefined, value: string): RmgPlacementRule[] | undefined => {
+    const bounds = resolveDistance(value);
+    if (!bounds) return undefined;
+    const rules: RmgPlacementRule[] = current?.length ? current.map((r) => ({ ...r })) : [{ type: 'Crossroads', args: [], weight: 1 }];
+    const head = { ...rules[0] };
+    delete head.target;
+    rules[0] = { ...head, targetMin: bounds.min, targetMax: bounds.max };
+    return rules;
+  };
 
   // The one-spring-per-pair rule is enforced by the store: a blocked switch
   // leaves the edge unchanged and raises an error toast.
@@ -185,6 +205,23 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
               );
             }}
           />
+          )}
+
+          {isPortal && isExpert && (
+            <div style={{ display: 'grid', gap: '8px', border: '1px solid var(--line)', borderRadius: '6px', background: 'var(--panel-2)', padding: '8px' }}>
+              <div className="control-label" style={{ margin: 0 }}>{t('portalPlacementSection')}</div>
+              <DistanceField
+                label={t('portalPlacementFrom', { zone: edge.from })}
+                value={portalValue(edge.portalPlacementRulesFrom)}
+                onChange={(v) => actions.updateEdgeField(edge.id, { portalPlacementRulesFrom: buildPortalRules(edge.portalPlacementRulesFrom, v) })}
+              />
+              <DistanceField
+                label={t('portalPlacementTo', { zone: edge.to })}
+                value={portalValue(edge.portalPlacementRulesTo)}
+                onChange={(v) => actions.updateEdgeField(edge.id, { portalPlacementRulesTo: buildPortalRules(edge.portalPlacementRulesTo, v) })}
+              />
+              <p className="field-note" style={{ margin: 0 }}>{t('portalPlacementHelp')}</p>
+            </div>
           )}
 
           <div className="control-label" style={{ marginTop: '4px' }}>

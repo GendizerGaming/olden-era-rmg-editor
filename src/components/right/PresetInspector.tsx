@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEditorStore, distancePresets, catalogItemForReference, zoneTypes } from '../../store/useEditorStore';
+import { useEditorStore, catalogItemForReference, zoneTypes } from '../../store/useEditorStore';
 import type { EditorActions } from '../../store/useEditorStore';
 import type { TranslationFunction } from '../../i18n/context';
 import { Trash2, Copy } from 'lucide-react';
@@ -9,6 +9,7 @@ import { GuardReactionEditor } from '../shared/GuardReactionEditor';
 import { LazyDetails } from '../shared/LazyDetails';
 import { isPresetBaseType } from '../shared/guards';
 import { NumberField } from '../shared/NumberField';
+import { DistanceField } from '../shared/DistanceField';
 import { ValueBadge } from '../shared/ValueBadge';
 
 interface PresetInspectorProps {
@@ -428,34 +429,18 @@ export const PresetInspector: React.FC<PresetInspectorProps> = ({ presetId, pres
                       </label>
                       <p className="field-note object-field-help">{t('objectSoloEncounterHelp')}</p>
                       
-                      <label>
-                        {t('objectRoadDistance')}
-                        <select
-                          value={obj.roadDistance}
-                          onChange={(e) => handleObjectFieldChange(obj.key, 'roadDistance', e.target.value)}
-                        >
-                          {Object.keys(distancePresets).map((presetKey) => (
-                            <option key={presetKey} value={presetKey}>
-                              {t(`distance${presetKey.charAt(0).toUpperCase() + presetKey.slice(1)}`)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      
-                      <label className={hasTown ? '' : 'disabled-control'}>
-                        {t('objectTownDistance')}
-                        <select
-                          value={hasTown ? obj.townDistance : 'any'}
-                          onChange={(e) => handleObjectFieldChange(obj.key, 'townDistance', e.target.value)}
-                          disabled={!hasTown}
-                        >
-                          {Object.keys(distancePresets).map((presetKey) => (
-                            <option key={presetKey} value={presetKey}>
-                              {t(`distance${presetKey.charAt(0).toUpperCase() + presetKey.slice(1)}`)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                      <DistanceField
+                        label={t('objectRoadDistance')}
+                        value={obj.roadDistance}
+                        onChange={(v) => handleObjectFieldChange(obj.key, 'roadDistance', v)}
+                      />
+
+                      <DistanceField
+                        label={t('objectTownDistance')}
+                        value={hasTown ? obj.townDistance : 'any'}
+                        disabled={!hasTown}
+                        onChange={(v) => handleObjectFieldChange(obj.key, 'townDistance', v)}
+                      />
                       <p className="field-note">
                         {hasTown ? t('objectPlacementHelp') : t('objectTownDistanceUnavailablePreset')}
                       </p>

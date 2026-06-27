@@ -42,11 +42,27 @@ describe("castle faction import", () => {
     expect(city.factionSource).toBe("Spawn-B");
   });
 
-  it("FromList maps to random (empty) or specific (named)", () => {
+  it("FromList maps to random (empty) or specific (single named)", () => {
     expect(cityOf(importTemplateFromJson(templateWithCityFaction({ type: "FromList", args: [] }) as never, [], [])).factionMode).toBe("random");
     const specific = cityOf(importTemplateFromJson(templateWithCityFaction({ type: "FromList", args: ["castle"] }) as never, [], []));
     expect(specific.factionMode).toBe("specific");
     expect(specific.factionId).toBe("castle");
+  });
+
+  it("FromList with differentFrom exclusions → constrained random that round-trips", () => {
+    const args = ["differentFrom: 0 Spawn-A", "differentFrom: 0 Spawn-B"];
+    const city = cityOf(importTemplateFromJson(templateWithCityFaction({ type: "FromList", args }) as never, [], []));
+    expect(city.factionMode).toBe("random");
+    expect(city.factionFromList).toEqual(args);
+
+    const exported = exportImportedTemplate(importTemplateForRoundTrip(templateWithCityFaction({ type: "FromList", args })));
+    expect(exported.variants[0].zones[0].mainObjects?.find((o) => o.type === "City")?.faction).toEqual({ type: "FromList", args });
+  });
+
+  it("FromList with several faction ids → constrained random (not truncated to one)", () => {
+    const city = cityOf(importTemplateFromJson(templateWithCityFaction({ type: "FromList", args: ["castle", "rampart"] }) as never, [], []));
+    expect(city.factionMode).toBe("random");
+    expect(city.factionFromList).toEqual(["castle", "rampart"]);
   });
 
   it("a same-zone Match faction round-trips as the one-arg form (not expanded)", () => {

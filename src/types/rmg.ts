@@ -117,6 +117,10 @@ export interface RmgMainObject extends JsonObject {
   placement?: string;
   placementArgs?: string[];
   holdCityWinCon?: boolean;
+  guardRandomization?: number;
+  isKeyObject?: boolean;
+  enableWeeklyUnitIncrement?: boolean;
+  initialUnitIncrement?: number;
 }
 
 export interface RmgZone extends JsonObject {
@@ -128,6 +132,9 @@ export interface RmgZone extends JsonObject {
   guardMultiplier?: number;
   guardWeeklyIncrement?: number;
   guardReactionDistribution?: number[];
+  /** Per-tier random-hire tuning: starting unit growth and weekly-growth flags. */
+  randomHireInitialUnitIncrement?: number[];
+  randomHireEnableWeeklyUnitIncrement?: boolean[];
   diplomacyModifier?: number;
   /** Preset names; a few official zones carry a single name as a string. */
   contentCountLimits?: string[] | string;
@@ -166,6 +173,10 @@ interface RmgConnectionBase extends JsonObject {
   gatePlacement?: string;
   /** Connections sharing a group name get an identical (synced) guard. */
   guardMatchGroup?: string;
+  /** For portal connections: where the portal mouths are placed inside the
+   *  source (From) and destination (To) zones, as distance/placement rules. */
+  portalPlacementRulesTo?: RmgPlacementRule[];
+  portalPlacementRulesFrom?: RmgPlacementRule[];
   length?: number;
 }
 
@@ -243,6 +254,8 @@ export interface RmgZoneLayout extends JsonObject {
 export interface RmgPlacementRule extends JsonObject {
   type: string;
   args?: string[];
+  /** Some rules use a single `target` instead of a min/max range. */
+  target?: number;
   targetMin?: number;
   targetMax?: number;
   weight?: number;
@@ -254,8 +267,12 @@ export interface RmgMandatoryObject extends JsonObject {
   includeLists?: string[];
   variant?: number;
   isMine?: boolean;
+  owner?: string;
   isGuarded?: boolean;
   soloEncounter?: boolean;
+  designatedEncounter?: boolean;
+  /** Inline weighted candidate list for a pool-slot object (when sid is absent). */
+  content?: Array<{ sid: string; weight: number }>;
   rules?: RmgPlacementRule[];
 }
 

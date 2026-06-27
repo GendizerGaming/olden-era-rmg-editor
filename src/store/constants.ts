@@ -107,6 +107,51 @@ export const distancePresets: Record<string, { min: number; max: number } | null
   veryFar: { min: 0.75, max: 0.9 }
 };
 
+/** A distance is either a named preset key or an exact "min:max" pair. */
+const CUSTOM_DISTANCE = /^(\d*\.?\d+):(\d*\.?\d+)$/;
+
+/** Extract a rule's distance bounds, accepting both the `target` single-value
+ *  form and the `targetMin`/`targetMax` range; null = no expressible bounds. */
+export function ruleBounds(
+  rule: { target?: unknown; targetMin?: unknown; targetMax?: unknown }
+): { min: number; max: number } | null {
+  if (rule.targetMin !== undefined || rule.targetMax !== undefined) {
+    return { min: Number(rule.targetMin) || 0, max: Number(rule.targetMax) || 0 };
+  }
+  if (rule.target !== undefined) {
+    const t = Number(rule.target) || 0;
+    return { min: t, max: t };
+  }
+  return null;
+}
+
+/** Resolve a distance value (preset key or "min:max") to numeric bounds; null = "any". */
+export function resolveDistance(value: string): { min: number; max: number } | null {
+  if (Object.prototype.hasOwnProperty.call(distancePresets, value)) return distancePresets[value];
+  const match = CUSTOM_DISTANCE.exec(value);
+  return match ? { min: Number(match[1]), max: Number(match[2]) } : null;
+}
+
+/** Encode exact bounds, collapsing to a preset key only on an exact match so the
+ *  common official values stay readable while anything else stays exact (no snapping). */
+export function encodeDistance(min: number, max: number): string {
+  for (const [name, val] of Object.entries(distancePresets)) {
+    if (val && val.min === min && val.max === max) return name;
+  }
+  return `${min}:${max}`;
+}
+
+/** Exact "min:max" encoding with no preset collapse — used by the custom UI inputs. */
+export function formatDistance(min: number, max: number): string {
+  return `${min}:${max}`;
+}
+
+/** True when the value is a usable distance: a known preset key or an exact pair. */
+export function isDistanceValue(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  return Object.prototype.hasOwnProperty.call(distancePresets, value) || CUSTOM_DISTANCE.test(value);
+}
+
 export const biomeIds = ["Grass", "Deathland", "Dirt", "Autumn", "Snow", "Lava", "Sand"];
 
 export const zoneTypes: Record<ZoneType, { label: string; short: string; color: string; layout: string; hidden?: boolean }> = {
