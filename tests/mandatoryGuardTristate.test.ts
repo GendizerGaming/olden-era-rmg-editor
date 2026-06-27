@@ -39,3 +39,21 @@ describe("mandatory object isGuarded tri-state", () => {
     expect(imported.zones[0].objects[0].guarded).toBeUndefined();
   });
 });
+
+describe("mandatory object designatedEncounter tri-state", () => {
+  it("keeps an explicit false (default is true, so it must not be dropped)", () => {
+    const imported = importTemplateForRoundTrip(template([
+      { sid: "a", designatedEncounter: false },
+      { sid: "b", designatedEncounter: true },
+      { sid: "c" }                              // omitted -> engine default (true)
+    ]));
+    imported.zones[0].rawMandatoryContent = undefined; // force the honest rebuild
+    const out = exportImportedTemplate(imported);
+    const content = out.mandatoryContent?.[0].content ?? [];
+    const bySid = (sid: string) => content.find((e) => e.sid === sid)!;
+
+    expect(bySid("a").designatedEncounter).toBe(false);   // explicit off preserved
+    expect(bySid("b").designatedEncounter).toBe(true);
+    expect("designatedEncounter" in bySid("c")).toBe(false); // omitted stays omitted
+  });
+});

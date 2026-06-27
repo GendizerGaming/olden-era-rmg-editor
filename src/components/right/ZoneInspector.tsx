@@ -1597,13 +1597,20 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
 
                     {isExpert && (
                       <>
-                        <label className="toggle-line">
-                          <input
-                            type="checkbox"
-                            checked={Boolean(obj.designatedEncounter)}
-                            onChange={(e) => handleObjectFieldChange(obj.key, 'designatedEncounter', e.target.checked ? true : undefined)}
-                          />
-                          <span>{t('objectDesignatedEncounter')}</span>
+                        <label>
+                          {t('objectDesignatedEncounter')}
+                          <select
+                            value={obj.designatedEncounter === undefined ? 'default' : obj.designatedEncounter ? 'on' : 'off'}
+                            onChange={(e) => handleObjectFieldChange(
+                              obj.key,
+                              'designatedEncounter',
+                              e.target.value === 'default' ? undefined : e.target.value === 'on'
+                            )}
+                          >
+                            <option value="default">{t('objectDesignatedDefault')}</option>
+                            <option value="on">{t('objectDesignatedOn')}</option>
+                            <option value="off">{t('objectDesignatedOff')}</option>
+                          </select>
                         </label>
                         <p className="field-note object-field-help">{t('objectDesignatedEncounterHelp')}</p>
                       </>

@@ -133,7 +133,7 @@ export const resolveSavedObjects = (
         rawRules: saved.rawRules,
         rawIncludeLists: Array.isArray(saved.rawIncludeLists) ? saved.rawIncludeLists : undefined,
         owner: saved.owner === null || saved.owner === undefined ? null : Math.trunc(Number(saved.owner)) || null,
-        designatedEncounter: saved.designatedEncounter === true ? true : undefined,
+        designatedEncounter: saved.designatedEncounter === undefined ? undefined : Boolean(saved.designatedEncounter),
         nestedContent: Array.isArray(saved.nestedContent)
           ? saved.nestedContent.map((c) => ({ sid: String(c.sid), weight: Number(c.weight) || 0 }))
           : undefined,
@@ -162,7 +162,7 @@ export const normalizeSavedZoneObject = (
       rawRules: saved.rawRules,
       rawIncludeLists: Array.isArray(saved.rawIncludeLists) ? saved.rawIncludeLists : undefined,
       owner: saved.owner === null || saved.owner === undefined ? null : Math.trunc(Number(saved.owner)) || null,
-      designatedEncounter: saved.designatedEncounter === true ? true : undefined,
+      designatedEncounter: saved.designatedEncounter === undefined ? undefined : Boolean(saved.designatedEncounter),
       nestedContent: Array.isArray(saved.nestedContent)
         ? saved.nestedContent.map((c) => ({ sid: String(c.sid), weight: Number(c.weight) || 0 }))
         : undefined,
