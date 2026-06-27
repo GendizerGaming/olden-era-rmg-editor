@@ -118,7 +118,8 @@ describe("connection types", () => {
 
     const portal = byId.get("A-C-portal");
     expect(portal?.connectionType).toBe("Portal");
-    expect(portal?.rawFields?.portalPlacementRulesTo).toEqual([
+    // Portal placement rules are now a first-class edge field (no longer rawFields).
+    expect(portal?.portalPlacementRulesTo).toEqual([
       { type: "Crossroads", args: [], targetMin: 0.25, targetMax: 0.35, weight: 2 }
     ]);
 

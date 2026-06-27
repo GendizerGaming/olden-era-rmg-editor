@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEditorStore, biomeIds, distancePresets, catalogItemForReference, zoneTypes } from '../../store/useEditorStore';
+import { useEditorStore, biomeIds, catalogItemForReference, zoneTypes } from '../../store/useEditorStore';
 import { makeDefaultSpawnObject, nextPlayerNumber, zoneContentScale } from '../../store/zones';
 import { uniqueKey } from '../../store/ids';
 import type { EditorActions } from '../../store/useEditorStore';
@@ -12,6 +12,8 @@ import { LazyDetails } from '../shared/LazyDetails';
 import { RoadsSection } from './RoadsSection';
 import { isBiomeMode, isCityFactionMode } from '../shared/guards';
 import { NumberField } from '../shared/NumberField';
+import { DistanceField } from '../shared/DistanceField';
+import { NestedContentEditor } from '../shared/NestedContentEditor';
 import { ValueBadge } from '../shared/ValueBadge';
 
 interface ZoneInspectorProps {
@@ -878,6 +880,61 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
       </>
       )}
 
+      {isExpert && (
+        zone.randomHireInitialUnitIncrement !== undefined ||
+        zone.randomHireEnableWeeklyUnitIncrement !== undefined ||
+        zone.objects.some((o) =>
+          Boolean(o.includeList?.includes('random_hire')) ||
+          Boolean(o.rawIncludeLists?.some((list) => list.includes('random_hire'))) ||
+          Boolean(o.sid?.includes('random_hire')))
+      ) && (
+        <LazyDetails
+          className="inspector-subsection"
+          style={{ border: '1px solid var(--line)', borderRadius: '6px', background: 'var(--panel-2)', marginTop: '4px', overflow: 'hidden' }}
+          summary={<strong style={{ fontSize: '12px' }}>{t('zoneRandomHireSection')}</strong>}
+          renderContent={() => {
+            const TIERS = 7;
+            const init = zone.randomHireInitialUnitIncrement ?? Array(TIERS).fill(0);
+            const weekly = zone.randomHireEnableWeeklyUnitIncrement ?? Array(TIERS).fill(false);
+            const rows = Math.max(TIERS, init.length, weekly.length);
+            const setInit = (i: number, v: number) => {
+              const next = [...(zone.randomHireInitialUnitIncrement ?? Array(rows).fill(0))];
+              next[i] = v;
+              handleFieldChange('randomHireInitialUnitIncrement', next);
+            };
+            const setWeekly = (i: number, v: boolean) => {
+              const next = [...(zone.randomHireEnableWeeklyUnitIncrement ?? Array(rows).fill(false))];
+              next[i] = v;
+              handleFieldChange('randomHireEnableWeeklyUnitIncrement', next);
+            };
+            const headerCell: React.CSSProperties = { fontSize: '10px', color: 'var(--muted-soft)', textTransform: 'uppercase', letterSpacing: '0.03em' };
+            return (
+              <div style={{ display: 'grid', gap: '8px', padding: '6px 8px 10px' }}>
+                <p className="field-note" style={{ margin: 0 }}>{t('zoneRandomHireHelp')}</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '44px 1fr auto', gap: '4px 10px', alignItems: 'center' }}>
+                  <span style={headerCell}>{t('zoneRandomHireTierHeader')}</span>
+                  <span style={headerCell}>{t('zoneRandomHireInitial')}</span>
+                  <span style={headerCell} title={t('zoneRandomHireWeeklyHelp')}>{t('zoneRandomHireWeekly')}</span>
+                  {Array.from({ length: rows }, (_, i) => (
+                    <React.Fragment key={i}>
+                      <span style={{ fontSize: '12px' }}>{i + 1}</span>
+                      <NumberField min={0} value={Number(init[i]) || 0} onCommit={(v) => setInit(i, v)} />
+                      <input
+                        type="checkbox"
+                        title={t('zoneRandomHireWeeklyHelp')}
+                        checked={Boolean(weekly[i])}
+                        onChange={(e) => setWeekly(i, e.target.checked)}
+                        style={{ justifySelf: 'center' }}
+                      />
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+            );
+          }}
+        />
+      )}
+
       {/* Castle Section */}
       <div style={{ marginTop: '12px' }}>
         <SectionHeader icon={<Castle size={12} style={{ color: 'var(--accent)' }} />} label={t('zoneCity')} />
@@ -1030,7 +1087,8 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                         value={obj.factionMode}
                         onChange={(e) => {
                           if (isCityFactionMode(e.target.value)) {
-                            handleUpdateMainObject(obj.key, { factionMode: e.target.value });
+                            // Switching mode drops any imported FromList constraint.
+                            handleUpdateMainObject(obj.key, { factionMode: e.target.value, factionFromList: undefined });
                           }
                         }}
                       >
@@ -1039,6 +1097,12 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                         <option value="specific">{t('cityFactionSpecific')}</option>
                       </select>
                     </label>
+
+                    {obj.factionMode === 'random' && obj.factionFromList && obj.factionFromList.length > 0 && (
+                      <p className="field-note" style={{ marginTop: '-6px' }}>
+                        {t('cityFactionConstrained')}: {obj.factionFromList.join(', ')}
+                      </p>
+                    )}
 
                     {obj.factionMode === 'spawn' && (
                       <label>
@@ -1107,6 +1171,28 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                 )}
 
                 {isExpert && !isArena && (
+                  <>
+                    <label className="toggle-line">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(obj.enableWeeklyUnitIncrement)}
+                        onChange={(e) => handleUpdateMainObject(obj.key, { enableWeeklyUnitIncrement: e.target.checked ? true : undefined })}
+                      />
+                      <span>{t('objectWeeklyUnitIncrement')}</span>
+                    </label>
+                    <label>
+                      {t('objectInitialUnitIncrement')}
+                      <NumberField
+                        min={0}
+                        value={obj.initialUnitIncrement ?? 0}
+                        onCommit={(v) => handleUpdateMainObject(obj.key, { initialUnitIncrement: v || undefined })}
+                      />
+                    </label>
+                    <p className="field-note object-field-help">{t('objectUnitIncrementHelp')}</p>
+                  </>
+                )}
+
+                {isExpert && !isArena && (
                   <LazyDetails
                     className="inspector-subsection"
                     style={{
@@ -1144,16 +1230,28 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                             />
                           </label>
                         </div>
-                        <label style={{ marginBottom: 0 }}>
-                          <span>{t('guardWeeklyIncrement')}</span>
-                          <NumberField
-                            min={0}
-                            max={1}
-                            step={0.05}
-                            value={obj.guardWeeklyIncrement ?? 0}
-                            onCommit={(v) => handleUpdateMainObject(obj.key, { guardWeeklyIncrement: v })}
-                          />
-                        </label>
+                        <div className="field-row" style={{ marginBottom: 0 }}>
+                          <label style={{ marginBottom: 0 }}>
+                            <span>{t('guardWeeklyIncrement')}</span>
+                            <NumberField
+                              min={0}
+                              max={1}
+                              step={0.05}
+                              value={obj.guardWeeklyIncrement ?? 0}
+                              onCommit={(v) => handleUpdateMainObject(obj.key, { guardWeeklyIncrement: v })}
+                            />
+                          </label>
+                          <label style={{ marginBottom: 0 }}>
+                            <span>{t('objectGuardRandomization')}</span>
+                            <NumberField
+                              min={0}
+                              max={1}
+                              step={0.05}
+                              value={obj.guardRandomization ?? 0}
+                              onCommit={(v) => handleUpdateMainObject(obj.key, { guardRandomization: v || undefined })}
+                            />
+                          </label>
+                        </div>
                         <label className="toggle-line" style={{ margin: 0 }}>
                           <input
                             type="checkbox"
@@ -1161,6 +1259,14 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                             onChange={(e) => handleUpdateMainObject(obj.key, { removeGuardIfHasOwner: e.target.checked ? true : undefined })}
                           />
                           <span style={{ fontSize: '11px' }}>{t('removeGuardIfHasOwner')}</span>
+                        </label>
+                        <label className="toggle-line" style={{ margin: 0 }}>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(obj.isKeyObject)}
+                            onChange={(e) => handleUpdateMainObject(obj.key, { isKeyObject: e.target.checked ? true : undefined })}
+                          />
+                          <span style={{ fontSize: '11px' }}>{t('objectIsKeyObject')}</span>
                         </label>
                         <p className="field-note" style={{ margin: 0 }}>{t('objectGuardHelp')}</p>
                       </div>
@@ -1390,6 +1496,25 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                       />
                     )}
 
+                    {isExpert && obj.kind === 'list' && (
+                      <LazyDetails
+                        className="inspector-subsection"
+                        style={{ border: '1px solid var(--line)', borderRadius: '6px', background: 'var(--panel-2)', marginBottom: '10px', overflow: 'hidden' }}
+                        summary={<strong style={{ fontSize: '12px' }}>{t('nestedContentSection')}{obj.nestedContent?.length ? ` (${obj.nestedContent.length})` : ''}</strong>}
+                        renderContent={() => (
+                          <div style={{ display: 'grid', gap: '6px', padding: '6px 8px 10px' }}>
+                            <p className="field-note" style={{ margin: 0 }}>{t('nestedContentHelp')}</p>
+                            <NestedContentEditor
+                              value={obj.nestedContent}
+                              onChange={(next) => handleObjectFieldChange(obj.key, 'nestedContent', next)}
+                              t={t}
+                              language={language}
+                            />
+                          </div>
+                        )}
+                      />
+                    )}
+
                     <div className="field-row">
                       <label>
                         {t('objectCount')}
@@ -1424,6 +1549,20 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                           />
                         </label>
                         <p className="field-note object-field-help">{t('objectNameHelp')}</p>
+
+                        <label>
+                          {t('objectOwner')}
+                          <select
+                            value={obj.owner ?? ''}
+                            onChange={(e) => handleObjectFieldChange(obj.key, 'owner', e.target.value ? Number(e.target.value) : null)}
+                          >
+                            <option value="">{t('objectOwnerNeutral')}</option>
+                            {Array.from({ length: settings.players }, (_, i) => i + 1).map(pNum => (
+                              <option key={pNum} value={pNum}>{t('playerNumber', { num: pNum })}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <p className="field-note object-field-help">{t('objectOwnerHelp')}</p>
                       </>
                     )}
 
@@ -1445,35 +1584,33 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                       <span>{t('objectSoloEncounter')}</span>
                     </label>
                     <p className="field-note object-field-help">{t('objectSoloEncounterHelp')}</p>
-                    
-                    <label>
-                      {t('objectRoadDistance')}
-                      <select
-                        value={obj.roadDistance}
-                        onChange={(e) => handleObjectFieldChange(obj.key, 'roadDistance', e.target.value)}
-                      >
-                        {Object.keys(distancePresets).map((presetKey) => (
-                          <option key={presetKey} value={presetKey}>
-                            {t(`distance${presetKey.charAt(0).toUpperCase() + presetKey.slice(1)}`)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    
-                    <label className={hasTown ? '' : 'disabled-control'}>
-                      {t('objectTownDistance')}
-                      <select
-                        value={hasTown ? obj.townDistance : 'any'}
-                        onChange={(e) => handleObjectFieldChange(obj.key, 'townDistance', e.target.value)}
-                        disabled={!hasTown}
-                      >
-                        {Object.keys(distancePresets).map((presetKey) => (
-                          <option key={presetKey} value={presetKey}>
-                            {t(`distance${presetKey.charAt(0).toUpperCase() + presetKey.slice(1)}`)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+
+                    {isExpert && (
+                      <>
+                        <label className="toggle-line">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(obj.designatedEncounter)}
+                            onChange={(e) => handleObjectFieldChange(obj.key, 'designatedEncounter', e.target.checked ? true : undefined)}
+                          />
+                          <span>{t('objectDesignatedEncounter')}</span>
+                        </label>
+                        <p className="field-note object-field-help">{t('objectDesignatedEncounterHelp')}</p>
+                      </>
+                    )}
+
+                    <DistanceField
+                      label={t('objectRoadDistance')}
+                      value={obj.roadDistance}
+                      onChange={(v) => handleObjectFieldChange(obj.key, 'roadDistance', v)}
+                    />
+
+                    <DistanceField
+                      label={t('objectTownDistance')}
+                      value={hasTown ? obj.townDistance : 'any'}
+                      disabled={!hasTown}
+                      onChange={(v) => handleObjectFieldChange(obj.key, 'townDistance', v)}
+                    />
                     <p className="field-note">
                       {hasTown ? t('objectPlacementHelp') : t('objectTownDistanceUnavailable')}
                     </p>

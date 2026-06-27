@@ -5,13 +5,15 @@ import type {
   JsonObject,
   RmgBorder,
   RmgConnectionSource,
+  RmgPlacementRule,
   RmgMainObject,
   RmgOrientation,
   RmgTemplateSource,
   RmgVariantSource,
   RmgZone
 } from '../types/rmg';
-import { uniqueKey, distancePresets } from '../store/useEditorStore';
+import { uniqueKey } from '../store/useEditorStore';
+import { encodeDistance, ruleBounds } from '../store/constants';
 import { primaryVictoryMode } from '../store/winConditions';
 
 function pickUnknownFields(
@@ -28,21 +30,6 @@ function pickUnknownFields(
 }
 
 // Helper to find closest distance preset based on min/max limits
-function getDistancePresetName(min: number, max: number): string {
-  let bestName = "any";
-  let minDiff = Infinity;
-  for (const [name, val] of Object.entries(distancePresets)) {
-    if (val === null) continue;
-    const diff = Math.abs(val.min - min) + Math.abs(val.max - max);
-    if (diff < minDiff) {
-      minDiff = diff;
-      bestName = name;
-    }
-  }
-  // If the closest preset is reasonably close (within 0.15 total difference), use it, else any
-  return minDiff < 0.15 ? bestName : "any";
-}
-
 // Group duplicate objects to keep the UI clean
 function groupZoneObjects(objects: ZoneObject[]): ZoneObject[] {
   const grouped: ZoneObject[] = [];
@@ -55,7 +42,16 @@ function groupZoneObjects(objects: ZoneObject[]): ZoneObject[] {
       g.variant === obj.variant &&
       g.roadDistance === obj.roadDistance &&
       g.townDistance === obj.townDistance &&
-      g.isMine === obj.isMine
+      g.isMine === obj.isMine &&
+      // Don't merge entries whose exact placement rules differ — the distance
+      // preset can be the same while the original min/max/args differ.
+      JSON.stringify(g.rawRules) === JSON.stringify(obj.rawRules) &&
+      // Multi-list objects share a first list (= identity) but differ overall.
+      JSON.stringify(g.rawIncludeLists) === JSON.stringify(obj.rawIncludeLists) &&
+      JSON.stringify(g.nestedContent) === JSON.stringify(obj.nestedContent) &&
+      // Player-owned mandatory objects must stay separate per owner.
+      (g.owner ?? null) === (obj.owner ?? null) &&
+      Boolean(g.designatedEncounter) === Boolean(obj.designatedEncounter)
     );
     if (existing) {
       existing.count += 1;
@@ -574,7 +570,8 @@ export function importTemplateFromJson(
     const knownKeys = [
       'name', 'from', 'to', 'guardValue', 'road', 'connectionType', 'length',
       'simTurnSquad', 'guardWeeklyIncrement', 'guardEscape', 'guardRandomization',
-      'guardZone', 'gatePlacement', 'guardMatchGroup'
+      'guardZone', 'gatePlacement', 'guardMatchGroup',
+      'portalPlacementRulesTo', 'portalPlacementRulesFrom'
     ];
     const rawFields = pickUnknownFields(conn, knownKeys);
     if (!conn.from || !conn.to) {
@@ -599,6 +596,8 @@ export function importTemplateFromJson(
       guardZone: typeof conn.guardZone === 'string' && conn.guardZone ? conn.guardZone : undefined,
       gatePlacement: typeof conn.gatePlacement === 'string' && conn.gatePlacement ? conn.gatePlacement : undefined,
       guardMatchGroup: typeof conn.guardMatchGroup === 'string' && conn.guardMatchGroup ? conn.guardMatchGroup : undefined,
+      portalPlacementRulesTo: Array.isArray(conn.portalPlacementRulesTo) ? (conn.portalPlacementRulesTo as RmgPlacementRule[]).map((r) => ({ ...r })) : undefined,
+      portalPlacementRulesFrom: Array.isArray(conn.portalPlacementRulesFrom) ? (conn.portalPlacementRulesFrom as RmgPlacementRule[]).map((r) => ({ ...r })) : undefined,
       rawFields: Object.keys(rawFields).length ? rawFields : undefined
     });
   });
@@ -630,7 +629,8 @@ export function importTemplateFromJson(
         z.mainObjects.forEach((obj: RmgMainObject) => {
           const knownMainKeys = [
             'type', 'spawn', 'holdCityWinCon', 'owner', 'buildingsConstructionSid',
-            'guardValue', 'guardChance', 'guardWeeklyIncrement', 'removeGuardIfHasOwner'
+            'guardValue', 'guardChance', 'guardWeeklyIncrement', 'removeGuardIfHasOwner',
+            'guardRandomization', 'isKeyObject', 'enableWeeklyUnitIncrement', 'initialUnitIncrement'
           ];
           // Placement becomes editable only when it rebuilds verbatim: a known
           // enum value plus plain string args; anything exotic stays passthrough.
@@ -660,7 +660,11 @@ export function importTemplateFromJson(
             guardValue: obj.guardValue !== undefined ? Number(obj.guardValue) : undefined,
             guardChance: obj.guardChance !== undefined ? Number(obj.guardChance) : undefined,
             guardWeeklyIncrement: obj.guardWeeklyIncrement !== undefined ? Number(obj.guardWeeklyIncrement) : undefined,
-            removeGuardIfHasOwner: typeof obj.removeGuardIfHasOwner === 'boolean' ? obj.removeGuardIfHasOwner : undefined
+            removeGuardIfHasOwner: typeof obj.removeGuardIfHasOwner === 'boolean' ? obj.removeGuardIfHasOwner : undefined,
+            guardRandomization: obj.guardRandomization !== undefined ? Number(obj.guardRandomization) : undefined,
+            isKeyObject: typeof obj.isKeyObject === 'boolean' ? obj.isKeyObject : undefined,
+            enableWeeklyUnitIncrement: typeof obj.enableWeeklyUnitIncrement === 'boolean' ? obj.enableWeeklyUnitIncrement : undefined,
+            initialUnitIncrement: obj.initialUnitIncrement !== undefined ? Number(obj.initialUnitIncrement) : undefined
           };
 
           if (obj.type === "Spawn") {
@@ -693,6 +697,7 @@ export function importTemplateFromJson(
             let factionMode: 'random' | 'spawn' | 'specific' = "random";
             let factionSource = "";
             let factionId = factions[0]?.id || "";
+            let factionFromList: string[] | undefined;
             const holdCityWinCon = Boolean(obj.holdCityWinCon);
 
             if (holdCityWinCon) {
@@ -712,8 +717,17 @@ export function importTemplateFromJson(
                 factionMode = "spawn";
                 factionSource = z.name;
               } else if (fac.type === "FromList" && fac.args && fac.args.length > 0) {
-                factionMode = "specific";
-                factionId = fac.args[0];
+                const args = fac.args.map(String);
+                // A single real faction id → "specific" (the editable picker).
+                // Anything else (a faction subset, or "differentFrom: ..."
+                // exclusions of neighbouring players) → constrained random.
+                if (args.length === 1 && !args[0].startsWith("differentFrom")) {
+                  factionMode = "specific";
+                  factionId = args[0];
+                } else {
+                  factionMode = "random";
+                  factionFromList = args;
+                }
               } else if (Array.isArray(obj.factions) && obj.factions.length > 0) {
                 factionMode = "specific";
                 factionId = obj.factions[0];
@@ -730,6 +744,7 @@ export function importTemplateFromJson(
               factionMode,
               factionSource,
               factionId,
+              factionFromList,
               holdCityWinCon,
               owner: ownerNum,
               buildingsConstructionSid: constructionSid,
@@ -812,17 +827,18 @@ export function importTemplateFromJson(
             const kind = includeLists.length > 0 ? "list" : "sid";
             const val = kind === "list" ? includeLists[0] : obj.sid;
 
-            // Resolve placement rules for distance presets
+            // Capture Road/MainObject distances exactly (no snapping to a preset)
+            // so imports stay 100% faithful; the preset is only a UI shortcut.
             let roadDistance = "any";
             let townDistance = "any";
             if (Array.isArray(obj.rules)) {
               obj.rules.forEach((rule) => {
-                const min = Number(rule.targetMin) || 0;
-                const max = Number(rule.targetMax) || 0;
+                const bounds = ruleBounds(rule);
+                if (!bounds) return; // unmodelable shape — preserved via rawRules
                 if (rule.type === "Road") {
-                  roadDistance = getDistancePresetName(min, max);
+                  roadDistance = encodeDistance(bounds.min, bounds.max);
                 } else if (rule.type === "MainObject") {
-                  townDistance = getDistancePresetName(min, max);
+                  townDistance = encodeDistance(bounds.min, bounds.max);
                 }
               });
             }
@@ -867,6 +883,26 @@ export function importTemplateFromJson(
               variant: obj.variant === undefined || obj.variant === null ? null : Number(obj.variant),
               roadDistance,
               townDistance,
+              // Keep the original placement rules verbatim so they round-trip
+              // exactly while the distance presets are unchanged (the preset
+              // model only captures Road/MainObject distances, losing exact
+              // values, weights, args and Crossroads/Connection rules).
+              rawRules: Array.isArray(obj.rules) ? obj.rules.map((r) => ({ ...r })) : undefined,
+              // An object can reference several content lists at once; the model
+              // identifies a list object by its first list, so keep the full set
+              // verbatim to round-trip multi-list objects without truncation.
+              rawIncludeLists: kind === "list" && includeLists.length > 1 ? [...includeLists] : undefined,
+              // A mandatory object can start owned by a player (e.g. a mine
+              // handed over on turn 1); stored as a number, emitted "PlayerN".
+              owner: typeof obj.owner === "string"
+                ? Number(obj.owner.match(/Player(\d+)/i)?.[1]) || null
+                : null,
+              designatedEncounter: obj.designatedEncounter === true ? true : undefined,
+              // Inline weighted candidate list (pool-slot objects); kept so it
+              // round-trips and stays editable in the object's inspector.
+              nestedContent: Array.isArray(obj.content)
+                ? obj.content.map((c) => ({ sid: String(c.sid), weight: Number(c.weight) || 0 }))
+                : undefined,
               isMine: Boolean(obj.isMine),
               tag: catalogItem.tag,
               category: catalogItem.category,
@@ -890,6 +926,7 @@ export function importTemplateFromJson(
         'roads', 'guardedContentValuePerArea', 'unguardedContentValuePerArea', 'resourcesValuePerArea',
         'guardCutoffValue', 'guardRandomization', 'guardMultiplier',
         'guardWeeklyIncrement', 'guardReactionDistribution', 'diplomacyModifier',
+        'randomHireInitialUnitIncrement', 'randomHireEnableWeeklyUnitIncrement',
         'encounterHolesSettings', 'contentCountLimits',
         'guardedContentPool', 'unguardedContentPool', 'resourcesContentPool'
       ];
@@ -933,6 +970,12 @@ export function importTemplateFromJson(
         guardWeeklyIncrement: z.guardWeeklyIncrement !== undefined ? Number(z.guardWeeklyIncrement) : undefined,
         guardReactionDistribution: Array.isArray(z.guardReactionDistribution)
           ? z.guardReactionDistribution.map(Number)
+          : undefined,
+        randomHireInitialUnitIncrement: Array.isArray(z.randomHireInitialUnitIncrement)
+          ? z.randomHireInitialUnitIncrement.map(Number)
+          : undefined,
+        randomHireEnableWeeklyUnitIncrement: Array.isArray(z.randomHireEnableWeeklyUnitIncrement)
+          ? z.randomHireEnableWeeklyUnitIncrement.map(Boolean)
           : undefined,
         diplomacyModifier: z.diplomacyModifier !== undefined ? Number(z.diplomacyModifier) : undefined,
         contentBiomeMode: contentAux.mode,

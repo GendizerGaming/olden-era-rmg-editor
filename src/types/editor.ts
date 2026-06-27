@@ -8,6 +8,7 @@ import type {
   RmgMainObject,
   RmgMandatoryObject,
   RmgOrientation,
+  RmgPlacementRule,
   RmgRule,
   RmgRoad,
   RmgWinConditionsSource,
@@ -102,6 +103,21 @@ export interface ZoneObject {
   rarity?: string;
   sizeX?: number;
   sizeZ?: number;
+  /** Original mandatory-content placement rules, kept verbatim so they
+   *  round-trip exactly until the distance presets are edited. */
+  rawRules?: RmgPlacementRule[];
+  /** Full set of content lists when an object references more than one — the
+   *  model identifies a list object by `includeList` (the first), so this keeps
+   *  the rest so multi-list objects round-trip without truncation. */
+  rawIncludeLists?: string[];
+  /** Player who owns this mandatory object from the start (exported as
+   *  owner: "PlayerN"); used e.g. for mines handed to a player on turn 1. */
+  owner?: number | null;
+  /** Forces the generator to treat this as a designated encounter. */
+  designatedEncounter?: boolean;
+  /** Inline weighted candidate list for a pool-slot (list-kind) object: each
+   *  entry is a candidate sid with its pick weight (≤0 = excluded from the roll). */
+  nestedContent?: Array<{ sid: string; weight: number }>;
 }
 
 export interface Preset {
@@ -145,6 +161,10 @@ export interface ZoneMainObject {
   factionMode: 'random' | 'spawn' | 'specific';
   factionSource?: string;
   factionId?: string;
+  /** Raw `FromList` faction args for a constrained random faction — a faction
+   *  subset or "differentFrom: <i> <zone>" exclusions of neighbouring players.
+   *  Used with factionMode 'random'; kept verbatim so it round-trips. */
+  factionFromList?: string[];
   holdCityWinCon?: boolean;
   /** Player who owns the object from the start (exported as owner: "PlayerN"). */
   owner?: number | null;
@@ -158,6 +178,14 @@ export interface ZoneMainObject {
   guardWeeklyIncrement?: number;
   /** Drop the garrison when the object starts owned by a player. */
   removeGuardIfHasOwner?: boolean;
+  /** Spread 0..1 applied to this object's guard strength (like the zone-level one). */
+  guardRandomization?: number;
+  /** Marks the object as a key/quest object for the generator. */
+  isKeyObject?: boolean;
+  /** Whether this city/dwelling's unit production grows weekly. */
+  enableWeeklyUnitIncrement?: boolean;
+  /** Starting unit-growth bump for this city/dwelling. */
+  initialUnitIncrement?: number;
   /** Placement rule inside the zone; absent = let the generator decide. */
   placement?: MainObjectPlacement;
   /**
@@ -269,6 +297,10 @@ export interface Zone {
    * joins or lets pass.
    */
   guardReactionDistribution?: number[];
+  /** Per-tier random-hire dwelling tuning, kept verbatim (one entry per creature
+   *  tier): starting unit growth amounts and weekly-growth on/off flags. */
+  randomHireInitialUnitIncrement?: number[];
+  randomHireEnableWeeklyUnitIncrement?: boolean[];
   /** Neutral "friendliness": higher — neutrals join or leave more eagerly. */
   diplomacyModifier?: number;
   layout?: string;
@@ -335,6 +367,10 @@ export interface Edge {
   gatePlacement?: string;
   /** Connections sharing a group name get an identical (synced) guard. */
   guardMatchGroup?: string;
+  /** Portal mouth placement inside the From/To zones, kept verbatim; the
+   *  inspector edits the leading rule's distance, the rest round-trips. */
+  portalPlacementRulesTo?: RmgPlacementRule[];
+  portalPlacementRulesFrom?: RmgPlacementRule[];
   rawFields?: RmgConnectionSource;
 }
 

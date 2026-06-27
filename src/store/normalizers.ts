@@ -5,7 +5,7 @@ import { catalogItemForReference, cloneEntry, resolvePresetToZoneObjects } from 
 import { uniqueKey } from './ids';
 import { uniqueZoneId, zoneIdPrefix } from './zones';
 import { defaultPresets } from './presets';
-import { distancePresets, zoneTypes, biomeIds, defaultTemplateDescription, defaultTerrainProfiles, defaultContentLimitPresets } from './constants';
+import { isDistanceValue, zoneTypes, biomeIds, defaultTemplateDescription, defaultTerrainProfiles, defaultContentLimitPresets } from './constants';
 import { primaryVictoryMode } from './winConditions';
 
 const normalizeTerrainProfiles = (value: unknown): TerrainProfile[] => {
@@ -130,20 +130,19 @@ export const resolveSavedObjects = (
       return [{
         ...cloneEntry(item),
         name: saved.name,
+        rawRules: saved.rawRules,
+        rawIncludeLists: Array.isArray(saved.rawIncludeLists) ? saved.rawIncludeLists : undefined,
+        owner: saved.owner === null || saved.owner === undefined ? null : Math.trunc(Number(saved.owner)) || null,
+        designatedEncounter: saved.designatedEncounter === true ? true : undefined,
+        nestedContent: Array.isArray(saved.nestedContent)
+          ? saved.nestedContent.map((c) => ({ sid: String(c.sid), weight: Number(c.weight) || 0 }))
+          : undefined,
         count: Math.max(1, Math.min(99, Math.trunc(Number(saved.count) || 1))),
         guarded: Boolean(saved.guarded),
         soloEncounter: Boolean(saved.soloEncounter),
         variant: saved.variant === null || saved.variant === undefined || saved.variant === "" ? null : Math.trunc(Number(saved.variant)),
-        roadDistance:
-          typeof saved.roadDistance === "string" &&
-          distancePresets[saved.roadDistance] !== undefined
-            ? saved.roadDistance
-            : "any",
-        townDistance:
-          typeof saved.townDistance === "string" &&
-          distancePresets[saved.townDistance] !== undefined
-            ? saved.townDistance
-            : "any"
+        roadDistance: isDistanceValue(saved.roadDistance) ? saved.roadDistance : "any",
+        townDistance: isDistanceValue(saved.townDistance) ? saved.townDistance : "any"
       }];
     });
   };
@@ -160,6 +159,13 @@ export const normalizeSavedZoneObject = (
       key: saved.key || uniqueKey(),
       id,
       name: saved.name,
+      rawRules: saved.rawRules,
+      rawIncludeLists: Array.isArray(saved.rawIncludeLists) ? saved.rawIncludeLists : undefined,
+      owner: saved.owner === null || saved.owner === undefined ? null : Math.trunc(Number(saved.owner)) || null,
+      designatedEncounter: saved.designatedEncounter === true ? true : undefined,
+      nestedContent: Array.isArray(saved.nestedContent)
+        ? saved.nestedContent.map((c) => ({ sid: String(c.sid), weight: Number(c.weight) || 0 }))
+        : undefined,
       sid: kind === "sid" ? saved.sid || id : undefined,
       includeList: kind === "list" ? saved.includeList || id : undefined,
       label: saved.label || id,
@@ -176,16 +182,8 @@ export const normalizeSavedZoneObject = (
         saved.variant === ""
           ? null
           : Math.trunc(Number(saved.variant)),
-      roadDistance:
-        typeof saved.roadDistance === "string" &&
-        distancePresets[saved.roadDistance] !== undefined
-          ? saved.roadDistance
-          : "any",
-      townDistance:
-        typeof saved.townDistance === "string" &&
-        distancePresets[saved.townDistance] !== undefined
-          ? saved.townDistance
-          : "any",
+      roadDistance: isDistanceValue(saved.roadDistance) ? saved.roadDistance : "any",
+      townDistance: isDistanceValue(saved.townDistance) ? saved.townDistance : "any",
       isMine: Boolean(saved.isMine),
       tag: saved.tag,
       category: saved.category,
@@ -276,6 +274,8 @@ export const normalizeSavedEdge = (edge: SavedEdge): Edge => ({
     guardZone: typeof edge.guardZone === "string" && edge.guardZone ? edge.guardZone : undefined,
     gatePlacement: typeof edge.gatePlacement === "string" && edge.gatePlacement ? edge.gatePlacement : undefined,
     guardMatchGroup: typeof edge.guardMatchGroup === "string" && edge.guardMatchGroup ? edge.guardMatchGroup : undefined,
+    portalPlacementRulesTo: Array.isArray(edge.portalPlacementRulesTo) ? edge.portalPlacementRulesTo : undefined,
+    portalPlacementRulesFrom: Array.isArray(edge.portalPlacementRulesFrom) ? edge.portalPlacementRulesFrom : undefined,
     rawFields: edge.rawFields
   });
 
@@ -330,6 +330,7 @@ export const normalizeZone = (
           factionMode: mo.factionMode || 'random',
           factionSource: mo.factionSource || '',
           factionId: mo.factionId || '',
+          factionFromList: Array.isArray(mo.factionFromList) ? mo.factionFromList : undefined,
           holdCityWinCon: mo.holdCityWinCon !== undefined ? Boolean(mo.holdCityWinCon) : false,
           owner: mo.owner !== undefined && mo.owner !== null ? Number(mo.owner) : null,
           buildingsConstructionSid: typeof mo.buildingsConstructionSid === 'string' && mo.buildingsConstructionSid
@@ -339,6 +340,10 @@ export const normalizeZone = (
           guardChance: mo.guardChance !== undefined ? Number(mo.guardChance) : undefined,
           guardWeeklyIncrement: mo.guardWeeklyIncrement !== undefined ? Number(mo.guardWeeklyIncrement) : undefined,
           removeGuardIfHasOwner: typeof mo.removeGuardIfHasOwner === 'boolean' ? mo.removeGuardIfHasOwner : undefined,
+          guardRandomization: mo.guardRandomization !== undefined ? Number(mo.guardRandomization) : undefined,
+          isKeyObject: typeof mo.isKeyObject === 'boolean' ? mo.isKeyObject : undefined,
+          enableWeeklyUnitIncrement: typeof mo.enableWeeklyUnitIncrement === 'boolean' ? mo.enableWeeklyUnitIncrement : undefined,
+          initialUnitIncrement: mo.initialUnitIncrement !== undefined ? Number(mo.initialUnitIncrement) : undefined,
           placement: mo.placement === 'Uniform' || mo.placement === 'Center' || mo.placement === 'Connection' || mo.placement === 'NearZone'
             ? mo.placement
             : undefined,
@@ -404,6 +409,12 @@ export const normalizeZone = (
       guardWeeklyIncrement: zone?.guardWeeklyIncrement !== undefined ? Number(zone.guardWeeklyIncrement) : undefined,
       guardReactionDistribution: Array.isArray(zone?.guardReactionDistribution)
         ? zone.guardReactionDistribution.map(Number)
+        : undefined,
+      randomHireInitialUnitIncrement: Array.isArray(zone?.randomHireInitialUnitIncrement)
+        ? zone.randomHireInitialUnitIncrement.map(Number)
+        : undefined,
+      randomHireEnableWeeklyUnitIncrement: Array.isArray(zone?.randomHireEnableWeeklyUnitIncrement)
+        ? zone.randomHireEnableWeeklyUnitIncrement.map(Boolean)
         : undefined,
       diplomacyModifier: zone?.diplomacyModifier !== undefined ? Number(zone.diplomacyModifier) : undefined,
       contentBiomeMode: zone?.contentBiomeMode && ['land', 'own', 'random', 'spawn', 'specific'].includes(zone.contentBiomeMode)
