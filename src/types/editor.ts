@@ -91,7 +91,10 @@ export interface ZoneObject {
   labelByLang?: { ru: string; en: string };
   descriptionByLang?: { ru: string; en: string };
   kind: 'sid' | 'list';
-  guarded: boolean;
+  /** Mandatory-object guard state, tri-state to mirror the .rmg.json:
+   *  true = guarded, false = unguarded, undefined = field omitted (the engine
+   *  applies its own default — most likely guarded, but not confirmed). */
+  guarded?: boolean;
   count: number;
   soloEncounter: boolean;
   variant: number | null;

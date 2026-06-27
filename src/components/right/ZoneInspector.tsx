@@ -1443,7 +1443,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
         <div className="object-list">
           {zone.objects.map((obj) => {
             const label = obj.labelByLang?.[language] || obj.label || obj.sid || obj.includeList || obj.id || '';
-            const guardStr = obj.guarded ? t('guardedShort') : t('unguardedShort');
+            const guardStr = obj.guarded === undefined ? t('objectGuardDefaultShort') : obj.guarded ? t('guardedShort') : t('unguardedShort');
             const technicalId = obj.kind === 'list' ? obj.includeList : obj.sid || obj.id;
             const coreCatalog = useEditorStore.getState().coreCatalog;
             const catalogItem = coreCatalog 
@@ -1566,15 +1566,25 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                       </>
                     )}
 
-                    <label className="toggle-line">
-                      <input
-                        type="checkbox"
-                        checked={obj.guarded}
-                        onChange={(e) => handleObjectFieldChange(obj.key, 'guarded', e.target.checked)}
-                      />
-                      <span>{t('objectGuarded')}</span>
+                    <label>
+                      {t('objectGuardLabel')}
+                      <select
+                        value={obj.guarded === undefined ? 'default' : obj.guarded ? 'guarded' : 'unguarded'}
+                        onChange={(e) => handleObjectFieldChange(
+                          obj.key,
+                          'guarded',
+                          e.target.value === 'default' ? undefined : e.target.value === 'guarded'
+                        )}
+                      >
+                        <option value="default">{t('objectGuardDefault')}</option>
+                        <option value="guarded">{t('objectGuardYes')}</option>
+                        <option value="unguarded">{t('objectGuardNo')}</option>
+                      </select>
                     </label>
-                    
+                    {obj.guarded === undefined && (
+                      <p className="field-note object-field-help">{t('objectGuardDefaultHelp')}</p>
+                    )}
+
                     <label className="toggle-line">
                       <input
                         type="checkbox"
@@ -1587,13 +1597,20 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
 
                     {isExpert && (
                       <>
-                        <label className="toggle-line">
-                          <input
-                            type="checkbox"
-                            checked={Boolean(obj.designatedEncounter)}
-                            onChange={(e) => handleObjectFieldChange(obj.key, 'designatedEncounter', e.target.checked ? true : undefined)}
-                          />
-                          <span>{t('objectDesignatedEncounter')}</span>
+                        <label>
+                          {t('objectDesignatedEncounter')}
+                          <select
+                            value={obj.designatedEncounter === undefined ? 'default' : obj.designatedEncounter ? 'on' : 'off'}
+                            onChange={(e) => handleObjectFieldChange(
+                              obj.key,
+                              'designatedEncounter',
+                              e.target.value === 'default' ? undefined : e.target.value === 'on'
+                            )}
+                          >
+                            <option value="default">{t('objectDesignatedDefault')}</option>
+                            <option value="on">{t('objectDesignatedOn')}</option>
+                            <option value="off">{t('objectDesignatedOff')}</option>
+                          </select>
                         </label>
                         <p className="field-note object-field-help">{t('objectDesignatedEncounterHelp')}</p>
                       </>

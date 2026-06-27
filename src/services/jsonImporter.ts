@@ -51,7 +51,7 @@ function groupZoneObjects(objects: ZoneObject[]): ZoneObject[] {
       JSON.stringify(g.nestedContent) === JSON.stringify(obj.nestedContent) &&
       // Player-owned mandatory objects must stay separate per owner.
       (g.owner ?? null) === (obj.owner ?? null) &&
-      Boolean(g.designatedEncounter) === Boolean(obj.designatedEncounter)
+      (g.designatedEncounter ?? null) === (obj.designatedEncounter ?? null)
     );
     if (existing) {
       existing.count += 1;
@@ -879,7 +879,9 @@ export function importTemplateFromJson(
               labelByLang: catalogItem.labelByLang,
               descriptionByLang: catalogItem.descriptionByLang,
               kind: catalogItem.kind,
-              guarded: Boolean(obj.isGuarded),
+              // Tri-state: keep "field omitted" (undefined) distinct from an
+              // explicit false, so the engine default is preserved on export.
+              guarded: obj.isGuarded === undefined ? undefined : Boolean(obj.isGuarded),
               count: 1, // Will group them later
               soloEncounter: Boolean(obj.soloEncounter),
               variant: obj.variant === undefined || obj.variant === null ? null : Number(obj.variant),
@@ -899,7 +901,9 @@ export function importTemplateFromJson(
               owner: typeof obj.owner === "string"
                 ? Number(obj.owner.match(/Player(\d+)/i)?.[1]) || null
                 : null,
-              designatedEncounter: obj.designatedEncounter === true ? true : undefined,
+              // Tri-state: the engine default for an omitted designatedEncounter
+              // is true, so an explicit false must NOT be collapsed away.
+              designatedEncounter: obj.designatedEncounter === undefined ? undefined : Boolean(obj.designatedEncounter),
               // Inline weighted candidate list (pool-slot objects); kept so it
               // round-trips and stays editable in the object's inspector.
               nestedContent: Array.isArray(obj.content)

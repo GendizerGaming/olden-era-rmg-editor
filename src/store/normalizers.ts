@@ -133,12 +133,12 @@ export const resolveSavedObjects = (
         rawRules: saved.rawRules,
         rawIncludeLists: Array.isArray(saved.rawIncludeLists) ? saved.rawIncludeLists : undefined,
         owner: saved.owner === null || saved.owner === undefined ? null : Math.trunc(Number(saved.owner)) || null,
-        designatedEncounter: saved.designatedEncounter === true ? true : undefined,
+        designatedEncounter: saved.designatedEncounter === undefined ? undefined : Boolean(saved.designatedEncounter),
         nestedContent: Array.isArray(saved.nestedContent)
           ? saved.nestedContent.map((c) => ({ sid: String(c.sid), weight: Number(c.weight) || 0 }))
           : undefined,
         count: Math.max(1, Math.min(99, Math.trunc(Number(saved.count) || 1))),
-        guarded: Boolean(saved.guarded),
+        guarded: saved.guarded === undefined ? undefined : Boolean(saved.guarded),
         soloEncounter: Boolean(saved.soloEncounter),
         variant: saved.variant === null || saved.variant === undefined || saved.variant === "" ? null : Math.trunc(Number(saved.variant)),
         roadDistance: isDistanceValue(saved.roadDistance) ? saved.roadDistance : "any",
@@ -162,7 +162,7 @@ export const normalizeSavedZoneObject = (
       rawRules: saved.rawRules,
       rawIncludeLists: Array.isArray(saved.rawIncludeLists) ? saved.rawIncludeLists : undefined,
       owner: saved.owner === null || saved.owner === undefined ? null : Math.trunc(Number(saved.owner)) || null,
-      designatedEncounter: saved.designatedEncounter === true ? true : undefined,
+      designatedEncounter: saved.designatedEncounter === undefined ? undefined : Boolean(saved.designatedEncounter),
       nestedContent: Array.isArray(saved.nestedContent)
         ? saved.nestedContent.map((c) => ({ sid: String(c.sid), weight: Number(c.weight) || 0 }))
         : undefined,
@@ -173,7 +173,7 @@ export const normalizeSavedZoneObject = (
       labelByLang: saved.labelByLang,
       descriptionByLang: saved.descriptionByLang,
       kind,
-      guarded: Boolean(saved.guarded),
+      guarded: saved.guarded === undefined ? undefined : Boolean(saved.guarded),
       count: Math.max(1, Math.min(99, Math.trunc(Number(saved.count) || 1))),
       soloEncounter: Boolean(saved.soloEncounter),
       variant:
