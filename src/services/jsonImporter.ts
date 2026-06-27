@@ -598,10 +598,12 @@ export function importTemplateFromJson(
       guardMatchGroup: typeof conn.guardMatchGroup === 'string' && conn.guardMatchGroup ? conn.guardMatchGroup : undefined,
       portalPlacementRulesTo: Array.isArray(conn.portalPlacementRulesTo) ? (conn.portalPlacementRulesTo as RmgPlacementRule[]).map((r) => ({ ...r })) : undefined,
       portalPlacementRulesFrom: Array.isArray(conn.portalPlacementRulesFrom) ? (conn.portalPlacementRulesFrom as RmgPlacementRule[]).map((r) => ({ ...r })) : undefined,
+      imported: true,
       rawFields: Object.keys(rawFields).length ? rawFields : undefined
     });
   });
   settings.preserveLayout = hasProximity;
+  settings.originalConnectionIds = edges.map((e) => e.id);
 
   // 3. Map Orientation
   if (variant.orientation) {

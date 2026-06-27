@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 type NumberFieldProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -22,6 +22,19 @@ export const NumberField: React.FC<NumberFieldProps> = ({
   ...rest
 }) => {
   const [draft, setDraft] = useState<string | null>(null);
+  // The value we last committed ourselves. Lets us tell our own edit from an
+  // outside change (e.g. the inspector switching to another zone).
+  const syncedValue = useRef(value);
+
+  // Drop a stale draft when `value` changes from outside our own commit.
+  // Without this, after editing a field and clicking another zone (the canvas
+  // keeps the input focused) the field would keep showing the previous value.
+  useEffect(() => {
+    if (value !== syncedValue.current) {
+      syncedValue.current = value;
+      setDraft(null);
+    }
+  }, [value]);
 
   // Typed values are clamped to the min/max props on commit, so the bounds
   // hold for keyboard input as well as for the spinner buttons.
@@ -43,7 +56,9 @@ export const NumberField: React.FC<NumberFieldProps> = ({
         if (text !== '') {
           const parsed = Number(text);
           if (!Number.isNaN(parsed)) {
-            onCommit(clamp(parsed));
+            const next = clamp(parsed);
+            syncedValue.current = next;
+            onCommit(next);
           }
         }
       }}

@@ -276,6 +276,7 @@ export const normalizeSavedEdge = (edge: SavedEdge): Edge => ({
     guardMatchGroup: typeof edge.guardMatchGroup === "string" && edge.guardMatchGroup ? edge.guardMatchGroup : undefined,
     portalPlacementRulesTo: Array.isArray(edge.portalPlacementRulesTo) ? edge.portalPlacementRulesTo : undefined,
     portalPlacementRulesFrom: Array.isArray(edge.portalPlacementRulesFrom) ? edge.portalPlacementRulesFrom : undefined,
+    imported: edge.imported === true ? true : undefined,
     rawFields: edge.rawFields
   });
 
@@ -598,7 +599,8 @@ export const normalizeSettings = (settings: Partial<MapSettings>): MapSettings =
       originalWinConditions: settings.originalWinConditions,
       originalOrientation: settings.originalOrientation,
       originalBorder: settings.originalBorder,
-      originalRawRootFields: settings.originalRawRootFields
+      originalRawRootFields: settings.originalRawRootFields,
+      originalConnectionIds: Array.isArray(settings.originalConnectionIds) ? settings.originalConnectionIds : undefined
     };
   };
 

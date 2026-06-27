@@ -450,25 +450,52 @@ function toRmgZone(zone: Zone, edges: Edge[], presets: Record<string, Preset>, s
   if (zone.unguardedValuePerArea !== undefined) rmgZone.unguardedContentValuePerArea = zone.unguardedValuePerArea;
   if (zone.resourcesValuePerArea !== undefined) rmgZone.resourcesValuePerArea = zone.resourcesValuePerArea;
 
+  type RoadSegment = NonNullable<Zone['roads']>[number];
+  const connectionOf = (segment: RoadSegment): string | undefined =>
+    [segment.from, segment.to].find((term) => term?.type === 'Connection')?.args?.[0];
+  const crossroadsRoad = (edgeData: Edge): RoadSegment => ({
+    type: edgeData.roadType ?? "Stone",
+    from: { type: "Crossroads" },
+    to: { type: "Connection", args: [connectionName(edgeData)] }
+  });
+
+  // Reconcile passthrough roads with the current graph: keep internal roads and
+  // roads to still-existing connections (rewriting the Stone/Dirt surface), drop
+  // roads to connections the user deleted, and add a road for every new
+  // connection that has none yet — so recreated/added connections stay consistent.
+  const originalConnectionIds = new Set(settings.originalConnectionIds ?? []);
+  const reconcileRoads = (baseRoads: RoadSegment[]): RoadSegment[] => {
+    const kept = baseRoads
+      .filter((segment) => {
+        const ref = connectionOf(segment);
+        if (ref === undefined || edges.some((candidate) => candidate.id === ref)) return true;
+        // Ref points to a missing connection: drop only if it was an imported
+        // connection the user deleted; keep a template's own dangling roads.
+        return !originalConnectionIds.has(ref);
+      })
+      .map((segment) => {
+        const ref = connectionOf(segment);
+        const edgeData = ref ? edges.find((candidate) => candidate.id === ref) : undefined;
+        return edgeData?.roadType && segment.type !== edgeData.roadType
+          ? { ...segment, type: edgeData.roadType }
+          : segment;
+      });
+    const covered = new Set(kept.map(connectionOf).filter((id): id is string => Boolean(id)));
+    const added = relatedEdges
+      .filter((edgeData) => !edgeData.imported && !covered.has(edgeData.id))
+      .map(crossroadsRoad);
+    return [...kept, ...added];
+  };
+
   if (zone.roads !== undefined) {
-    // Passthrough segments, with the surface rewritten when the edge has an
-    // explicit roadType (untouched edges keep roadType undefined).
-    rmgZone.roads = zone.roads.map((segment) => {
-      const connectionRef = [segment.from, segment.to]
-        .find((term) => term?.type === 'Connection')?.args?.[0];
-      const edgeData = connectionRef
-        ? edges.find((candidate) => candidate.id === connectionRef)
-        : undefined;
-      return edgeData?.roadType && segment.type !== edgeData.roadType
-        ? { ...segment, type: edgeData.roadType }
-        : segment;
-    });
+    rmgZone.roads = reconcileRoads(zone.roads);
   } else if (!zone.importedObjects) {
-    rmgZone.roads = relatedEdges.map((edgeData) => ({
-      type: edgeData.roadType ?? "Stone",
-      from: { type: "Crossroads" as const },
-      to: { type: "Connection" as const, args: [connectionName(edgeData)] }
-    }));
+    // Editor-created zone: a crossroads road for each of its connections.
+    rmgZone.roads = relatedEdges.map(crossroadsRoad);
+  } else {
+    // Imported zone that had no roads of its own — still wire up new connections.
+    const reconciled = reconcileRoads([]);
+    if (reconciled.length) rmgZone.roads = reconciled;
   }
   
   const rmgMainObjects = (zone.mainObjects || []).map((obj) => {
