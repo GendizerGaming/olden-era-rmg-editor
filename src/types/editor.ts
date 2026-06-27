@@ -371,6 +371,10 @@ export interface Edge {
    *  inspector edits the leading rule's distance, the rest round-trips. */
   portalPlacementRulesTo?: RmgPlacementRule[];
   portalPlacementRulesFrom?: RmgPlacementRule[];
+  /** True for connections that came from a template import (vs created in the
+   *  editor). Lets the export reconcile zone roads — original connections keep
+   *  their roads, new ones get one. Not emitted to the .rmg.json. */
+  imported?: boolean;
   rawFields?: RmgConnectionSource;
 }
 
@@ -460,6 +464,9 @@ export interface MapSettings {
   originalOrientation?: RmgOrientation;
   originalBorder?: RmgBorder;
   originalRawRootFields?: JsonObject;
+  /** Connection ids present at import. Lets the export tell a user-deleted
+   *  connection (drop its dangling roads) from a template's own dangling roads. */
+  originalConnectionIds?: string[];
 }
 
 /**
