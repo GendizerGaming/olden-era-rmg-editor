@@ -173,10 +173,10 @@ export const BonusesSection: React.FC = () => {
 
       {expanded && (
         <div className="collapsible-body">
-          <p className="field-note" style={{ marginBottom: '8px' }}>{t('bonusesHelp')}</p>
+          <p className="ui-field-hint" style={{ marginBottom: '8px' }}>{t('bonusesHelp')}</p>
 
           {bonuses.length === 0 ? (
-            <p className="field-note" style={{ margin: '4px 0 10px' }}>{t('bonusesEmpty')}</p>
+            <p className="ui-field-hint" style={{ margin: '4px 0 10px' }}>{t('bonusesEmpty')}</p>
           ) : (
             <div
               style={{
@@ -232,7 +232,7 @@ export const BonusesSection: React.FC = () => {
               {t('bonusesAdd')}
             </button>
           ) : (
-            <div style={{ display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px' }}>
+            <div className="ui-indent" style={{ display: 'grid', gap: '8px' }}>
               <label style={selectStyle}>
                 <span>{t('bonusTypeLabel')}</span>
                 <select value={typeSid} onChange={(e) => setTypeSid(e.target.value)}>
@@ -241,7 +241,7 @@ export const BonusesSection: React.FC = () => {
                   ))}
                 </select>
               </label>
-              <p className="field-note" style={{ margin: 0 }}>{t(`bonusTypeHelp_${typeSid}`)}</p>
+              <p className="ui-field-hint" style={{ margin: 0 }}>{t(`bonusTypeHelp_${typeSid}`)}</p>
 
               {currentType.hero && (
                 <label style={selectStyle}>
@@ -352,7 +352,7 @@ export const BonusesSection: React.FC = () => {
                         <span>{t('bonusStatValue')}</span>
                         <NumberField min={0} step={5} value={movementValue} onCommit={setMovementValue} />
                       </label>
-                      <p className="field-note" style={{ margin: 0 }}>{t('bonusStatMovementHelp')}</p>
+                      <p className="ui-field-hint" style={{ margin: 0 }}>{t('bonusStatMovementHelp')}</p>
                     </>
                   )}
                   {statPreset === 'freeSpell' && spells.length > 0 && (
@@ -393,13 +393,13 @@ export const BonusesSection: React.FC = () => {
                           <NumberField step={1} value={statValue} onCommit={setStatValue} />
                         </label>
                       </div>
-                      <p className="field-note" style={{ margin: 0 }}>{t('bonusStatManualHelp')}</p>
+                      <p className="ui-field-hint" style={{ margin: 0 }}>{t('bonusStatManualHelp')}</p>
                     </>
                   )}
                 </>
               )}
 
-              {needsCore && <p className="field-note" style={{ margin: 0 }}>{t('bonusesNeedCore')}</p>}
+              {needsCore && <p className="ui-field-hint" style={{ margin: 0 }}>{t('bonusesNeedCore')}</p>}
 
               <div style={{ display: 'flex', gap: '6px' }}>
                 <button

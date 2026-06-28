@@ -94,12 +94,12 @@ export const ValueOverridesSection: React.FC = () => {
 
       {expanded && (
         <div className="collapsible-body">
-          <p className="field-note" style={{ marginBottom: '8px' }}>{t('overridesDescription')}</p>
+          <p className="ui-field-hint" style={{ marginBottom: '8px' }}>{t('overridesDescription')}</p>
 
           {/* Current overrides */}
           <div className="control-label">{t('overridesListTitle')} ({overrides.length})</div>
           {overrides.length === 0 ? (
-            <p className="field-note" style={{ margin: '4px 0 10px' }}>{t('overridesEmpty')}</p>
+            <p className="ui-field-hint" style={{ margin: '4px 0 10px' }}>{t('overridesEmpty')}</p>
           ) : (
             <div
               style={{

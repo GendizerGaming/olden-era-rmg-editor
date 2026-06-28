@@ -281,7 +281,7 @@ export const RightPanel: React.FC = () => {
         </div>
         {isBalanceExpanded && balanceReport && (
           <div className="collapsible-body">
-            <p className="field-note" style={{ margin: '0 0 8px' }}>
+            <p className="ui-field-hint" style={{ margin: '0 0 8px' }}>
               {t('balanceSummaryZones', {
                 zones: balanceReport.summary.zones,
                 connections: balanceReport.summary.connections,

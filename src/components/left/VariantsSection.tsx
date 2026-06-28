@@ -37,7 +37,7 @@ export const VariantsSection: React.FC = () => {
 
       {expanded && (
         <div className="collapsible-body">
-          <p className="field-note" style={{ marginBottom: '8px' }}>
+          <p className="ui-field-hint" style={{ marginBottom: '8px' }}>
             {t('variantsHelp') ||
               'Each variant is an alternative map layout. The game picks one at random when generating a map.'}
           </p>

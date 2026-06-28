@@ -7,8 +7,9 @@ import type { RmgPlacementRule } from '../../types/rmg';
 import { CONNECTION_TYPES } from '../../types/editor';
 import { edgePairKey } from '../../store/zones';
 import { resolveDistance, encodeDistance, ruleBounds } from '../../store/constants';
-import { LazyDetails } from '../shared/LazyDetails';
 import { NumberField } from '../shared/NumberField';
+import { Field, FieldRow, Toggle } from '../shared/primitives';
+import { CollapsibleSubsection } from '../shared/CollapsibleSubsection';
 import { DistanceField } from '../shared/DistanceField';
 import { ValueBadge } from '../shared/ValueBadge';
 import { ArrowLeft } from 'lucide-react';
@@ -68,20 +69,16 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
         </button>
       )}
 
-      <div className="field-row">
-        <label>
-          {t('from')}
+      <FieldRow>
+        <Field label={t('from')}>
           <input type="text" value={edge.from} disabled />
-        </label>
-
-        <label>
-          {t('to')}
+        </Field>
+        <Field label={t('to')}>
           <input type="text" value={edge.to} disabled />
-        </label>
-      </div>
+        </Field>
+      </FieldRow>
 
-      <label>
-        {t('connectionPurpose')}
+      <Field label={t('connectionPurpose')}>
         <select
           value={edge.connectionType}
           onChange={(e) => handleTypeChange(e.target.value as ConnectionType)}
@@ -90,28 +87,26 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
             <option key={type} value={type}>{t(`connType${type}`)}</option>
           ))}
         </select>
-      </label>
-      <p className="field-note" style={{ marginTop: 0 }}>{t(`connTypeHelp${edge.connectionType}`)}</p>
+      </Field>
+      <p className="ui-field-hint" style={{ marginTop: 0 }}>{t(`connTypeHelp${edge.connectionType}`)}</p>
 
       {!isProximity ? (
-        <div style={{ display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginTop: '4px' }}>
-          <label>
-            <span>{t('passGuard')}<ValueBadge kind="guardStrength" value={edge.guardValue} /></span>
+        <div className="ui-indent" style={{ display: 'grid', gap: '8px' }}>
+          <Field label={<>{t('passGuard')}<ValueBadge kind="guardStrength" value={edge.guardValue} /></>}>
             <NumberField
               min={0}
               step={5000}
               value={edge.guardValue}
               onCommit={(v) => actions.updateEdgeField(edge.id, { guardValue: v })}
             />
-          </label>
+          </Field>
 
           {isExpert && (
           <>
           {/* guardRandomization is deliberately not offered here: the field
               exists on zones and main objects, but the game's Connection
               model ignores it (imported values still round-trip). */}
-          <label>
-            {t('guardWeeklyIncrement')}
+          <Field label={t('guardWeeklyIncrement')} tip={t('guardTuningHelp')}>
             <NumberField
               min={0}
               max={1}
@@ -119,36 +114,20 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
               value={edge.guardWeeklyIncrement ?? 0}
               onCommit={(v) => actions.updateEdgeField(edge.id, { guardWeeklyIncrement: v })}
             />
-          </label>
-          <p className="field-note" style={{ marginTop: 0 }}>{t('guardTuningHelp')}</p>
+          </Field>
 
-          <label className="toggle-line" style={{ margin: '0' }}>
-            <input
-              type="checkbox"
-              checked={edge.guardEscape ?? true}
-              onChange={(e) => actions.updateEdgeField(edge.id, { guardEscape: e.target.checked })}
-            />
-            <span>{t('guardEscape')}</span>
-          </label>
-          <p className="field-note" style={{ marginTop: 0 }}>{t('guardEscapeHelp')}</p>
+          <Toggle
+            checked={edge.guardEscape ?? true}
+            onChange={(v) => actions.updateEdgeField(edge.id, { guardEscape: v })}
+            label={t('guardEscape')}
+            tip={t('guardEscapeHelp')}
+          />
           </>
           )}
 
           {isExpert && (
-          <LazyDetails
-            className="inspector-subsection"
-            style={{
-              border: '1px solid var(--line)',
-              borderRadius: '6px',
-              background: 'var(--panel-2)',
-              overflow: 'hidden'
-            }}
-            summary={
-              <strong style={{ fontSize: '12px' }}>
-                {t('edgeAdvancedSection')}
-              </strong>
-            }
-            renderContent={() => {
+          <CollapsibleSubsection id={`edge.advanced.${edge.id}`} title={t('edgeAdvancedSection')} defaultOpen={false}>
+            {(() => {
               const guardZone = edge.guardZone ?? '';
               const guardZoneKnown = ['', 'Center', edge.from, edge.to].includes(guardZone);
               const gatePlacement = edge.gatePlacement ?? '';
@@ -171,7 +150,7 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
                       {!guardZoneKnown && <option value={guardZone}>{guardZone}</option>}
                     </select>
                   </label>
-                  <p className="field-note" style={{ margin: 0 }}>{t('edgeGuardZoneHelp')}</p>
+                  <p className="ui-field-hint" style={{ margin: 0 }}>{t('edgeGuardZoneHelp')}</p>
 
                   <label style={{ marginBottom: 0 }}>
                     <span>{t('edgeGuardMatchGroup')}</span>
@@ -187,7 +166,7 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
                       {matchGroups.map((group) => <option key={group} value={group} />)}
                     </datalist>
                   </label>
-                  <p className="field-note" style={{ margin: 0 }}>{t('edgeGuardMatchGroupHelp')}</p>
+                  <p className="ui-field-hint" style={{ margin: 0 }}>{t('edgeGuardMatchGroupHelp')}</p>
 
                   <label style={{ marginBottom: 0 }}>
                     <span>{t('edgeGatePlacement')}</span>
@@ -200,11 +179,11 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
                       {!gateKnown && <option value={gatePlacement}>{gatePlacement}</option>}
                     </select>
                   </label>
-                  <p className="field-note" style={{ margin: 0 }}>{t('edgeGatePlacementHelp')}</p>
+                  <p className="ui-field-hint" style={{ margin: 0 }}>{t('edgeGatePlacementHelp')}</p>
                 </div>
               );
-            }}
-          />
+            })()}
+          </CollapsibleSubsection>
           )}
 
           {isPortal && isExpert && (
@@ -220,7 +199,7 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
                 value={portalValue(edge.portalPlacementRulesTo)}
                 onChange={(v) => actions.updateEdgeField(edge.id, { portalPlacementRulesTo: buildPortalRules(edge.portalPlacementRulesTo, v) })}
               />
-              <p className="field-note" style={{ margin: 0 }}>{t('portalPlacementHelp')}</p>
+              <p className="ui-field-hint" style={{ margin: 0 }}>{t('portalPlacementHelp')}</p>
             </div>
           )}
 
@@ -249,12 +228,11 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
               <span>{t('routePath')}</span>
             </label>
           </div>
-          <p className="field-note">{t(isPortal ? 'routeHelpPortal' : 'routeHelp')}</p>
+          <p className="ui-field-hint">{t(isPortal ? 'routeHelpPortal' : 'routeHelp')}</p>
 
           {edge.road && (
             <>
-              <label style={{ marginBottom: 0 }}>
-                <span>{t('roadTypeLabel')}</span>
+              <Field label={t('roadTypeLabel')} tip={t('roadTypeHelp')}>
                 <select
                   value={edge.roadType ?? 'Stone'}
                   onChange={(e) => actions.updateEdgeField(edge.id, { roadType: e.target.value === 'Dirt' ? 'Dirt' : 'Stone' })}
@@ -262,13 +240,12 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
                   <option value="Stone">{t('roadTypeStone')}</option>
                   <option value="Dirt">{t('roadTypeDirt')}</option>
                 </select>
-              </label>
-              <p className="field-note" style={{ marginTop: 0 }}>{t('roadTypeHelp')}</p>
+              </Field>
             </>
           )}
         </div>
       ) : (
-        <div style={{ display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginTop: '4px' }}>
+        <div className="ui-indent" style={{ display: 'grid', gap: '8px' }}>
           <div className="control-label">{t('springBehavior')}</div>
           <div style={{ display: 'grid', gap: '6px', padding: '4px 0' }}>
             {[
@@ -290,8 +267,8 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
               </label>
             ))}
           </div>
-          <p className="field-note">{t('springHelp')}</p>
-          <p className="field-note" style={{ color: 'var(--accent-2)' }}>{t('springWarning')}</p>
+          <p className="ui-field-hint">{t('springHelp')}</p>
+          <p className="ui-field-hint" style={{ color: 'var(--accent-2)' }}>{t('springWarning')}</p>
         </div>
       )}
     </div>

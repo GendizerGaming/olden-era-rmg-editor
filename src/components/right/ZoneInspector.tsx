@@ -9,6 +9,8 @@ import type { Edge, Faction, MainObjectPlacement, MainObjectType, Zone, ZoneMain
 import { fieldUpdate } from '../shared/forms';
 import { GuardReactionEditor } from '../shared/GuardReactionEditor';
 import { LazyDetails } from '../shared/LazyDetails';
+import { Card, Badge, Field, FieldRow } from '../shared/primitives';
+import { CollapsibleSubsection } from '../shared/CollapsibleSubsection';
 import { RoadsSection } from './RoadsSection';
 import { isBiomeMode, isCityFactionMode } from '../shared/guards';
 import { NumberField } from '../shared/NumberField';
@@ -60,7 +62,7 @@ const PoolRefsEditor: React.FC<{
   <div style={{ display: 'grid', gap: '4px' }}>
     <span className="control-label">{label}</span>
     {refs === undefined ? (
-      <p className="field-note" style={{ margin: 0 }}>{t('zonePoolAuto', { name: autoName })}</p>
+      <p className="ui-field-hint" style={{ margin: 0 }}>{t('zonePoolAuto', { name: autoName })}</p>
     ) : (
       <>
         {refs.map((ref) => (
@@ -293,7 +295,7 @@ const PlacementEditor: React.FC<{
         </label>
       )}
 
-      <p className="field-note" style={{ margin: 0 }}>{t('placementHelp')}</p>
+      <p className="ui-field-hint" style={{ margin: 0 }}>{t('placementHelp')}</p>
     </div>
   );
 };
@@ -449,26 +451,23 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
 
   return (
     <div style={{ display: 'grid', gap: '8px' }}>
-      <label>
-        {t('zoneId')}
+      <Field label={t('zoneId')}>
         <input
           type="text"
           value={zone.id}
           onChange={(e) => handleFieldChange('id', e.target.value)}
         />
-      </label>
+      </Field>
       
-      <label>
-        {t('zoneLabel')}
+      <Field label={t('zoneLabel')}>
         <input
           type="text"
           value={zone.label}
           onChange={(e) => handleFieldChange('label', e.target.value)}
         />
-      </label>
+      </Field>
       
-      <label>
-        {t('zoneType')}
+      <Field label={t('zoneType')}>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '2px' }}>
           <select
             value={zone.type}
@@ -499,41 +498,37 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             <Save size={14} />
           </button>
         </div>
-      </label>
+      </Field>
       
-      <div className="field-row">
-        <label>
-          <span>{t('guarded')}<ValueBadge kind="zoneGuarded" value={zone.guardedValue} /></span>
+      <FieldRow>
+        <Field label={<>{t('guarded')}<ValueBadge kind="zoneGuarded" value={zone.guardedValue} /></>}>
           <NumberField
             min={0}
             step={1000}
             value={zone.guardedValue}
             onCommit={(v) => handleFieldChange('guardedValue', v)}
           />
-        </label>
-        <label>
-          <span>{t('unguarded')}<ValueBadge kind="zoneUnguarded" value={zone.unguardedValue} /></span>
+        </Field>
+        <Field label={<>{t('unguarded')}<ValueBadge kind="zoneUnguarded" value={zone.unguardedValue} /></>}>
           <NumberField
             min={0}
             step={1000}
             value={zone.unguardedValue}
             onCommit={(v) => handleFieldChange('unguardedValue', v)}
           />
-        </label>
-      </div>
+        </Field>
+      </FieldRow>
 
-      <div className="field-row">
-        <label>
-          <span>{t('resources')}<ValueBadge kind="zoneResources" value={zone.resourcesValue} /></span>
+      <FieldRow>
+        <Field label={<>{t('resources')}<ValueBadge kind="zoneResources" value={zone.resourcesValue} /></>}>
           <NumberField
             min={0}
             step={1000}
             value={zone.resourcesValue}
             onCommit={(v) => handleFieldChange('resourcesValue', v)}
           />
-        </label>
-        <label>
-          {t('zoneSize')}
+        </Field>
+        <Field label={t('zoneSize')}>
           <NumberField
             min={0.25}
             max={4}
@@ -541,8 +536,8 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             value={zone.size}
             onCommit={(v) => handleFieldChange('size', v)}
           />
-        </label>
-      </div>
+        </Field>
+      </FieldRow>
 
       {presets[zone.type] && (
         <>
@@ -561,60 +556,43 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
       )}
 
       {isExpert && (
-      <LazyDetails
-        className="inspector-subsection"
-        style={{
-          border: '1px solid var(--line)',
-          borderRadius: '6px',
-          background: 'var(--panel-2)',
-          overflow: 'hidden'
-        }}
-        summary={
-          <strong style={{ fontSize: '12px' }}>
-            {t('zonePerAreaSection')}
-          </strong>
-        }
-        renderContent={() => (
-          <div style={{ display: 'grid', gap: '8px', padding: '6px 8px 10px' }}>
-            <div className="field-row" style={{ marginBottom: 0 }}>
-              <label style={{ marginBottom: 0 }}>
-                <span>{t('guarded')}</span>
-                <NumberField
-                  min={0}
-                  step={100}
-                  value={zone.guardedValuePerArea ?? 0}
-                  onCommit={(v) => handleFieldChange('guardedValuePerArea', v || undefined)}
-                />
-              </label>
-              <label style={{ marginBottom: 0 }}>
-                <span>{t('unguarded')}</span>
-                <NumberField
-                  min={0}
-                  step={50}
-                  value={zone.unguardedValuePerArea ?? 0}
-                  onCommit={(v) => handleFieldChange('unguardedValuePerArea', v || undefined)}
-                />
-              </label>
-            </div>
-            <label style={{ marginBottom: 0 }}>
-              <span>{t('resources')}</span>
-              <NumberField
-                min={0}
-                step={50}
-                value={zone.resourcesValuePerArea ?? 0}
-                onCommit={(v) => handleFieldChange('resourcesValuePerArea', v || undefined)}
-              />
-            </label>
-            <p className="field-note" style={{ margin: 0 }}>{t('zonePerAreaHelp')}</p>
-          </div>
-        )}
-      />
+      <CollapsibleSubsection id={`zone.perArea.${zone.id}`} title={t('zonePerAreaSection')} defaultOpen={false}>
+        <div className="field-row" style={{ marginBottom: 0 }}>
+          <label style={{ marginBottom: 0 }}>
+            <span>{t('guarded')}</span>
+            <NumberField
+              min={0}
+              step={100}
+              value={zone.guardedValuePerArea ?? 0}
+              onCommit={(v) => handleFieldChange('guardedValuePerArea', v || undefined)}
+            />
+          </label>
+          <label style={{ marginBottom: 0 }}>
+            <span>{t('unguarded')}</span>
+            <NumberField
+              min={0}
+              step={50}
+              value={zone.unguardedValuePerArea ?? 0}
+              onCommit={(v) => handleFieldChange('unguardedValuePerArea', v || undefined)}
+            />
+          </label>
+        </div>
+        <label style={{ marginBottom: 0 }}>
+          <span>{t('resources')}</span>
+          <NumberField
+            min={0}
+            step={50}
+            value={zone.resourcesValuePerArea ?? 0}
+            onCommit={(v) => handleFieldChange('resourcesValuePerArea', v || undefined)}
+          />
+        </label>
+        <p className="ui-field-hint" style={{ margin: 0 }}>{t('zonePerAreaHelp')}</p>
+      </CollapsibleSubsection>
       )}
 
       {isExpert && (
       <>
-      <label>
-        {t('zoneTerrainProfile')}
+      <Field label={t('zoneTerrainProfile')}>
         <select
           value={zone.layout ?? ''}
           onChange={(e) => handleFieldChange('layout', e.target.value || undefined)}
@@ -627,14 +605,14 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             <option key={profile.name} value={profile.name}>{profile.name}</option>
           ))}
         </select>
-      </label>
-      <p className="field-note" style={{ marginTop: 0 }}>{t('zoneTerrainProfileHelp')}</p>
+      </Field>
+      <p className="ui-field-hint" style={{ marginTop: 0 }}>{t('zoneTerrainProfileHelp')}</p>
 
       {/* Content-limit preset references */}
       <div style={{ display: 'grid', gap: '4px' }}>
         <span className="control-label">{t('zoneContentLimits')}</span>
         {zone.contentCountLimits === undefined ? (
-          <p className="field-note" style={{ margin: 0 }}>
+          <p className="ui-field-hint" style={{ margin: 0 }}>
             {t('zoneContentLimitsAuto', { name: autoLimitName })}
           </p>
         ) : (
@@ -699,74 +677,41 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
               <option key={preset.name} value={preset.name}>{preset.name}</option>
             ))}
         </select>
-        <p className="field-note" style={{ margin: 0 }}>{t('zoneContentLimitsHelp')}</p>
+        <p className="ui-field-hint" style={{ margin: 0 }}>{t('zoneContentLimitsHelp')}</p>
       </div>
 
       {/* Content pool references */}
-      <LazyDetails
-        className="inspector-subsection"
-        style={{
-          border: '1px solid var(--line)',
-          borderRadius: '6px',
-          background: 'var(--panel-2)',
-          marginTop: '4px',
-          overflow: 'hidden'
-        }}
-        summary={
-          <strong style={{ fontSize: '12px' }}>
-            {t('zonePoolsSection')}
-          </strong>
-        }
-        renderContent={() => (
-          <div style={{ display: 'grid', gap: '10px', padding: '6px 8px 10px' }}>
-            <PoolRefsEditor
-              label={t('zonePoolGuarded')}
-              autoName={`visual_pool_guarded_${poolTier}`}
-              refs={zone.guardedContentPool}
-              poolNames={poolNames}
-              t={t}
-              onChange={(refs) => handleFieldChange('guardedContentPool', refs)}
-            />
-            <PoolRefsEditor
-              label={t('zonePoolUnguarded')}
-              autoName={`visual_pool_unguarded_${poolTier}`}
-              refs={zone.unguardedContentPool}
-              poolNames={poolNames}
-              t={t}
-              onChange={(refs) => handleFieldChange('unguardedContentPool', refs)}
-            />
-            <PoolRefsEditor
-              label={t('zonePoolResources')}
-              autoName={zoneHasSpawn ? 'content_pool_general_resources_start_zone_poor' : 'content_pool_general_resources_side_zone_poor'}
-              refs={zone.resourcesContentPool}
-              poolNames={poolNames}
-              t={t}
-              onChange={(refs) => handleFieldChange('resourcesContentPool', refs)}
-            />
-            <p className="field-note" style={{ margin: 0 }}>{t('zonePoolsHelp')}</p>
-          </div>
-        )}
-      />
+      <CollapsibleSubsection id={`zone.pools.${zone.id}`} title={t('zonePoolsSection')} defaultOpen={false}>
+        <PoolRefsEditor
+          label={t('zonePoolGuarded')}
+          autoName={`visual_pool_guarded_${poolTier}`}
+          refs={zone.guardedContentPool}
+          poolNames={poolNames}
+          t={t}
+          onChange={(refs) => handleFieldChange('guardedContentPool', refs)}
+        />
+        <PoolRefsEditor
+          label={t('zonePoolUnguarded')}
+          autoName={`visual_pool_unguarded_${poolTier}`}
+          refs={zone.unguardedContentPool}
+          poolNames={poolNames}
+          t={t}
+          onChange={(refs) => handleFieldChange('unguardedContentPool', refs)}
+        />
+        <PoolRefsEditor
+          label={t('zonePoolResources')}
+          autoName={zoneHasSpawn ? 'content_pool_general_resources_start_zone_poor' : 'content_pool_general_resources_side_zone_poor'}
+          refs={zone.resourcesContentPool}
+          poolNames={poolNames}
+          t={t}
+          onChange={(refs) => handleFieldChange('resourcesContentPool', refs)}
+        />
+        <p className="ui-field-hint" style={{ margin: 0 }}>{t('zonePoolsHelp')}</p>
+      </CollapsibleSubsection>
 
       {/* Guard & neutrals tuning. Deliberately NOT list-content-entry: its
           display:grid summary rule would push the chevron onto a second row. */}
-      <LazyDetails
-        className="inspector-subsection"
-        style={{
-          border: '1px solid var(--line)',
-          borderRadius: '6px',
-          background: 'var(--panel-2)',
-          marginTop: '4px',
-          overflow: 'hidden'
-        }}
-        summary={
-          <strong style={{ fontSize: '12px' }}>
-            {t('zoneGuardSection')}
-          </strong>
-        }
-        renderContent={() => {
-          return (
-            <div style={{ display: 'grid', gap: '8px', padding: '6px 8px 10px' }}>
+      <CollapsibleSubsection id={`zone.guard.${zone.id}`} title={t('zoneGuardSection')} defaultOpen={false}>
               <GuardReactionEditor
                 key={zone.id}
                 value={zone.guardReactionDistribution}
@@ -796,7 +741,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                   />
                 </label>
               </div>
-              <p className="field-note" style={{ margin: 0 }}>{t('zoneGuardMainHelp')}</p>
+              <p className="ui-field-hint" style={{ margin: 0 }}>{t('zoneGuardMainHelp')}</p>
 
               <div className="field-row" style={{ marginBottom: 0 }}>
                 <label style={{ marginBottom: 0 }}>
@@ -829,7 +774,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                   onCommit={(v) => handleFieldChange('guardRandomization', v)}
                 />
               </label>
-              <p className="field-note" style={{ margin: 0 }}>{t('zoneGuardExtraHelp')}</p>
+              <p className="ui-field-hint" style={{ margin: 0 }}>{t('zoneGuardExtraHelp')}</p>
 
               <label className="toggle-line" style={{ margin: 0 }}>
                 <input
@@ -872,11 +817,8 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                   </label>
                 </div>
               )}
-              <p className="field-note" style={{ margin: 0 }}>{t('zoneHolesHelp')}</p>
-            </div>
-          );
-        }}
-      />
+              <p className="ui-field-hint" style={{ margin: 0 }}>{t('zoneHolesHelp')}</p>
+      </CollapsibleSubsection>
       </>
       )}
 
@@ -888,11 +830,8 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
           Boolean(o.rawIncludeLists?.some((list) => list.includes('random_hire'))) ||
           Boolean(o.sid?.includes('random_hire')))
       ) && (
-        <LazyDetails
-          className="inspector-subsection"
-          style={{ border: '1px solid var(--line)', borderRadius: '6px', background: 'var(--panel-2)', marginTop: '4px', overflow: 'hidden' }}
-          summary={<strong style={{ fontSize: '12px' }}>{t('zoneRandomHireSection')}</strong>}
-          renderContent={() => {
+        <CollapsibleSubsection id={`zone.randomHire.${zone.id}`} title={t('zoneRandomHireSection')} defaultOpen={false}>
+          {(() => {
             const TIERS = 7;
             const init = zone.randomHireInitialUnitIncrement ?? Array(TIERS).fill(0);
             const weekly = zone.randomHireEnableWeeklyUnitIncrement ?? Array(TIERS).fill(false);
@@ -910,7 +849,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             const headerCell: React.CSSProperties = { fontSize: '10px', color: 'var(--muted-soft)', textTransform: 'uppercase', letterSpacing: '0.03em' };
             return (
               <div style={{ display: 'grid', gap: '8px', padding: '6px 8px 10px' }}>
-                <p className="field-note" style={{ margin: 0 }}>{t('zoneRandomHireHelp')}</p>
+                <p className="ui-field-hint" style={{ margin: 0 }}>{t('zoneRandomHireHelp')}</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '44px 1fr auto', gap: '4px 10px', alignItems: 'center' }}>
                   <span style={headerCell}>{t('zoneRandomHireTierHeader')}</span>
                   <span style={headerCell}>{t('zoneRandomHireInitial')}</span>
@@ -931,8 +870,8 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                 </div>
               </div>
             );
-          }}
-        />
+          })()}
+        </CollapsibleSubsection>
       )}
 
       {/* Castle Section */}
@@ -989,22 +928,29 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             // Disable starting zone checkbox if not checked and no player numbers are left
             const isSpawnCheckboxDisabled = !isSpawnObj && usedPlayers.size >= settings.players;
 
+            // Collapsed-card summary pills (owner / faction) so a list of
+            // castles stays scannable without expanding each one.
+            const factionModeLabel = obj.factionMode === 'spawn'
+              ? t('cityFactionSpawn')
+              : obj.factionMode === 'specific'
+                ? t('cityFactionSpecific')
+                : t('cityFactionRandom');
+            const cardMeta = (
+              <>
+                {isSpawnObj && obj.player ? <Badge tone="neutral">{t('playerNumber', { num: obj.player })}</Badge> : null}
+                {isCity ? <Badge tone="neutral">{obj.owner ? t('playerNumber', { num: obj.owner }) : t('cityOwnerNeutral')}</Badge> : null}
+                {(isCity || isOutpost) ? <Badge tone="neutral">{factionModeLabel}</Badge> : null}
+              </>
+            );
+
             return (
-              <div
+              <Card
                 key={obj.key || idx}
-                style={{
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '4px',
-                  padding: '8px',
-                  backgroundColor: 'var(--panel-bg-dark)',
-                  display: 'grid',
-                  gap: '6px'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <strong style={{ fontSize: '12px' }}>
-                    {cardTitle} #{idx + 1} {isSpawnObj ? `(${t('startingZoneCheckbox') || 'Стартовый'})` : ''}
-                  </strong>
+                id={`zoneobj.${zone.id}.${obj.key || idx}`}
+                defaultOpen
+                title={`${cardTitle} #${idx + 1}${isSpawnObj ? ` (${t('startingZoneCheckbox') || 'Стартовый'})` : ''}`}
+                meta={cardMeta}
+                actions={
                   <button
                     type="button"
                     onClick={() => handleRemoveMainObject(obj.key)}
@@ -1019,7 +965,8 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                   >
                     {t('remove')}
                   </button>
-                </div>
+                }
+              >
 
                 {(isSpawnObj || isCity) && (
                  <label
@@ -1045,7 +992,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                 )}
 
                 {isArena && (
-                  <p className="field-note" style={{ margin: 0 }}>{t('arenaCardHelp')}</p>
+                  <p className="ui-field-hint" style={{ margin: 0 }}>{t('arenaCardHelp')}</p>
                 )}
 
                 {isSpawnObj && (
@@ -1099,7 +1046,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                     </label>
 
                     {obj.factionMode === 'random' && obj.factionFromList && obj.factionFromList.length > 0 && (
-                      <p className="field-note" style={{ marginTop: '-6px' }}>
+                      <p className="ui-field-hint" style={{ marginTop: '-6px' }}>
                         {t('cityFactionConstrained')}: {obj.factionFromList.join(', ')}
                       </p>
                     )}
@@ -1188,7 +1135,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                         onCommit={(v) => handleUpdateMainObject(obj.key, { initialUnitIncrement: v || undefined })}
                       />
                     </label>
-                    <p className="field-note object-field-help">{t('objectUnitIncrementHelp')}</p>
+                    <p className="ui-field-hint object-field-help">{t('objectUnitIncrementHelp')}</p>
                   </>
                 )}
 
@@ -1268,7 +1215,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                           />
                           <span style={{ fontSize: '11px' }}>{t('objectIsKeyObject')}</span>
                         </label>
-                        <p className="field-note" style={{ margin: 0 }}>{t('objectGuardHelp')}</p>
+                        <p className="ui-field-hint" style={{ margin: 0 }}>{t('objectGuardHelp')}</p>
                       </div>
                     )}
                   />
@@ -1302,11 +1249,11 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                   )}
                 />
                 )}
-              </div>
+              </Card>
             );
           })}
           {(zone.mainObjects || []).length === 0 && (
-            <p className="field-note" style={{ textAlign: 'center', margin: '4px 0' }}>
+            <p className="ui-field-hint" style={{ textAlign: 'center', margin: '4px 0' }}>
               {t('noMainObjects')}
             </p>
           )}
@@ -1314,22 +1261,14 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
       </div>
 
       {/* Roads Section */}
-      <LazyDetails
-        className="inspector-subsection"
-        style={{ border: '1px solid var(--line)', borderRadius: '6px', background: 'var(--panel-2)', overflow: 'hidden', marginTop: '8px' }}
-        summary={<strong style={{ fontSize: '12px' }}>{t('zoneRoadsSection')}</strong>}
-        renderContent={() => (
-          <div style={{ padding: '6px 8px 10px' }}>
-            <RoadsSection zone={zone} edges={edges} />
-          </div>
-        )}
-      />
+      <CollapsibleSubsection id={`zone.roads.${zone.id}`} title={t('zoneRoadsSection')} defaultOpen={false}>
+        <RoadsSection zone={zone} edges={edges} />
+      </CollapsibleSubsection>
 
       {/* Biome Section */}
       <div style={{ marginTop: '4px' }}>
         <SectionHeader icon={<Leaf size={12} style={{ color: 'var(--accent)' }} />} label={t('zoneBiome')} />
-        <label>
-          {t('zoneBiomeMode')}
+        <Field label={t('zoneBiomeMode')}>
           <select
             value={zone.biomeMode}
             onChange={(e) => {
@@ -1343,11 +1282,10 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             {biomeStartZones.length > 0 && <option value="spawn">{t('zoneBiomeSpawn')}</option>}
             <option value="specific">{t('zoneBiomeSpecific')}</option>
           </select>
-        </label>
-        
+        </Field>
+
         {zone.biomeMode === 'spawn' && (
-          <label>
-            {t('zoneBiomeSpawnSource')}
+          <Field label={t('zoneBiomeSpawnSource')}>
             <select
               value={zone.biomeSource}
               onChange={(e) => handleFieldChange('biomeSource', e.target.value)}
@@ -1357,12 +1295,11 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                 <option key={opt.id} value={opt.id}>{opt.id}</option>
               ))}
             </select>
-          </label>
+          </Field>
         )}
-        
+
         {zone.biomeMode === 'specific' && (
-          <label>
-            {t('zoneBiomeSpecificValue')}
+          <Field label={t('zoneBiomeSpecificValue')}>
             <select
               value={zone.biomeId}
               onChange={(e) => handleFieldChange('biomeId', e.target.value)}
@@ -1373,9 +1310,9 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                 </option>
               ))}
             </select>
-          </label>
+          </Field>
         )}
-        <p className="field-note">{t('zoneBiomeHelp')}</p>
+        <p className="ui-field-hint">{t('zoneBiomeHelp')}</p>
 
         {/* Content & meta-object biomes: 'land' (default) follows the ground */}
         {isExpert && ([
@@ -1433,13 +1370,13 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             </React.Fragment>
           );
         })}
-        {isExpert && <p className="field-note">{t('auxBiomeHelp')}</p>}
+        {isExpert && <p className="ui-field-hint">{t('auxBiomeHelp')}</p>}
       </div>
 
       {/* Objects list */}
       <div style={{ marginTop: '4px' }}>
         <SectionHeader icon={<Boxes size={12} style={{ color: 'var(--accent)' }} />} label={t('zoneObjects')} />
-        <p className="field-note" style={{ marginTop: 0 }}>{t('zoneObjectsMandatoryHelp')}</p>
+        <p className="ui-field-hint" style={{ marginTop: 0 }}>{t('zoneObjectsMandatoryHelp')}</p>
         <div className="object-list">
           {zone.objects.map((obj) => {
             const label = obj.labelByLang?.[language] || obj.label || obj.sid || obj.includeList || obj.id || '';
@@ -1452,17 +1389,17 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             const desc = obj.descriptionByLang?.[language] || obj.description || (catalogItem ? t('listDescription', { count: catalogItem.count || 0 }) : '');
 
             return (
-              <LazyDetails
+              <Card
                 key={obj.key}
-                className="object-chip"
-                summary={
+                id={`zoneobj.${zone.id}.${obj.key}`}
+                title={label}
+                meta={
                   <>
-                    <span className="object-chip-name">{label}</span>
-                    <span className="object-chip-meta">x{obj.count} · {guardStr}</span>
+                    <Badge tone="neutral">×{obj.count}</Badge>
+                    <Badge tone="neutral">{guardStr}</Badge>
                   </>
                 }
-                renderContent={() => (
-                  <div className="object-settings">
+              >
                     <div className="object-description">
                       <strong>{t('objectDescription')}</strong>
                       <p>{desc}</p>
@@ -1503,7 +1440,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                         summary={<strong style={{ fontSize: '12px' }}>{t('nestedContentSection')}{obj.nestedContent?.length ? ` (${obj.nestedContent.length})` : ''}</strong>}
                         renderContent={() => (
                           <div style={{ display: 'grid', gap: '6px', padding: '6px 8px 10px' }}>
-                            <p className="field-note" style={{ margin: 0 }}>{t('nestedContentHelp')}</p>
+                            <p className="ui-field-hint" style={{ margin: 0 }}>{t('nestedContentHelp')}</p>
                             <NestedContentEditor
                               value={obj.nestedContent}
                               onChange={(next) => handleObjectFieldChange(obj.key, 'nestedContent', next)}
@@ -1535,7 +1472,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                         />
                       </label>
                     </div>
-                    <p className="field-note object-field-help">{t('objectVariantHelp')}</p>
+                    <p className="ui-field-hint object-field-help">{t('objectVariantHelp')}</p>
 
                     {isExpert && (
                       <>
@@ -1548,7 +1485,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                             onChange={(e) => handleObjectFieldChange(obj.key, 'name', e.target.value.trim() || undefined)}
                           />
                         </label>
-                        <p className="field-note object-field-help">{t('objectNameHelp')}</p>
+                        <p className="ui-field-hint object-field-help">{t('objectNameHelp')}</p>
 
                         <label>
                           {t('objectOwner')}
@@ -1562,7 +1499,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                             ))}
                           </select>
                         </label>
-                        <p className="field-note object-field-help">{t('objectOwnerHelp')}</p>
+                        <p className="ui-field-hint object-field-help">{t('objectOwnerHelp')}</p>
                       </>
                     )}
 
@@ -1582,7 +1519,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                       </select>
                     </label>
                     {obj.guarded === undefined && (
-                      <p className="field-note object-field-help">{t('objectGuardDefaultHelp')}</p>
+                      <p className="ui-field-hint object-field-help">{t('objectGuardDefaultHelp')}</p>
                     )}
 
                     <label className="toggle-line">
@@ -1593,7 +1530,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                       />
                       <span>{t('objectSoloEncounter')}</span>
                     </label>
-                    <p className="field-note object-field-help">{t('objectSoloEncounterHelp')}</p>
+                    <p className="ui-field-hint object-field-help">{t('objectSoloEncounterHelp')}</p>
 
                     {isExpert && (
                       <>
@@ -1612,7 +1549,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                             <option value="off">{t('objectDesignatedOff')}</option>
                           </select>
                         </label>
-                        <p className="field-note object-field-help">{t('objectDesignatedEncounterHelp')}</p>
+                        <p className="ui-field-hint object-field-help">{t('objectDesignatedEncounterHelp')}</p>
                       </>
                     )}
 
@@ -1628,7 +1565,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                       disabled={!hasTown}
                       onChange={(v) => handleObjectFieldChange(obj.key, 'townDistance', v)}
                     />
-                    <p className="field-note">
+                    <p className="ui-field-hint">
                       {hasTown ? t('objectPlacementHelp') : t('objectTownDistanceUnavailable')}
                     </p>
                     
@@ -1640,9 +1577,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                       <Trash2 size={12} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />
                       {t('removeObject')}
                     </button>
-                  </div>
-                )}
-              />
+              </Card>
             );
           })}
         </div>

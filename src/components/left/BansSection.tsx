@@ -169,7 +169,7 @@ export const BansSection: React.FC = () => {
 
       {expanded && (
         <div className="collapsible-body">
-          <p className="field-note" style={{ marginBottom: '8px' }}>{t('bansHelp')}</p>
+          <p className="ui-field-hint" style={{ marginBottom: '8px' }}>{t('bansHelp')}</p>
 
           <button
             type="button"
@@ -197,7 +197,7 @@ export const BansSection: React.FC = () => {
             )}
           </div>
           {totalBanned === 0 ? (
-            <p className="field-note" style={{ margin: '4px 0 10px' }}>{t('bansEmpty')}</p>
+            <p className="ui-field-hint" style={{ margin: '4px 0 10px' }}>{t('bansEmpty')}</p>
           ) : (
             <div
               style={{
@@ -259,7 +259,7 @@ export const BansSection: React.FC = () => {
           </div>
 
           {activeCatalog.length === 0 ? (
-            <p className="field-note">{t('bansNeedCore')}</p>
+            <p className="ui-field-hint">{t('bansNeedCore')}</p>
           ) : (
             <>
               <div className="library-filter">
@@ -343,7 +343,7 @@ export const BansSection: React.FC = () => {
                   </details>
                 ))}
                 {grouped.length === 0 && (
-                  <p className="field-note">{t('bansNothingFound')}</p>
+                  <p className="ui-field-hint">{t('bansNothingFound')}</p>
                 )}
               </div>
             </>
