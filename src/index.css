@@ -786,10 +786,9 @@ label textarea {
 }
 
 .ui-card-head {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: var(--space-2);
+  display: flex;
   align-items: center;
+  gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   cursor: pointer;
   user-select: none;
@@ -797,21 +796,28 @@ label textarea {
 
 .ui-card-chev {
   display: inline-flex;
+  flex: none;
   color: var(--muted);
 }
 
 .ui-card-title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
+  flex: 1 1 auto;
   min-width: 0;
   font-size: var(--fz-base);
   font-weight: 600;
-  overflow-wrap: anywhere;
+  /* One line that ellipsizes if cramped — never break the title into vertical
+     glyphs when the meta badges squeeze it. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ui-card-meta {
   display: flex;
+  /* Stay on one line at natural width: the title ellipsizes to make room, the
+     badges + remove button never wrap (which would float a badge above the
+     title under align-items:center). */
+  flex: none;
   align-items: center;
   gap: var(--space-1);
   font-size: var(--fz-caption);
