@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, fireEvent, cleanup, within } from '@testing-library/react';
+import { render, fireEvent, cleanup } from '@testing-library/react';
 import { TranslationProvider } from '../src/i18n';
 import { ZoneInspector } from '../src/components/right/ZoneInspector';
 import { PresetInspector } from '../src/components/right/PresetInspector';
