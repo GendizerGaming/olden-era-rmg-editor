@@ -4,6 +4,8 @@ import { render, fireEvent, cleanup, within } from '@testing-library/react';
 import { TranslationProvider } from '../src/i18n';
 import { ZoneInspector } from '../src/components/right/ZoneInspector';
 import { PresetInspector } from '../src/components/right/PresetInspector';
+import { EdgeInspector } from '../src/components/right/EdgeInspector';
+import { ListRow, Toggle } from '../src/components/shared/primitives';
 import { useEditorStore } from '../src/store/useEditorStore';
 import { importTemplateForRoundTrip } from './helpers/gameTemplateRoundTrip.ts';
 import type { RmgTemplate } from '../src/types/rmg.ts';
@@ -136,5 +138,63 @@ describe('PresetInspector object controls -> store', () => {
     fireEvent.click(u.getByLabelText('objectGuarded'));
     // undefined -> checkbox reads false -> clicking turns it on -> guarded: true
     expect(u.actions.updatePresetObjectField).toHaveBeenLastCalledWith('p1', 'po1', { guarded: true });
+  });
+});
+
+describe('EdgeInspector controls -> store', () => {
+  function renderEdge() {
+    const edge = { id: 'e1', from: 'A', to: 'B', guardValue: 5000, road: false, connectionType: 'Default' } as never;
+    const actions = spyActions();
+    useEditorStore.setState({ uiMode: 'expert' });
+    const utils = render(
+      <TranslationProvider>
+        <EdgeInspector edge={edge} edges={[edge]} actions={actions} t={t} />
+      </TranslationProvider>
+    );
+    return { ...utils, actions };
+  }
+
+  it('guardEscape Toggle writes a boolean', () => {
+    const u = renderEdge();
+    fireEvent.click(u.getByLabelText('guardEscape')); // default-true -> off
+    expect(u.actions.updateEdgeField).toHaveBeenLastCalledWith('e1', { guardEscape: false });
+  });
+
+  it('guardZone select (advanced subsection) writes the value, empty -> undefined', () => {
+    const u = renderEdge();
+    fireEvent.click(u.getByText('edgeAdvancedSection')); // open the advanced subsection
+    const select = u.getByLabelText('edgeGuardZone') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: 'Center' } });
+    expect(u.actions.updateEdgeField).toHaveBeenLastCalledWith('e1', { guardZone: 'Center' });
+    fireEvent.change(select, { target: { value: '' } });
+    expect(u.actions.updateEdgeField).toHaveBeenLastCalledWith('e1', { guardZone: undefined });
+  });
+});
+
+describe('ListRow / Toggle primitive interaction contract', () => {
+  it('ListRow: row click fires onClick; a trailing-control click does not (stopPropagation)', () => {
+    const onRow = vi.fn();
+    const onTrailing = vi.fn();
+    const { getByText } = render(
+      <ListRow title="Row" onClick={onRow} trailing={<button onClick={onTrailing}>Del</button>} />
+    );
+    fireEvent.click(getByText('Row'));
+    expect(onRow).toHaveBeenCalledTimes(1);
+    fireEvent.click(getByText('Del'));
+    expect(onTrailing).toHaveBeenCalledTimes(1);
+    expect(onRow).toHaveBeenCalledTimes(1); // unchanged: trailing click did not bubble to the row
+  });
+
+  it('Toggle: forwards disabled + title (the attribute is what blocks the click in a browser)', () => {
+    // jsdom still dispatches change on a disabled checkbox, unlike a real browser,
+    // so assert the wiring (disabled attribute + row title/class) rather than the
+    // click suppression itself.
+    const { getByLabelText, container } = render(
+      <Toggle checked disabled onChange={vi.fn()} label="L" title="why" />
+    );
+    expect((getByLabelText('L') as HTMLInputElement).disabled).toBe(true);
+    const row = container.querySelector('.ui-toggle')!;
+    expect(row.classList.contains('ui-toggle--disabled')).toBe(true);
+    expect(row.getAttribute('title')).toBe('why');
   });
 });
