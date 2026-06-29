@@ -1529,6 +1529,13 @@ input.weight-field::-webkit-inner-spin-button {
   .workspace.show-left .panel-toggle-left { left: calc(var(--drawer-w) + 24px); }
   .workspace.show-right .panel-toggle-right { right: calc(var(--drawer-w) + 24px); }
 
+  /* Drop the «памятка» button below the panel toggles (top:24 + 36) so the
+     inspector toggle no longer overlaps it. Selector is specific enough to beat
+     the base `.memo-widget` rule that follows later in the file. */
+  .canvas-widget-group.memo-widget {
+    top: 68px;
+  }
+
   .panel-overlay-backdrop {
     display: block;
   }
@@ -1905,6 +1912,11 @@ body.light .guard-badge-bg {
 body.light .canvas-widget-group {
   background: none;
   box-shadow: none;
+}
+
+/* The «памятка» (reopen-help) button, top-right of the canvas. */
+.memo-widget {
+  top: 16px;
 }
 
 .canvas-widget-group button {

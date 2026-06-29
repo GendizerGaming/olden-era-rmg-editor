@@ -66,8 +66,8 @@ export const WelcomeOverlay: React.FC<{ memoRight?: string }> = ({ memoRight = '
     <>
       {/* Same look and column as the other right-side canvas buttons */}
       <div
-        className="canvas-widget-group"
-        style={{ top: '16px', right: memoRight }}
+        className="canvas-widget-group memo-widget"
+        style={{ right: memoRight }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
