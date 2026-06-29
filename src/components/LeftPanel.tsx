@@ -15,6 +15,8 @@ import type {
 } from '../types/editor';
 import { fieldUpdate } from './shared/forms';
 import { LazyDetails } from './shared/LazyDetails';
+import { CollapsibleSubsection } from './shared/CollapsibleSubsection';
+import { Field, FieldRow, Toggle, Badge } from './shared/primitives';
 import { isPresetBaseType, isHeroLimitMode } from './shared/guards';
 import { knownMapSizes, itemLabel, itemDescription, describeCatalogItem, sortedObjectLibrary } from './left/helpers';
 import { VariantsSection } from './left/VariantsSection';
@@ -240,78 +242,68 @@ export const LeftPanel: React.FC = () => {
 
   // Shared win-condition parameter blocks (used by both the simple summary and
   // the expert flag groups).
-  const indentedBlock = { display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginBottom: '8px', marginTop: '4px' } as const;
-  const victoryGroupLabelStyle = { fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, color: 'var(--muted-soft)', marginTop: '8px', marginBottom: '4px', borderTop: '1px solid var(--line)', paddingTop: '10px' } as const;
 
   const renderLostStartCityDay = () => (
-    <div style={indentedBlock}>
-      <label style={{ marginBottom: 0 }}>
-        <span>{t('victoryHoldDays')}</span>
+    <div className="ui-indent">
+      <Field label={t('victoryHoldDays')}>
         <NumberField min={0} max={30} step={1} value={settings.lostStartCityDay} onCommit={(v) => handleSettingChange('lostStartCityDay', v)} />
-      </label>
+      </Field>
     </div>
   );
 
   const renderCityHoldTarget = () => (
-    <div style={indentedBlock}>
-      <label style={{ marginBottom: 0 }}>
-        <span>{t('victoryCityZone')}</span>
+    <div className="ui-indent">
+      <Field label={t('victoryCityZone')}>
         <select value={settings.victoryCityZoneId} onChange={(e) => handleSettingChange('victoryCityZoneId', e.target.value)}>
           <option value="">{t('selectVictoryCityZone')}</option>
           {zones.filter(z => (z.mainObjects || []).some(obj => obj.type === 'City') && z.type !== 'spawn').map(z => (
             <option key={z.id} value={z.id}>{z.id} ({z.label})</option>
           ))}
         </select>
-      </label>
-      <label style={{ marginBottom: 0 }}>
-        <span>{t('victoryHoldDays')}</span>
+      </Field>
+      <Field label={t('victoryHoldDays')}>
         <NumberField min={1} max={30} step={1} value={settings.cityHoldDays} onCommit={(v) => handleSettingChange('cityHoldDays', v)} />
-      </label>
+      </Field>
     </div>
   );
 
   const renderGladiatorParams = () => (
-    <div style={indentedBlock}>
-      <div className="field-row">
-        <label>
-          <span>{t('gladiatorStartDay')}</span>
+    <div className="ui-indent">
+      <FieldRow>
+        <Field label={t('gladiatorStartDay')}>
           <NumberField min={0} max={99} value={settings.gladiatorArenaDaysDelayStart} onCommit={(v) => handleSettingChange('gladiatorArenaDaysDelayStart', v)} />
-        </label>
-        <label>
-          <span>{t('gladiatorPrepDays')}</span>
+        </Field>
+        <Field label={t('gladiatorPrepDays')}>
           <NumberField min={1} max={28} value={settings.gladiatorArenaCountDay} onCommit={(v) => handleSettingChange('gladiatorArenaCountDay', v)} />
-        </label>
-      </div>
-      <label className="toggle-line" style={{ margin: '4px 0 0 0' }}>
-        <input type="checkbox" checked={settings.gladiatorArenaRegistrationStartFight} onChange={(e) => handleSettingChange('gladiatorArenaRegistrationStartFight', e.target.checked)} />
-        <span style={{ fontSize: '11px' }}>{t('gladiatorRegStartFight')}</span>
-      </label>
-      <p className="field-note" style={{ margin: '0 0 4px 0', fontSize: '10px' }}>{t('gladiatorRegStartFightHelp')}</p>
+        </Field>
+      </FieldRow>
+      <Toggle
+        checked={settings.gladiatorArenaRegistrationStartFight}
+        onChange={(v) => handleSettingChange('gladiatorArenaRegistrationStartFight', v)}
+        label={t('gladiatorRegStartFight')}
+        tip={t('gladiatorRegStartFightHelp')}
+      />
     </div>
   );
 
   const renderTournamentParams = () => (
-    <div style={indentedBlock}>
-      <div className="field-row">
-        <label>
-          <span>{t('pointsToWin')}</span>
+    <div className="ui-indent">
+      <FieldRow>
+        <Field label={t('pointsToWin')}>
           <NumberField min={1} max={10} value={settings.tournamentPointsToWin} onCommit={(v) => handleSettingChange('tournamentPointsToWin', v)} />
-        </label>
-        <label className="toggle-line" style={{ alignSelf: 'center', marginTop: '14px' }}>
-          <input type="checkbox" checked={settings.tournamentSaveArmy} onChange={(e) => handleSettingChange('tournamentSaveArmy', e.target.checked)} />
-          <span style={{ fontSize: '11px' }}>{t('saveArmy')}</span>
-        </label>
-      </div>
-      <label>
-        <span>{t('tournamentStageDays')}</span>
+        </Field>
+        <Toggle
+          checked={settings.tournamentSaveArmy}
+          onChange={(v) => handleSettingChange('tournamentSaveArmy', v)}
+          label={t('saveArmy')}
+        />
+      </FieldRow>
+      <Field label={t('tournamentStageDays')} tip={t('tournamentStageDaysHelp')}>
         <input type="text" value={settings.tournamentDays.join(', ')} onChange={(e) => handleSettingChange('tournamentDays', e.target.value.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n)))} />
-      </label>
-      <p className="field-note" style={{ margin: '-4px 0 4px 0', fontSize: '10px' }}>{t('tournamentStageDaysHelp')}</p>
-      <label>
-        <span>{t('tournamentAnnounceDays')}</span>
+      </Field>
+      <Field label={t('tournamentAnnounceDays')} tip={t('tournamentAnnounceDaysHelp')}>
         <input type="text" value={settings.tournamentAnnounceDays.join(', ')} onChange={(e) => handleSettingChange('tournamentAnnounceDays', e.target.value.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n)))} />
-      </label>
-      <p className="field-note" style={{ margin: '-4px 0 4px 0', fontSize: '10px' }}>{t('tournamentAnnounceDaysHelp')}</p>
+      </Field>
     </div>
   );
 
@@ -359,71 +351,63 @@ export const LeftPanel: React.FC = () => {
           <div className="collapsible-body">
         
         {/* Subsection 1: General Settings */}
-        <div className="settings-subsection" style={{ display: 'flex', flexDirection: 'column', gap: '10px', borderBottom: '1px solid var(--line)', paddingBottom: '14px', marginBottom: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-            <Sliders size={12} style={{ color: 'var(--accent)' }} />
-            <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, color: 'var(--muted-soft)' }}>
-              {t('settingsSectionGeneral')}
-            </span>
-          </div>
-          <label>
-            <span>{t('templateName')}</span>
+        <CollapsibleSubsection
+          id="map.general"
+          title={t('settingsSectionGeneral')}
+          icon={<Sliders size={12} style={{ color: 'var(--accent)' }} />}
+        >
+          <Field label={t('templateName')}>
             <input
               type="text"
               value={settings.name}
               onChange={(e) => handleSettingChange('name', e.target.value)}
               autoComplete="off"
             />
-          </label>
+          </Field>
           
-          <label>
-            <span>{t('templateDescription')}</span>
+          <Field label={t('templateDescription')}>
             <textarea
               className="description-input"
               rows={3}
               value={settings.description}
               onChange={(e) => handleSettingChange('description', e.target.value)}
             />
-          </label>
+          </Field>
           
-          <label>
-            <span>{t('mapSizePreset')}</span>
+          <Field label={t('mapSizePreset')}>
             <select value={sizePreset} onChange={(e) => handleSizePresetChange(e.target.value)}>
               {knownMapSizes.map((size) => (
                 <option key={size} value={size}>{size} × {size}</option>
               ))}
               <option value="custom">{t('mapSizeCustomOption')}</option>
             </select>
-          </label>
+          </Field>
           
           {sizePreset === 'custom' && (
-            <div style={{ display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginBottom: '8px', marginTop: '4px' }}>
-              <div className="field-row" style={{ marginBottom: 0 }}>
-                <label style={{ marginBottom: 0 }}>
-                  X
+            <div className="ui-indent">
+              <FieldRow>
+                <Field label="X">
                   <NumberField
                     min={36}
                     step={1}
                     value={settings.sizeX}
                     onCommit={(v) => handleSettingChange('sizeX', v)}
                   />
-                </label>
-                <label style={{ marginBottom: 0 }}>
-                  Z
+                </Field>
+                <Field label="Z">
                   <NumberField
                     min={36}
                     step={1}
                     value={settings.sizeZ}
                     onCommit={(v) => handleSettingChange('sizeZ', v)}
                   />
-                </label>
-              </div>
+                </Field>
+              </FieldRow>
             </div>
           )}
           
-          <div className="field-row">
-            <label>
-              <span>{t('players')}</span>
+          <FieldRow>
+            <Field label={t('players')} tip={t('playersHelp')}>
               <NumberField
                 min={2}
                 max={8}
@@ -431,9 +415,8 @@ export const LeftPanel: React.FC = () => {
                 value={settings.players}
                 onCommit={(v) => handleSettingChange('players', v)}
               />
-            </label>
-            <label>
-              <span>{t('heroMax')}</span>
+            </Field>
+            <Field label={t('heroMax')}>
               <NumberField
                 min={1}
                 max={24}
@@ -441,12 +424,10 @@ export const LeftPanel: React.FC = () => {
                 value={settings.heroMax}
                 onCommit={(v) => handleSettingChange('heroMax', v)}
               />
-            </label>
-          </div>
-          <p className="field-note">{t('playersHelp')}</p>
+            </Field>
+          </FieldRow>
 
-          <label>
-            <span>{t('heroLimitMode')}</span>
+          <Field label={t('heroLimitMode')} tip={getHeroRuleSummary()}>
             <select
               value={settings.heroLimitMode}
               onChange={(e) => {
@@ -458,13 +439,12 @@ export const LeftPanel: React.FC = () => {
               <option value="fixed">{t('heroLimitFixed')}</option>
               <option value="perCastle">{t('heroLimitPerCastle')}</option>
             </select>
-          </label>
+          </Field>
           
           {settings.heroLimitMode === 'perCastle' && (
-            <div style={{ display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginBottom: '8px', marginTop: '4px' }}>
-              <div className="field-row" style={{ marginBottom: 0 }}>
-                <label style={{ marginBottom: 0 }}>
-                  <span>{t('heroMin')}</span>
+            <div className="ui-indent">
+              <FieldRow>
+                <Field label={t('heroMin')}>
                   <NumberField
                     min={1}
                     max={24}
@@ -472,9 +452,8 @@ export const LeftPanel: React.FC = () => {
                     value={settings.heroMin}
                     onCommit={(v) => handleSettingChange('heroMin', v)}
                   />
-                </label>
-                <label style={{ marginBottom: 0 }}>
-                  <span>{t('heroIncrement')}</span>
+                </Field>
+                <Field label={t('heroIncrement')}>
                   <NumberField
                     min={0}
                     max={24}
@@ -482,38 +461,30 @@ export const LeftPanel: React.FC = () => {
                     value={settings.heroIncrement}
                     onCommit={(v) => handleSettingChange('heroIncrement', v)}
                   />
-                </label>
-              </div>
+                </Field>
+              </FieldRow>
             </div>
           )}
-          <p className="field-note">{getHeroRuleSummary()}</p>
 
-          <label className="toggle-line">
-            <input
-              type="checkbox"
-              checked={settings.singleHeroMode}
-              onChange={(e) => handleSettingChange('singleHeroMode', e.target.checked)}
-            />
-            <span>{t('singleHeroMode')}</span>
-          </label>
-          <p className="field-note">{t('singleHeroModeHelp')}</p>
+          <Toggle
+            checked={settings.singleHeroMode}
+            onChange={(v) => handleSettingChange('singleHeroMode', v)}
+            label={t('singleHeroMode')}
+            tip={t('singleHeroModeHelp')}
+          />
 
-          <label className="toggle-line">
-            <input
-              type="checkbox"
-              checked={settings.heroHireBan}
-              onChange={(e) => handleSettingChange('heroHireBan', e.target.checked)}
-            />
-            <span>{t('heroHireBan')}</span>
-          </label>
-          <p className="field-note">{t('heroHireBanHelp')}</p>
+          <Toggle
+            checked={settings.heroHireBan}
+            onChange={(v) => handleSettingChange('heroHireBan', v)}
+            label={t('heroHireBan')}
+            tip={t('heroHireBanHelp')}
+          />
 
           {isExpert && (
             <>
               <div className="control-label">{t('expModifiersLabel')}</div>
-              <div className="field-row">
-                <label>
-                  <span>{t('factionLawsExp')}</span>
+              <FieldRow>
+                <Field label={t('factionLawsExp')} tip={t('expModifiersHelp')}>
                   <NumberField
                     min={0}
                     max={10}
@@ -521,9 +492,8 @@ export const LeftPanel: React.FC = () => {
                     value={settings.factionLawsExpModifier}
                     onCommit={(v) => handleSettingChange('factionLawsExpModifier', v)}
                   />
-                </label>
-                <label>
-                  <span>{t('astrologyExp')}</span>
+                </Field>
+                <Field label={t('astrologyExp')}>
                   <NumberField
                     min={0}
                     max={10}
@@ -531,25 +501,21 @@ export const LeftPanel: React.FC = () => {
                     value={settings.astrologyExpModifier}
                     onCommit={(v) => handleSettingChange('astrologyExpModifier', v)}
                   />
-                </label>
-              </div>
-              <p className="field-note">{t('expModifiersHelp')}</p>
+                </Field>
+              </FieldRow>
             </>
           )}
-        </div>
+        </CollapsibleSubsection>
 
         {/* Subsection 2: Victory Conditions */}
-        <div className="settings-subsection" style={{ display: 'flex', flexDirection: 'column', gap: '10px', borderBottom: '1px solid var(--line)', paddingBottom: '14px', marginBottom: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-            <Trophy size={12} style={{ color: 'var(--accent)' }} />
-            <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, color: 'var(--muted-soft)' }}>
-              {t('settingsSectionVictory')}
-            </span>
-          </div>
+        <CollapsibleSubsection
+          id="map.victory"
+          title={t('settingsSectionVictory')}
+          icon={<Trophy size={12} style={{ color: 'var(--accent)' }} />}
+        >
           {/* Win-condition preset = the game's named presets; sets both the
               standard flags and the displayed label. */}
-          <label>
-            <span>{t('winConditionPreset')}</span>
+          <Field label={t('winConditionPreset')}>
             <select
               value={selectedPreset.sid}
               onChange={(e) => actions.updateSettings(applyPreset(e.target.value))}
@@ -558,13 +524,13 @@ export const LeftPanel: React.FC = () => {
                 <option key={preset.sid} value={preset.sid}>{t(preset.nameKey)}</option>
               ))}
             </select>
-          </label>
-          <p className="field-note" style={{ marginBottom: presetIsModified ? '6px' : '12px' }}>{t(selectedPreset.descKey)}</p>
+          </Field>
+          <p className="ui-field-hint" style={{ marginBottom: presetIsModified ? '6px' : '12px' }}>{t(selectedPreset.descKey)}</p>
 
           {presetIsModified && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-              <span className="preset-modified-badge">{t('presetModified')}</span>
-              <span className="field-note" style={{ margin: 0, flex: '1 1 120px' }}>{t('presetModifiedNote')}</span>
+              <Badge tone="accent">{t('presetModified')}</Badge>
+              <span className="ui-field-hint" style={{ margin: 0, flex: '1 1 120px' }}>{t('presetModifiedNote')}</span>
               <button
                 type="button"
                 className="compact-button"
@@ -587,112 +553,111 @@ export const LeftPanel: React.FC = () => {
           {/* Expert mode: every win-condition flag, grouped by meaning. */}
           {isExpert && (
             <>
-              <div style={victoryGroupLabelStyle}>{t('victoryGroupWin')}</div>
+              <div className="ui-group-label">{t('victoryGroupWin')}</div>
 
-              <label className="toggle-line" style={{ marginBottom: '4px' }}>
-                <input type="checkbox" checked={settings.classicEnabled} onChange={(e) => handleSettingChange('classicEnabled', e.target.checked)} />
-                <span>{t('classicWinRule')}</span>
-              </label>
-              <p className="field-note" style={{ marginBottom: '10px' }}>{t('classicWinRuleHelp')}</p>
+              <Toggle
+                checked={settings.classicEnabled}
+                onChange={(v) => handleSettingChange('classicEnabled', v)}
+                label={t('classicWinRule')}
+                tip={t('classicWinRuleHelp')}
+              />
 
-              <label className="toggle-line" style={{ marginBottom: '4px' }}>
-                <input type="checkbox" checked={settings.lostStartCityEnabled} onChange={(e) => handleSettingChange('lostStartCityEnabled', e.target.checked)} />
-                <span>{t('lostStartCityRule')}</span>
-              </label>
-              <p className="field-note" style={{ marginBottom: settings.lostStartCityEnabled ? '4px' : '10px' }}>{t('lostStartCityRuleHelp')}</p>
+              <Toggle
+                checked={settings.lostStartCityEnabled}
+                onChange={(v) => handleSettingChange('lostStartCityEnabled', v)}
+                label={t('lostStartCityRule')}
+                tip={t('lostStartCityRuleHelp')}
+              />
               {settings.lostStartCityEnabled && renderLostStartCityDay()}
 
-              <label className="toggle-line" style={{ marginBottom: '4px' }}>
-                <input type="checkbox" checked={settings.cityHoldEnabled} onChange={(e) => handleSettingChange('cityHoldEnabled', e.target.checked)} />
-                <span>{t('cityHoldRule')}</span>
-              </label>
-              <p className="field-note" style={{ marginBottom: settings.cityHoldEnabled ? '4px' : '10px' }}>{t('cityHoldRuleHelp')}</p>
+              <Toggle
+                checked={settings.cityHoldEnabled}
+                onChange={(v) => handleSettingChange('cityHoldEnabled', v)}
+                label={t('cityHoldRule')}
+                tip={t('cityHoldRuleHelp')}
+              />
               {settings.cityHoldEnabled && renderCityHoldTarget()}
 
-              <label className="toggle-line" style={{ marginBottom: '4px' }}>
-                <input type="checkbox" checked={settings.gladiatorArenaEnabled} onChange={(e) => handleSettingChange('gladiatorArenaEnabled', e.target.checked)} />
-                <span>{t('gladiatorArenaRule')}</span>
-              </label>
-              <p className="field-note" style={{ marginBottom: settings.gladiatorArenaEnabled ? '4px' : '10px' }}>{t('gladiatorArenaRuleHelp')}</p>
+              <Toggle
+                checked={settings.gladiatorArenaEnabled}
+                onChange={(v) => handleSettingChange('gladiatorArenaEnabled', v)}
+                label={t('gladiatorArenaRule')}
+                tip={t('gladiatorArenaRuleHelp')}
+              />
               {settings.gladiatorArenaEnabled && renderGladiatorParams()}
 
-              <label className="toggle-line" style={{ marginBottom: '4px' }}>
-                <input type="checkbox" checked={settings.tournamentEnabled} onChange={(e) => handleSettingChange('tournamentEnabled', e.target.checked)} />
-                <span>{t('tournamentRule')}</span>
-              </label>
-              <p className="field-note" style={{ marginBottom: settings.tournamentEnabled ? '4px' : '10px' }}>{t('tournamentRuleHelp')}</p>
+              <Toggle
+                checked={settings.tournamentEnabled}
+                onChange={(v) => handleSettingChange('tournamentEnabled', v)}
+                label={t('tournamentRule')}
+                tip={t('tournamentRuleHelp')}
+              />
               {settings.tournamentEnabled && renderTournamentParams()}
 
-              <div style={victoryGroupLabelStyle}>{t('victoryGroupLoss')}</div>
+              <div className="ui-group-label">{t('victoryGroupLoss')}</div>
 
-              <label className="toggle-line" style={{ marginBottom: '4px' }}>
-                <input type="checkbox" checked={settings.singleHero} onChange={(e) => handleSettingChange('singleHero', e.target.checked)} />
-                <span>{t('lostStartHeroDefeat')}</span>
-              </label>
-              <p className="field-note" style={{ marginBottom: '10px' }}>{t('lostStartHeroDefeatHelp')}</p>
+              <Toggle
+                checked={settings.singleHero}
+                onChange={(v) => handleSettingChange('singleHero', v)}
+                label={t('lostStartHeroDefeat')}
+                tip={t('lostStartHeroDefeatHelp')}
+              />
 
-              <div style={victoryGroupLabelStyle}>{t('victoryGroupExtra')}</div>
+              <div className="ui-group-label">{t('victoryGroupExtra')}</div>
 
-              <label className="toggle-line" style={{ marginBottom: '4px' }}>
-                <input type="checkbox" checked={settings.desertionEnabled} onChange={(e) => handleSettingChange('desertionEnabled', e.target.checked)} />
-                <span>{t('desertionRule')}</span>
-              </label>
-              <p className="field-note" style={{ marginBottom: settings.desertionEnabled ? '4px' : '10px' }}>{t('desertionRuleHelp')}</p>
+              <Toggle
+                checked={settings.desertionEnabled}
+                onChange={(v) => handleSettingChange('desertionEnabled', v)}
+                label={t('desertionRule')}
+                tip={t('desertionRuleHelp')}
+              />
               {settings.desertionEnabled && (
-                <div style={indentedBlock}>
-                  <div className="field-row" style={{ marginBottom: 0 }}>
-                    <label style={{ marginBottom: 0 }}>
-                      <span>{t('desertionDay')}</span>
+                <div className="ui-indent">
+                  <FieldRow>
+                    <Field label={t('desertionDay')}>
                       <NumberField min={1} max={14} step={1} value={settings.desertionDay} onCommit={(v) => handleSettingChange('desertionDay', v)} />
-                    </label>
-                    <label style={{ marginBottom: 0 }}>
-                      <span>{t('desertionValue')}</span>
+                    </Field>
+                    <Field label={t('desertionValue')}>
                       <NumberField min={0} step={500} value={settings.desertionValue} onCommit={(v) => handleSettingChange('desertionValue', v)} />
-                    </label>
-                  </div>
+                    </Field>
+                  </FieldRow>
                 </div>
               )}
 
-              <label className="toggle-line" style={{ marginBottom: '4px' }}>
-                <input type="checkbox" checked={settings.heroLightingEnabled} onChange={(e) => handleSettingChange('heroLightingEnabled', e.target.checked)} />
-                <span>{t('heroLightingRule')}</span>
-              </label>
-              <p className="field-note" style={{ marginBottom: settings.heroLightingEnabled ? '4px' : '10px' }}>{t('heroLightingRuleHelp')}</p>
+              <Toggle
+                checked={settings.heroLightingEnabled}
+                onChange={(v) => handleSettingChange('heroLightingEnabled', v)}
+                label={t('heroLightingRule')}
+                tip={t('heroLightingRuleHelp')}
+              />
               {settings.heroLightingEnabled && (
-                <div style={indentedBlock}>
-                  <label style={{ marginBottom: 0 }}>
-                    <span>{t('heroLightingDay')}</span>
+                <div className="ui-indent">
+                  <Field label={t('heroLightingDay')}>
                     <NumberField min={1} max={14} step={1} value={settings.heroLightingDay} onCommit={(v) => handleSettingChange('heroLightingDay', v)} />
-                  </label>
+                  </Field>
                 </div>
               )}
             </>
           )}
-        </div>
+        </CollapsibleSubsection>
 
         {/* Subsection 3: Generation & Geometry */}
         {isExpert && (
-        <div className="settings-subsection" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-            <Compass size={12} style={{ color: 'var(--accent)' }} />
-            <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, color: 'var(--muted-soft)' }}>
-              {t('settingsSectionGeneration')}
-            </span>
-          </div>
-          <label className="toggle-line">
-            <input
-              type="checkbox"
-              checked={settings.fixedOrientation}
-              onChange={(e) => handleSettingChange('fixedOrientation', e.target.checked)}
-            />
-            <span>{t('fixedOrientation')}</span>
-          </label>
-          <p className="field-note">{t('fixedOrientationHelp')}</p>
+        <CollapsibleSubsection
+          id="map.geometry"
+          title={t('settingsSectionGeneration')}
+          icon={<Compass size={12} style={{ color: 'var(--accent)' }} />}
+        >
+          <Toggle
+            checked={settings.fixedOrientation}
+            onChange={(v) => handleSettingChange('fixedOrientation', v)}
+            label={t('fixedOrientation')}
+            tip={t('fixedOrientationHelp')}
+          />
           
           {settings.fixedOrientation && (
-            <div style={{ display: 'grid', gap: '8px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px', marginBottom: '8px', marginTop: '4px' }}>
-              <label style={{ marginBottom: 0 }}>
-                <span>{t('orientationAnchor')}</span>
+            <div className="ui-indent">
+              <Field label={t('orientationAnchor')}>
                 <select
                   value={settings.orientationAnchor}
                   onChange={(e) => handleSettingChange('orientationAnchor', e.target.value)}
@@ -708,48 +673,26 @@ export const LeftPanel: React.FC = () => {
                     <option value="">{t('orientationNoZones')}</option>
                   )}
                 </select>
-              </label>
+              </Field>
             </div>
           )}
 
-          <label className="toggle-line" style={{ marginTop: '10px', marginBottom: '4px' }}>
-            <input
-              type="checkbox"
-              checked={settings.preserveLayout}
-              onChange={(e) => handleSettingChange('preserveLayout', e.target.checked)}
-            />
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              {t('preserveLayout')}
-              <span style={{
-                background: 'var(--accent-2)',
-                color: '#fff',
-                fontSize: '9px',
-                fontWeight: 800,
-                padding: '1px 4px',
-                borderRadius: '4px',
-                textTransform: 'uppercase',
-                lineHeight: 1,
-                letterSpacing: '0.5px'
-              }} title={t('preserveLayoutBetaNote')}>
-                {t('preserveLayoutBeta')}
-              </span>
-            </span>
-          </label>
-          <p className="field-note" style={{ marginBottom: '12px' }}>{t('preserveLayoutHelp')}</p>
+          <Toggle
+            checked={settings.preserveLayout}
+            onChange={(v) => handleSettingChange('preserveLayout', v)}
+            label={<>{t('preserveLayout')}<Badge tone="warning" title={t('preserveLayoutBetaNote')}>{t('preserveLayoutBeta')}</Badge></>}
+            tip={t('preserveLayoutHelp')}
+          />
 
-          <label className="toggle-line">
-            <input
-              type="checkbox"
-              checked={settings.encounterHoles}
-              onChange={(e) => handleSettingChange('encounterHoles', e.target.checked)}
-            />
-            <span>{t('encounterHoles')}</span>
-          </label>
-          <p className="field-note">{t('encounterHolesHelp')}</p>
+          <Toggle
+            checked={settings.encounterHoles}
+            onChange={(v) => handleSettingChange('encounterHoles', v)}
+            label={t('encounterHoles')}
+            tip={t('encounterHolesHelp')}
+          />
 
-          <div className="field-row" style={{ marginTop: '10px' }}>
-            <label style={{ marginBottom: 0 }}>
-              <span>{t('borderWater')}</span>
+          <FieldRow>
+            <Field label={t('borderWater')} tip={t('borderHelp')}>
               <select
                 value={String(settings.borderWaterWidth)}
                 onChange={(e) => handleSettingChange('borderWaterWidth', Number(e.target.value))}
@@ -764,9 +707,8 @@ export const LeftPanel: React.FC = () => {
                 <option value="4">{t('borderWaterMedium')}</option>
                 <option value="6">{t('borderWaterWide')}</option>
               </select>
-            </label>
-            <label style={{ marginBottom: 0 }}>
-              <span>{t('borderCornerRadius')}</span>
+            </Field>
+            <Field label={t('borderCornerRadius')}>
               <NumberField
                 min={0}
                 max={1}
@@ -774,11 +716,10 @@ export const LeftPanel: React.FC = () => {
                 value={settings.borderCornerRadius}
                 onCommit={(v) => handleSettingChange('borderCornerRadius', v)}
               />
-            </label>
-          </div>
-          <p className="field-note" style={{ marginBottom: variants.length > 1 ? '4px' : '12px' }}>{t('borderHelp')}</p>
+            </Field>
+          </FieldRow>
           {variants.length > 1 && (
-            <p className="field-note" style={{ marginBottom: '12px', fontWeight: 600 }}>
+            <p className="ui-field-hint" style={{ fontWeight: 600 }}>
               {t('variantScopedNote', {
                 name: `${t('variant')} ${Math.max(0, variants.findIndex((v) => v.id === activeVariantId)) + 1}`
               })}
@@ -786,13 +727,13 @@ export const LeftPanel: React.FC = () => {
           )}
 
           <p
-            className="field-note"
-            style={{ marginTop: '10px', color: 'var(--accent-2)', display: 'flex', gap: '6px', alignItems: 'flex-start' }}
+            className="ui-field-hint"
+            style={{ marginTop: 'var(--space-2)', color: 'var(--accent-2)', display: 'flex', gap: 'var(--space-1)', alignItems: 'flex-start' }}
           >
             <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: '1px' }} />
             <span>{t('rmgGeometryWarning')}</span>
           </p>
-        </div>
+        </CollapsibleSubsection>
         )}
           </div>
         )}
@@ -838,7 +779,7 @@ export const LeftPanel: React.FC = () => {
         {isPresetsExpanded && (
           <div className="collapsible-body">
         
-        <p className="field-note" style={{ marginBottom: '8px' }}>
+        <p className="ui-field-hint" style={{ marginBottom: '8px' }}>
           {t('presetsDescription')}
         </p>
 
@@ -865,7 +806,7 @@ export const LeftPanel: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '6px 8px',
-                  borderRadius: '6px',
+                  borderRadius: 'var(--radius-sm)',
                   background: isSelected ? 'var(--accent-dim)' : 'var(--panel-2)',
                   border: isSelected ? '1px solid var(--accent)' : '1px solid var(--line)',
                   cursor: 'pointer',
@@ -899,17 +840,17 @@ export const LeftPanel: React.FC = () => {
                   ></span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', overflow: 'hidden', minWidth: 0, flex: 1 }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                      <span style={{ fontSize: '12px', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 'var(--fz-base)', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {presetDisplayName(preset, t)}
                       </span>
                       {preset.isCustom && (
-                        <span style={{ fontSize: '9px', padding: '1px 4px', borderRadius: '4px', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
+                        <span style={{ fontSize: 'var(--fz-caption)', padding: '1px 4px', borderRadius: 'var(--radius-sm)', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
                           cstm
                         </span>
                       )}
                     </span>
                     {preset.guardedValue > 0 && (
-                      <span style={{ fontSize: '10px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         ≈{Math.round(preset.guardedValue / 1000)}k
                         <ValueBadge kind="zoneGuarded" value={preset.guardedValue} />
                       </span>
@@ -958,15 +899,15 @@ export const LeftPanel: React.FC = () => {
             {t('createPresetBtn') || 'Create Preset'}
           </button>
         ) : (
-          <form onSubmit={handleCreatePreset} style={{ display: 'grid', gap: '6px', padding: '8px', border: '1px solid var(--line)', borderRadius: '6px', background: 'var(--panel-2)' }}>
+          <form onSubmit={handleCreatePreset} style={{ display: 'grid', gap: '6px', padding: '8px', border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', background: 'var(--panel-2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '11px', fontWeight: 600 }}>{t('createNewPreset') || 'Create Preset'}</span>
+              <span style={{ fontSize: 'var(--fz-caption)', fontWeight: 600 }}>{t('createNewPreset') || 'Create Preset'}</span>
               <button type="button" className="compact-button" onClick={() => setShowCreateForm(false)}>
                 ✕
               </button>
             </div>
             
-            <label style={{ fontSize: '11px', display: 'grid', gap: '2px' }}>
+            <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px' }}>
               {t('presetName') || 'Name'}
               <input
                 type="text"
@@ -974,11 +915,11 @@ export const LeftPanel: React.FC = () => {
                 placeholder="My Preset"
                 value={newPresetName}
                 onChange={(e) => setNewPresetName(e.target.value)}
-                style={{ padding: '4px 8px', fontSize: '12px' }}
+                style={{ padding: '4px 8px', fontSize: 'var(--fz-base)' }}
               />
             </label>
             
-            <label style={{ fontSize: '11px', display: 'grid', gap: '2px' }}>
+            <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px' }}>
               {t('presetBaseType') || 'Base Type'}
               <select
                 value={newPresetBaseType}
@@ -987,7 +928,7 @@ export const LeftPanel: React.FC = () => {
                     setNewPresetBaseType(e.target.value);
                   }
                 }}
-                style={{ padding: '4px 6px', fontSize: '12px' }}
+                style={{ padding: '4px 6px', fontSize: 'var(--fz-base)' }}
               >
                 <option value="spawn">Spawn</option>
                 <option value="blank">Blank</option>
@@ -1000,7 +941,7 @@ export const LeftPanel: React.FC = () => {
             </label>
             
             <div className="field-row" style={{ marginBottom: 0 }}>
-              <label style={{ fontSize: '11px', display: 'grid', gap: '2px', marginBottom: 0 }}>
+              <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px', marginBottom: 0 }}>
                 {t('presetRole')}
                 <select
                   value={newPresetRole}
@@ -1012,7 +953,7 @@ export const LeftPanel: React.FC = () => {
                       setNewPresetBaseType(PRESET_RECIPES[role][newPresetTier].baseType as typeof newPresetBaseType);
                     }
                   }}
-                  style={{ padding: '4px 6px', fontSize: '12px' }}
+                  style={{ padding: '4px 6px', fontSize: 'var(--fz-base)' }}
                 >
                   <option value="">{t('presetRoleNone')}</option>
                   {PRESET_ROLES.map((role) => (
@@ -1020,7 +961,7 @@ export const LeftPanel: React.FC = () => {
                   ))}
                 </select>
               </label>
-              <label style={{ fontSize: '11px', display: 'grid', gap: '2px', marginBottom: 0, opacity: newPresetRole ? 1 : 0.5 }}>
+              <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px', marginBottom: 0, opacity: newPresetRole ? 1 : 0.5 }}>
                 {t('presetTier')}
                 <select
                   value={newPresetTier}
@@ -1032,7 +973,7 @@ export const LeftPanel: React.FC = () => {
                       setNewPresetBaseType(PRESET_RECIPES[newPresetRole][tier].baseType as typeof newPresetBaseType);
                     }
                   }}
-                  style={{ padding: '4px 6px', fontSize: '12px' }}
+                  style={{ padding: '4px 6px', fontSize: 'var(--fz-base)' }}
                 >
                   {PRESET_TIERS.map((tier) => (
                     <option key={tier} value={tier}>{t(`presetTier_${tier}`)}</option>
@@ -1040,15 +981,15 @@ export const LeftPanel: React.FC = () => {
                 </select>
               </label>
             </div>
-            <p className="field-note" style={{ margin: 0 }}>{t('presetRecipeHelp')}</p>
+            <p className="ui-field-hint" style={{ margin: 0 }}>{t('presetRecipeHelp')}</p>
 
-            <label style={{ fontSize: '11px', display: 'grid', gap: '2px', opacity: newPresetRole ? 0.5 : 1 }}>
+            <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px', opacity: newPresetRole ? 0.5 : 1 }}>
               {t('cloneFrom') || 'Clone from'}
               <select
                 value={newPresetCloneSource}
                 disabled={Boolean(newPresetRole)}
                 onChange={(e) => setNewPresetCloneSource(e.target.value)}
-                style={{ padding: '4px 6px', fontSize: '12px' }}
+                style={{ padding: '4px 6px', fontSize: 'var(--fz-base)' }}
               >
                 <option value="">{t('none') || 'None'}</option>
                 {Object.values(presets).map((p) => (
@@ -1095,7 +1036,7 @@ export const LeftPanel: React.FC = () => {
 
         {isTerrainExpanded && (
           <div className="collapsible-body">
-            <p className="field-note" style={{ marginBottom: '8px' }}>
+            <p className="ui-field-hint" style={{ marginBottom: '8px' }}>
               {t('terrainProfilesDescription')}
             </p>
 
@@ -1119,7 +1060,7 @@ export const LeftPanel: React.FC = () => {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '6px 8px',
-                      borderRadius: '6px',
+                      borderRadius: 'var(--radius-sm)',
                       background: isSelected ? 'var(--accent-dim)' : 'var(--panel-2)',
                       border: isSelected ? '1px solid var(--accent)' : '1px solid var(--line)',
                       cursor: 'pointer',
@@ -1129,16 +1070,16 @@ export const LeftPanel: React.FC = () => {
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', overflow: 'hidden', minWidth: 0, flex: 1 }} title={profile.name}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                        <span style={{ fontSize: '12px', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 'var(--fz-base)', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {profile.name}
                         </span>
                         {profile.custom && (
-                          <span style={{ fontSize: '9px', padding: '1px 4px', borderRadius: '4px', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
+                          <span style={{ fontSize: 'var(--fz-caption)', padding: '1px 4px', borderRadius: 'var(--radius-sm)', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
                             cstm
                           </span>
                         )}
                       </span>
-                      <span style={{ fontSize: '10px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {t('terrainProfileSummary', {
                           obstacles: profile.obstaclesFill ?? '—',
                           lakes: profile.lakesFill ?? '—',
@@ -1216,7 +1157,7 @@ export const LeftPanel: React.FC = () => {
 
         {isLimitsExpanded && (
           <div className="collapsible-body">
-            <p className="field-note" style={{ marginBottom: '8px' }}>
+            <p className="ui-field-hint" style={{ marginBottom: '8px' }}>
               {t('contentLimitsDescription')}
             </p>
 
@@ -1241,7 +1182,7 @@ export const LeftPanel: React.FC = () => {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '6px 8px',
-                      borderRadius: '6px',
+                      borderRadius: 'var(--radius-sm)',
                       background: isSelected ? 'var(--accent-dim)' : 'var(--panel-2)',
                       border: isSelected ? '1px solid var(--accent)' : '1px solid var(--line)',
                       cursor: 'pointer',
@@ -1251,16 +1192,16 @@ export const LeftPanel: React.FC = () => {
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', overflow: 'hidden', minWidth: 0, flex: 1 }} title={limitPreset.name}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                        <span style={{ fontSize: '12px', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 'var(--fz-base)', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {limitPreset.name}
                         </span>
                         {limitPreset.custom && (
-                          <span style={{ fontSize: '9px', padding: '1px 4px', borderRadius: '4px', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
+                          <span style={{ fontSize: 'var(--fz-caption)', padding: '1px 4px', borderRadius: 'var(--radius-sm)', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
                             cstm
                           </span>
                         )}
                       </span>
-                      <span style={{ fontSize: '10px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {t('contentLimitSummary', {
                           rows: limitPreset.limits.length,
                           zones: usedCount
@@ -1337,13 +1278,13 @@ export const LeftPanel: React.FC = () => {
 
         {isPoolsExpanded && (
           <div className="collapsible-body">
-            <p className="field-note" style={{ marginBottom: '8px' }}>
+            <p className="ui-field-hint" style={{ marginBottom: '8px' }}>
               {t('contentPoolsDescription')}
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gridAutoRows: 'max-content', alignContent: 'start', gap: '4px', maxHeight: '180px', overflowY: 'auto', overflowX: 'hidden', marginBottom: '8px', paddingRight: '4px' }}>
               {settings.contentPoolPresets.length === 0 && (
-                <p className="field-note" style={{ margin: 0 }}>{t('contentPoolsEmpty')}</p>
+                <p className="ui-field-hint" style={{ margin: 0 }}>{t('contentPoolsEmpty')}</p>
               )}
               {settings.contentPoolPresets.map((pool) => {
                 const isSelected = selected?.type === 'contentPool' && selected.id === pool.name;
@@ -1361,7 +1302,7 @@ export const LeftPanel: React.FC = () => {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '6px 8px',
-                      borderRadius: '6px',
+                      borderRadius: 'var(--radius-sm)',
                       background: isSelected ? 'var(--accent-dim)' : 'var(--panel-2)',
                       border: isSelected ? '1px solid var(--accent)' : '1px solid var(--line)',
                       cursor: 'pointer',
@@ -1371,16 +1312,16 @@ export const LeftPanel: React.FC = () => {
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', overflow: 'hidden', minWidth: 0, flex: 1 }} title={pool.name}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                        <span style={{ fontSize: '12px', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 'var(--fz-base)', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {pool.name}
                         </span>
                         {pool.custom && (
-                          <span style={{ fontSize: '9px', padding: '1px 4px', borderRadius: '4px', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
+                          <span style={{ fontSize: 'var(--fz-caption)', padding: '1px 4px', borderRadius: 'var(--radius-sm)', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
                             cstm
                           </span>
                         )}
                       </span>
-                      <span style={{ fontSize: '10px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {t('contentPoolSummary', {
                           groups: pool.groups.length,
                           bans: pool.bans.length,
@@ -1583,10 +1524,10 @@ export const LeftPanel: React.FC = () => {
                     width: '100%',
                     background: 'var(--panel-2)',
                     border: '1px dashed var(--line)',
-                    borderRadius: '8px',
+                    borderRadius: 'var(--radius-md)',
                     color: 'var(--ink)',
                     cursor: 'pointer',
-                    fontSize: '12px',
+                    fontSize: 'var(--fz-base)',
                     fontWeight: 600,
                     textAlign: 'center',
                     transition: 'background 150ms ease, border-color 150ms ease'
@@ -1725,7 +1666,7 @@ export const LeftPanel: React.FC = () => {
                 })}
               
               {Object.keys(customObjectLists).length === 0 && (
-                <div style={{ padding: '10px', textAlign: 'center', fontSize: '11px', opacity: 0.6 }}>
+                <div style={{ padding: '10px', textAlign: 'center', fontSize: 'var(--fz-caption)', opacity: 0.6 }}>
                   {t('noCustomLists') || 'No custom sets'}
                 </div>
               )}
@@ -1757,16 +1698,16 @@ export const LeftPanel: React.FC = () => {
                     setShowCreateCustomListForm(false);
                   }
                 }} 
-                style={{ display: 'grid', gap: '6px', padding: '8px', border: '1px solid var(--line)', borderRadius: '6px', background: 'var(--panel-2)' }}
+                style={{ display: 'grid', gap: '6px', padding: '8px', border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', background: 'var(--panel-2)' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 600 }}>{t('createCustomListBtn') || 'Create List'}</span>
+                  <span style={{ fontSize: 'var(--fz-caption)', fontWeight: 600 }}>{t('createCustomListBtn') || 'Create List'}</span>
                   <button type="button" className="compact-button" onClick={() => setShowCreateCustomListForm(false)}>
                     ✕
                   </button>
                 </div>
                 
-                <label style={{ fontSize: '11px', display: 'grid', gap: '2px' }}>
+                <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px' }}>
                   {t('customListIdLabel') || 'ID набора (латиница):'}
                   <input
                     type="text"
@@ -1774,27 +1715,27 @@ export const LeftPanel: React.FC = () => {
                     placeholder="my_list_id"
                     value={newCustomListId}
                     onChange={(e) => setNewCustomListId(e.target.value)}
-                    style={{ padding: '4px 8px', fontSize: '12px' }}
+                    style={{ padding: '4px 8px', fontSize: 'var(--fz-base)' }}
                   />
                 </label>
 
-                <label style={{ fontSize: '11px', display: 'grid', gap: '2px' }}>
+                <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px' }}>
                   {t('customListLabelLabel') || 'Название набора:'}
                   <input
                     type="text"
                     placeholder="My Custom List"
                     value={newCustomListName}
                     onChange={(e) => setNewCustomListName(e.target.value)}
-                    style={{ padding: '4px 8px', fontSize: '12px' }}
+                    style={{ padding: '4px 8px', fontSize: 'var(--fz-base)' }}
                   />
                 </label>
                 
-                <label style={{ fontSize: '11px', display: 'grid', gap: '2px' }}>
+                <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px' }}>
                   {t('cloneFrom') || 'Clone from'}
                   <select
                     value={newCustomListCloneSource}
                     onChange={(e) => setNewCustomListCloneSource(e.target.value)}
-                    style={{ padding: '4px 6px', fontSize: '12px' }}
+                    style={{ padding: '4px 6px', fontSize: 'var(--fz-base)' }}
                   >
                     <option value="">{t('none') || 'None'}</option>
                     {Object.values(customObjectLists).map((l) => (

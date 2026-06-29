@@ -31,7 +31,7 @@ export const EdgePairInspector: React.FC<EdgePairInspectorProps> = ({ pairId, ed
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '6px 8px',
-        borderRadius: '6px',
+        borderRadius: 'var(--radius-sm)',
         background: 'var(--panel-2)',
         border: '1px solid var(--line)',
         cursor: 'pointer',
@@ -51,11 +51,11 @@ export const EdgePairInspector: React.FC<EdgePairInspectorProps> = ({ pairId, ed
           }}
         ></span>
         <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
-          <span style={{ fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 'var(--fz-base)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {label}
           </span>
           {detail && (
-            <span style={{ fontSize: '10px', color: 'var(--muted-soft)' }}>{detail}</span>
+            <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)' }}>{detail}</span>
           )}
         </span>
       </div>
@@ -75,7 +75,7 @@ export const EdgePairInspector: React.FC<EdgePairInspectorProps> = ({ pairId, ed
 
   return (
     <div style={{ display: 'grid', gap: '8px' }}>
-      <div style={{ fontSize: '13px', fontWeight: 700 }}>
+      <div style={{ fontSize: 'var(--fz-emph)', fontWeight: 700 }}>
         {from} ↔ {to}
       </div>
 
@@ -90,7 +90,7 @@ export const EdgePairInspector: React.FC<EdgePairInspectorProps> = ({ pairId, ed
           )
         )}
         {passages.length === 0 && (
-          <p className="field-note" style={{ margin: 0 }}>{t('pairNoPassages')}</p>
+          <p className="ui-field-hint" style={{ margin: 0 }}>{t('pairNoPassages')}</p>
         )}
       </div>
       <button
@@ -110,7 +110,7 @@ export const EdgePairInspector: React.FC<EdgePairInspectorProps> = ({ pairId, ed
         </div>
       ) : (
         <>
-          <p className="field-note" style={{ margin: 0 }}>{t('pairNoSpring')}</p>
+          <p className="ui-field-hint" style={{ margin: 0 }}>{t('pairNoSpring')}</p>
           <button
             type="button"
             className="compact-button"

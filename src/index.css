@@ -21,6 +21,21 @@
   --road: #f59e0b;
   --shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
 
+  /* Design-system scales (theme-independent: sizes don't flip with the
+     colour theme). Colours above carry the light/dark values. */
+  --fz-caption: 11px;
+  --fz-base: 12px;
+  --fz-emph: 14px;
+  --fz-title: 16px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+
   /* Surface hierarchy mirrors the light theme: panels are elevated
      (lighter than --bg), the canvas area is recessed (darker), and the
      map frame is the lightest large surface — the "paper". */
@@ -30,6 +45,12 @@
   --map-frame-stroke: #434c5e;
   --map-grid-stroke: rgba(255, 255, 255, 0.12);
   --zone-circle-stroke: #0f1115;
+  /* Zone-type indicator dots in the "all elements" overview list. */
+  --zone-dot-spawn: #fef08a;
+  --zone-dot-neutral: #cbd5e1;
+  --zone-dot-other: #bbf7d0;
+  /* Contrast text on a saturated/solid coloured fill (e.g. the balance pill). */
+  --on-accent: #fff;
   --edge-line-stroke: var(--muted);
   --edge-direct: #57c97b;
   --edge-portal: #b08cff;
@@ -46,9 +67,9 @@
 
 body.light {
   color-scheme: light;
-  --bg: #ebe7dc;
-  --panel: #fbfaf5;
-  --panel-2: #f5f1e7;
+  --bg: #e8e3d5;
+  --panel: #f4efe4;
+  --panel-2: #ebe5d7;
   --ink: #24211d;
   --muted: #716b60;
   --muted-soft: #8a8377;
@@ -198,7 +219,7 @@ select,
 textarea {
   width: 100%;
   border: 1px solid var(--line);
-  background: var(--panel);
+  background: var(--json-bg);
   color: var(--ink);
   border-radius: 8px;
   padding: 8px 10px;
@@ -339,6 +360,9 @@ textarea {
 .panel {
   min-height: 0;
   overflow: auto;
+  /* Collapsing a section/subsection is re-anchored in JS (useCollapseScrollAnchor);
+     the browser's own scroll anchoring would fight that, so opt out here. */
+  overflow-anchor: none;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -369,6 +393,9 @@ textarea {
 }
 
 .collapsible-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -377,6 +404,7 @@ textarea {
   cursor: pointer;
   user-select: none;
   background: var(--panel);
+  border-bottom: 1px solid var(--line);
   transition: background 150ms ease;
   box-sizing: border-box;
 }
@@ -414,6 +442,67 @@ textarea {
 
 .collapsible-header:hover .collapse-icon {
   color: var(--ink);
+}
+
+/* A small, consistent gap separates subsections in both panels. */
+.collapsible-subsection {
+  margin-bottom: var(--space-2);
+}
+
+.collapsible-subsection-header {
+  position: sticky;
+  top: 48px; /* sits flush under the pinned section header */
+  scroll-margin-top: 48px; /* land under that pinned header on scrollIntoView */
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  width: calc(100% + 32px);
+  margin: 0 -16px;
+  padding: 8px 16px;
+  background: var(--panel-2);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  user-select: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: background 150ms ease;
+}
+
+.collapsible-subsection-header:hover {
+  background: color-mix(in srgb, var(--panel-2), var(--ink) 8%);
+}
+
+.collapsible-subsection-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.collapsible-subsection-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapsible-subsection-header:hover .collapsible-subsection-title,
+.collapsible-subsection-header:hover .collapse-icon {
+  color: var(--ink);
+}
+
+.collapsible-subsection-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0 16px;
 }
 
 .compact-button {
@@ -471,6 +560,276 @@ label textarea {
   color: var(--ink);
   font-size: 12px;
   font-weight: 600;
+}
+
+/* === Design-system primitives (token-driven; work in both themes) === */
+.ui-field {
+  display: grid;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+  font-size: var(--fz-base);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.ui-field-label {
+  display: inline;
+}
+
+.ui-field-hint {
+  margin: 0;
+  font-size: var(--fz-caption);
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--muted-soft);
+}
+
+.ui-field-hint--row,
+.ui-field-hint--toggle {
+  margin: calc(-1 * var(--space-1)) 0 var(--space-3);
+}
+
+.ui-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.ui-field-row .ui-field {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Keep the controls aligned across a row even when one label wraps to two
+   lines (e.g. a long label plus an (i) tip): labels stay top-aligned, the
+   control is pushed to the bottom of the taller field. */
+.ui-field-row .ui-field > :not(.ui-field-label) {
+  margin-top: auto;
+}
+
+.ui-indent {
+  border-left: 2px solid var(--accent);
+  padding-left: var(--space-2);
+  margin: var(--space-1) 0 var(--space-2);
+}
+
+.ui-group-label {
+  margin: var(--space-2) 0 var(--space-1);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+  font-size: var(--fz-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-soft);
+}
+
+.ui-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-1) 0;
+  color: var(--ink);
+  font-size: var(--fz-base);
+  font-weight: 400;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ui-toggle input {
+  width: auto;
+  margin: 0;
+}
+
+.ui-toggle--disabled,
+.ui-toggle--disabled input {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ui-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 5px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+}
+
+.ui-list-row--active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.ui-list-row--clickable {
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.ui-list-row-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1;
+}
+
+.ui-list-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ui-list-row-title {
+  font-size: var(--fz-base);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-list-row-sub {
+  font-size: var(--fz-caption);
+  color: var(--muted-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-list-row-trail {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.ui-toggle-text {
+  min-width: 0;
+}
+
+.ui-tip {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: var(--space-1);
+  color: var(--muted-soft);
+  cursor: help;
+}
+
+.ui-tip:hover {
+  color: var(--accent-light);
+}
+
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: var(--fz-caption);
+  font-weight: 600;
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.ui-badge--neutral {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.ui-badge--accent {
+  background: var(--accent-dim);
+  color: var(--accent-light);
+}
+
+.ui-badge--ok {
+  background: color-mix(in srgb, var(--ok) 16%, transparent);
+  color: var(--ok);
+}
+
+.ui-badge--warning {
+  background: color-mix(in srgb, var(--accent-2) 18%, transparent);
+  color: var(--accent-2);
+}
+
+.ui-badge--danger {
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+  color: var(--danger);
+}
+
+/* Card / chip: a collapsible row for a repeating entity (object, castle, …). */
+.ui-card {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color 150ms ease;
+}
+
+.ui-card + .ui-card {
+  margin-top: var(--space-2);
+}
+
+.ui-card:hover {
+  border-color: var(--line-dark);
+}
+
+.ui-card-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  user-select: none;
+}
+
+.ui-card-chev {
+  display: inline-flex;
+  color: var(--muted);
+}
+
+.ui-card-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  font-size: var(--fz-base);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.ui-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fz-caption);
+  color: var(--muted);
+}
+
+.ui-card-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.ui-card-body {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-top: 1px solid var(--line);
+  background: var(--panel);
 }
 
 .segmented-control {
@@ -1170,6 +1529,13 @@ input.weight-field::-webkit-inner-spin-button {
   .workspace.show-left .panel-toggle-left { left: calc(var(--drawer-w) + 24px); }
   .workspace.show-right .panel-toggle-right { right: calc(var(--drawer-w) + 24px); }
 
+  /* Drop the «памятка» button below the panel toggles (top:24 + 36) so the
+     inspector toggle no longer overlaps it. Selector is specific enough to beat
+     the base `.memo-widget` rule that follows later in the file. */
+  .canvas-widget-group.memo-widget {
+    top: 68px;
+  }
+
   .panel-overlay-backdrop {
     display: block;
   }
@@ -1546,6 +1912,11 @@ body.light .guard-badge-bg {
 body.light .canvas-widget-group {
   background: none;
   box-shadow: none;
+}
+
+/* The «памятка» (reopen-help) button, top-right of the canvas. */
+.memo-widget {
+  top: 16px;
 }
 
 .canvas-widget-group button {

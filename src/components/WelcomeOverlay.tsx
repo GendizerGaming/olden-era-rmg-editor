@@ -57,7 +57,7 @@ export const WelcomeOverlay: React.FC<{ memoRight?: string }> = ({ memoRight = '
   const stepButton: React.CSSProperties = {
     width: '100%',
     justifyContent: 'center',
-    fontSize: '12px',
+    fontSize: 'var(--fz-base)',
     padding: '6px 9px'
   };
   const stepText: React.CSSProperties = { margin: 0, minWidth: 0 };
@@ -66,8 +66,8 @@ export const WelcomeOverlay: React.FC<{ memoRight?: string }> = ({ memoRight = '
     <>
       {/* Same look and column as the other right-side canvas buttons */}
       <div
-        className="canvas-widget-group"
-        style={{ top: '16px', right: memoRight }}
+        className="canvas-widget-group memo-widget"
+        style={{ right: memoRight }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -96,7 +96,7 @@ export const WelcomeOverlay: React.FC<{ memoRight?: string }> = ({ memoRight = '
               pointerEvents: 'auto',
               background: 'var(--panel)',
               border: '1px solid var(--line)',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-lg)',
               boxShadow: 'var(--shadow)',
               padding: '16px 18px',
               width: 'min(500px, calc(100% - 40px))',
@@ -107,7 +107,7 @@ export const WelcomeOverlay: React.FC<{ memoRight?: string }> = ({ memoRight = '
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <strong style={{ fontSize: '14px' }}>{t('welcomeTitle')}</strong>
+              <strong style={{ fontSize: 'var(--fz-emph)' }}>{t('welcomeTitle')}</strong>
               <button type="button" className="compact-button" title={t('welcomeDismiss')} onClick={close}>
                 <X size={13} />
               </button>
@@ -124,7 +124,7 @@ export const WelcomeOverlay: React.FC<{ memoRight?: string }> = ({ memoRight = '
                 {coreCatalog ? <Check size={12} style={{ marginRight: '4px', flexShrink: 0 }} /> : <FileArchive size={12} style={{ marginRight: '4px', flexShrink: 0 }} />}
                 {coreCatalog ? t('welcomeCoreLoaded') : t('welcomeCoreBtn')}
               </button>
-              <span className="field-note" style={stepText}>{t('welcomeCoreText')}</span>
+              <span className="ui-field-hint" style={stepText}>{t('welcomeCoreText')}</span>
             </div>
 
             <div style={stepRow}>
@@ -132,7 +132,7 @@ export const WelcomeOverlay: React.FC<{ memoRight?: string }> = ({ memoRight = '
                 <LayoutTemplate size={12} style={{ marginRight: '4px', flexShrink: 0 }} />
                 {t('recipesButton')}
               </button>
-              <span className="field-note" style={stepText}>{t('welcomeRecipesText')}</span>
+              <span className="ui-field-hint" style={stepText}>{t('welcomeRecipesText')}</span>
             </div>
 
             <div style={stepRow}>
@@ -140,7 +140,7 @@ export const WelcomeOverlay: React.FC<{ memoRight?: string }> = ({ memoRight = '
                 <Wand2 size={12} style={{ marginRight: '4px', flexShrink: 0 }} />
                 {t('topologyWizardButton')}
               </button>
-              <span className="field-note" style={stepText}>{t('welcomeWizardText')}</span>
+              <span className="ui-field-hint" style={stepText}>{t('welcomeWizardText')}</span>
             </div>
 
             <div style={stepRow}>
@@ -148,7 +148,7 @@ export const WelcomeOverlay: React.FC<{ memoRight?: string }> = ({ memoRight = '
                 <Sliders size={12} style={{ marginRight: '4px', flexShrink: 0 }} />
                 {t('welcomeManualBtn')}
               </button>
-              <span className="field-note" style={stepText}>{t('welcomeManualText')}</span>
+              <span className="ui-field-hint" style={stepText}>{t('welcomeManualText')}</span>
             </div>
 
             <div style={stepRow}>
@@ -156,10 +156,10 @@ export const WelcomeOverlay: React.FC<{ memoRight?: string }> = ({ memoRight = '
                 <Upload size={12} style={{ marginRight: '4px', flexShrink: 0 }} />
                 {t('importTemplate')}
               </button>
-              <span className="field-note" style={stepText}>{t('welcomeImportText')}</span>
+              <span className="ui-field-hint" style={stepText}>{t('welcomeImportText')}</span>
             </div>
 
-            <p className="field-note" style={{ margin: 0 }}>{t('welcomeFootnote')}</p>
+            <p className="ui-field-hint" style={{ margin: 0 }}>{t('welcomeFootnote')}</p>
           </div>
         </div>
       )}

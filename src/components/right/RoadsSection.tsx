@@ -188,13 +188,13 @@ export const RoadsSection: React.FC<{ zone: Zone; edges: Edge[] }> = ({ zone, ed
   });
 
   const indentedBlock = { display: 'grid', gap: '6px' } as const;
-  const selectStyle = { minWidth: 0, fontSize: '11px' } as const;
+  const selectStyle = { minWidth: 0, fontSize: 'var(--fz-caption)' } as const;
   const iconBtn = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px', minWidth: 0 } as const;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-        <span className="field-note" style={{ margin: 0 }}>{t('roadsCount', { count: roads.length })}</span>
+        <span className="ui-field-hint" style={{ margin: 0 }}>{t('roadsCount', { count: roads.length })}</span>
         <button type="button" className="compact-button" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }} onClick={addRoad}>
           <Plus size={12} /> {t('roadAdd')}
         </button>
@@ -215,13 +215,13 @@ export const RoadsSection: React.FC<{ zone: Zone; edges: Edge[] }> = ({ zone, ed
       {warnings.length > 0 && (
         <div style={{ display: 'grid', gap: '2px' }}>
           {[...new Set(warnings)].map((warning) => (
-            <span key={warning} className="field-note" style={{ margin: 0, color: 'var(--danger)' }}>{warning}</span>
+            <span key={warning} className="ui-field-hint" style={{ margin: 0, color: 'var(--danger)' }}>{warning}</span>
           ))}
         </div>
       )}
 
       {roads.length === 0 ? (
-        <p className="field-note" style={{ margin: 0 }}>{t('roadsEmpty')}</p>
+        <p className="ui-field-hint" style={{ margin: 0 }}>{t('roadsEmpty')}</p>
       ) : (
         <div style={indentedBlock}>
           {roads.map((road, index) => (
@@ -252,7 +252,7 @@ export const RoadsSection: React.FC<{ zone: Zone; edges: Edge[] }> = ({ zone, ed
         </div>
       )}
 
-      <p className="field-note" style={{ margin: 0, display: 'flex', gap: '4px', alignItems: 'center' }}>
+      <p className="ui-field-hint" style={{ margin: 0, display: 'flex', gap: '4px', alignItems: 'center' }}>
         <ArrowRight size={11} style={{ flexShrink: 0 }} /> {t('roadsHelp')}
       </p>
     </div>

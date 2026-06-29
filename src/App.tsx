@@ -10,6 +10,7 @@ import { RightPanel } from './components/RightPanel';
 import { ToastContainer } from './components/ToastContainer';
 import { loadCatalogFromDB } from './services/db';
 import { isCoreCatalog } from './store/parsing';
+import { useCollapseScrollAnchor } from './components/shared/useCollapseScrollAnchor';
 
 type OverlayPanel = 'left' | 'right' | null;
 
@@ -49,6 +50,10 @@ function App() {
   const actions = useEditorStore((state) => state.actions);
   // Which side panel is open as an overlay in the narrow (<1280px) mode.
   const [overlayPanel, setOverlayPanel] = useState<OverlayPanel>(null);
+
+  // Keep a collapsed section/subsection anchored under the cursor instead of
+  // letting the removed body jump the scroll position.
+  useCollapseScrollAnchor();
 
   useEffect(() => {
     document.body.className = theme;

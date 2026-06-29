@@ -4,6 +4,7 @@ import type { EditorActions } from '../../store/useEditorStore';
 import type { TranslationFunction } from '../../i18n/context';
 import type { CatalogItem, ContentLimitEntry, ContentLimitPreset, Zone } from '../../types/editor';
 import { NumberField } from '../shared/NumberField';
+import { Field, FieldRow, Toggle } from '../shared/primitives';
 import { Copy, Plus, Search, Trash2 } from 'lucide-react';
 
 interface ContentLimitInspectorProps {
@@ -20,7 +21,7 @@ const rowStyle: React.CSSProperties = {
   justifyContent: 'space-between',
   gap: '8px',
   padding: '5px 8px',
-  borderRadius: '6px',
+  borderRadius: 'var(--radius-sm)',
   background: 'var(--panel-2)',
   border: '1px solid var(--line)'
 };
@@ -122,7 +123,7 @@ export const ContentLimitInspector: React.FC<ContentLimitInspectorProps> = ({ pr
   return (
     <div style={{ display: 'grid', gap: '8px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <strong style={{ fontSize: '13px' }}>{t('contentLimitTitle')}</strong>
+        <strong style={{ fontSize: 'var(--fz-emph)' }}>{t('contentLimitTitle')}</strong>
         <div style={{ display: 'flex', gap: '4px' }}>
           <button
             type="button"
@@ -147,8 +148,7 @@ export const ContentLimitInspector: React.FC<ContentLimitInspectorProps> = ({ pr
         </div>
       </div>
 
-      <label>
-        {t('contentLimitName')}
+      <Field label={t('contentLimitName')}>
         <input
           type="text"
           value={nameDraft}
@@ -160,26 +160,22 @@ export const ContentLimitInspector: React.FC<ContentLimitInspectorProps> = ({ pr
             if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
           }}
         />
-      </label>
+      </Field>
 
-      <label className="toggle-line" style={{ margin: 0 }}>
-        <input
-          type="checkbox"
-          checked={preset.playerMin !== undefined || preset.playerMax !== undefined}
-          onChange={(e) => {
-            if (e.target.checked) {
-              update({ playerMin: 0, playerMax: 0 });
-            } else {
-              update({ playerMin: undefined, playerMax: undefined });
-            }
-          }}
-        />
-        <span style={{ fontSize: '11px' }}>{t('contentLimitPlayerGate')}</span>
-      </label>
+      <Toggle
+        checked={preset.playerMin !== undefined || preset.playerMax !== undefined}
+        onChange={(checked) => {
+          if (checked) {
+            update({ playerMin: 0, playerMax: 0 });
+          } else {
+            update({ playerMin: undefined, playerMax: undefined });
+          }
+        }}
+        label={t('contentLimitPlayerGate')}
+      />
       {(preset.playerMin !== undefined || preset.playerMax !== undefined) && (
-        <div className="field-row" style={{ marginBottom: 0 }}>
-          <label style={{ marginBottom: 0 }}>
-            <span>{t('contentLimitPlayerMin')}</span>
+        <FieldRow>
+          <Field label={t('contentLimitPlayerMin')}>
             <NumberField
               min={0}
               max={8}
@@ -187,9 +183,8 @@ export const ContentLimitInspector: React.FC<ContentLimitInspectorProps> = ({ pr
               value={preset.playerMin ?? 0}
               onCommit={(v) => update({ playerMin: v })}
             />
-          </label>
-          <label style={{ marginBottom: 0 }}>
-            <span>{t('contentLimitPlayerMax')}</span>
+          </Field>
+          <Field label={t('contentLimitPlayerMax')}>
             <NumberField
               min={0}
               max={8}
@@ -197,11 +192,11 @@ export const ContentLimitInspector: React.FC<ContentLimitInspectorProps> = ({ pr
               value={preset.playerMax ?? 0}
               onCommit={(v) => update({ playerMax: v })}
             />
-          </label>
-        </div>
+          </Field>
+        </FieldRow>
       )}
 
-      <p className="field-note" style={{ margin: 0 }}>
+      <p className="ui-field-hint" style={{ margin: 0 }}>
         {usedBy.length > 0
           ? t('contentLimitUsedBy', { zones: usedBy.join(', ') })
           : t('contentLimitUnused')}
@@ -210,7 +205,7 @@ export const ContentLimitInspector: React.FC<ContentLimitInspectorProps> = ({ pr
       {/* Current limit rows */}
       <div className="control-label">{t('contentLimitRowsTitle')} ({preset.limits.length})</div>
       {preset.limits.length === 0 ? (
-        <p className="field-note" style={{ margin: '0 0 4px' }}>{t('contentLimitRowsEmpty')}</p>
+        <p className="ui-field-hint" style={{ margin: '0 0 4px' }}>{t('contentLimitRowsEmpty')}</p>
       ) : (
         <div
           style={{
@@ -239,10 +234,10 @@ export const ContentLimitInspector: React.FC<ContentLimitInspectorProps> = ({ pr
             return (
               <div key={`${limitKey(entry)}:${index}`} style={rowStyle}>
                 <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0, flex: 1 }}>
-                  <span title={title} style={{ fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span title={title} style={{ fontSize: 'var(--fz-base)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {title}
                   </span>
-                  <span title={subtitle} style={{ fontSize: '9px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span title={subtitle} style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {subtitle}
                   </span>
                 </span>
@@ -273,7 +268,7 @@ export const ContentLimitInspector: React.FC<ContentLimitInspectorProps> = ({ pr
           })}
         </div>
       )}
-      <p className="field-note" style={{ margin: 0 }}>{t('contentLimitMaxCountHelp')}</p>
+      <p className="ui-field-hint" style={{ margin: 0 }}>{t('contentLimitMaxCountHelp')}</p>
 
       {/* Full catalog picker */}
       <div className="library-filter">
@@ -305,7 +300,7 @@ export const ContentLimitInspector: React.FC<ContentLimitInspectorProps> = ({ pr
               style={{
                 cursor: 'pointer',
                 userSelect: 'none',
-                fontSize: '11px',
+                fontSize: 'var(--fz-caption)',
                 fontWeight: 600,
                 color: 'var(--muted)',
                 padding: '2px 0'
@@ -331,10 +326,10 @@ export const ContentLimitInspector: React.FC<ContentLimitInspectorProps> = ({ pr
                         </button>
                       )}
                       <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
-                        <span title={item.label} style={{ fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span title={item.label} style={{ fontSize: 'var(--fz-base)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {item.label}
                         </span>
-                        <span title={item.id} style={{ fontSize: '9px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span title={item.id} style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {item.id}
                         </span>
                       </span>

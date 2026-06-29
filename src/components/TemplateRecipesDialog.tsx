@@ -45,7 +45,7 @@ export const TemplateRecipesDialog: React.FC<TemplateRecipesDialogProps> = ({ on
         style={{
           background: 'var(--panel)',
           border: '1px solid var(--line)',
-          borderRadius: '10px',
+          borderRadius: 'var(--radius-lg)',
           padding: '16px',
           width: 'min(460px, calc(100vw - 32px))',
           maxHeight: 'calc(100vh - 64px)',
@@ -56,7 +56,7 @@ export const TemplateRecipesDialog: React.FC<TemplateRecipesDialogProps> = ({ on
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <strong style={{ fontSize: '14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <strong style={{ fontSize: 'var(--fz-emph)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             <LayoutTemplate size={15} style={{ color: 'var(--accent)' }} />
             {t('recipesTitle')}
           </strong>
@@ -65,7 +65,7 @@ export const TemplateRecipesDialog: React.FC<TemplateRecipesDialogProps> = ({ on
           </button>
         </div>
 
-        <p className="field-note" style={{ margin: 0 }}>{t('recipesDescription')}</p>
+        <p className="ui-field-hint" style={{ margin: 0 }}>{t('recipesDescription')}</p>
 
         <div style={{ display: 'grid', gap: '6px' }}>
           {TEMPLATE_RECIPES.map((recipe) => (
@@ -83,7 +83,7 @@ export const TemplateRecipesDialog: React.FC<TemplateRecipesDialogProps> = ({ on
                 gap: '2px',
                 textAlign: 'left',
                 padding: '8px 10px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 background: 'var(--panel-2)',
                 border: '1px solid var(--line)',
                 cursor: 'pointer',
@@ -92,15 +92,15 @@ export const TemplateRecipesDialog: React.FC<TemplateRecipesDialogProps> = ({ on
               }}
             >
               <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px' }}>
-                <strong style={{ fontSize: '12px' }}>{t(`recipe_${recipe.id}`)}</strong>
-                <span style={{ fontSize: '10px', color: 'var(--muted-soft)', flexShrink: 0 }}>
+                <strong style={{ fontSize: 'var(--fz-base)' }}>{t(`recipe_${recipe.id}`)}</strong>
+                <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', flexShrink: 0 }}>
                   {t('recipeMeta', {
                     players: recipe.topology.players,
                     size: recipe.settings.sizeX ?? 128
                   })}
                 </span>
               </span>
-              <span style={{ fontSize: '11px', color: 'var(--muted-soft)' }}>
+              <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)' }}>
                 {t(`recipeDesc_${recipe.id}`)}
               </span>
             </button>
@@ -108,7 +108,7 @@ export const TemplateRecipesDialog: React.FC<TemplateRecipesDialogProps> = ({ on
         </div>
 
         {zonesCount > 0 && (
-          <p className="field-note" style={{ margin: 0, color: 'var(--accent-2)' }}>
+          <p className="ui-field-hint" style={{ margin: 0, color: 'var(--accent-2)' }}>
             {t('topologyReplaceWarning', { count: zonesCount })}
           </p>
         )}

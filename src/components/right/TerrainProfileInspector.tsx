@@ -4,6 +4,7 @@ import type { EditorActions } from '../../store/useEditorStore';
 import type { TranslationFunction } from '../../i18n/context';
 import type { TerrainProfile, TerrainElevationMode, Zone } from '../../types/editor';
 import { NumberField } from '../shared/NumberField';
+import { Field, FieldRow } from '../shared/primitives';
 import { Copy, RotateCcw, Trash2 } from 'lucide-react';
 
 interface TerrainProfileInspectorProps {
@@ -72,7 +73,7 @@ export const TerrainProfileInspector: React.FC<TerrainProfileInspectorProps> = (
   return (
     <div style={{ display: 'grid', gap: '8px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <strong style={{ fontSize: '13px' }}>{t('terrainProfileTitle')}</strong>
+        <strong style={{ fontSize: 'var(--fz-emph)' }}>{t('terrainProfileTitle')}</strong>
         <div style={{ display: 'flex', gap: '4px' }}>
           <button
             type="button"
@@ -111,8 +112,7 @@ export const TerrainProfileInspector: React.FC<TerrainProfileInspectorProps> = (
         </div>
       </div>
 
-      <label>
-        {t('terrainProfileName')}
+      <Field label={t('terrainProfileName')}>
         <input
           type="text"
           value={nameDraft}
@@ -121,19 +121,18 @@ export const TerrainProfileInspector: React.FC<TerrainProfileInspectorProps> = (
           onBlur={commitName}
           onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
         />
-      </label>
+      </Field>
       {isBuiltIn && (
-        <p className="field-note" style={{ marginTop: 0 }}>{t('terrainProfileBuiltInNote')}</p>
+        <p className="ui-field-hint" style={{ marginTop: 0 }}>{t('terrainProfileBuiltInNote')}</p>
       )}
-      <p className="field-note" style={{ marginTop: 0 }}>
+      <p className="ui-field-hint" style={{ marginTop: 0 }}>
         {usedBy.length > 0
           ? t('terrainProfileUsedBy', { count: usedBy.length, zones: usedBy.join(', ') })
           : t('terrainProfileUnused')}
       </p>
 
-      <div className="field-row">
-        <label>
-          <span>{t('terrainObstacles')}</span>
+      <FieldRow hint={t('terrainObstaclesHelp')}>
+        <Field label={t('terrainObstacles')}>
           <NumberField
             min={0}
             max={1}
@@ -141,9 +140,8 @@ export const TerrainProfileInspector: React.FC<TerrainProfileInspectorProps> = (
             value={profile.obstaclesFill ?? 0.34}
             onCommit={(v) => update({ obstaclesFill: v })}
           />
-        </label>
-        <label>
-          <span>{t('terrainObstaclesVoid')}</span>
+        </Field>
+        <Field label={t('terrainObstaclesVoid')}>
           <NumberField
             min={0}
             max={1}
@@ -151,13 +149,11 @@ export const TerrainProfileInspector: React.FC<TerrainProfileInspectorProps> = (
             value={profile.obstaclesFillVoid ?? 0.4}
             onCommit={(v) => update({ obstaclesFillVoid: v })}
           />
-        </label>
-      </div>
-      <p className="field-note" style={{ marginTop: 0 }}>{t('terrainObstaclesHelp')}</p>
+        </Field>
+      </FieldRow>
 
-      <div className="field-row">
-        <label>
-          <span>{t('terrainLakes')}</span>
+      <FieldRow hint={t('terrainLakesHelp')}>
+        <Field label={t('terrainLakes')}>
           <NumberField
             min={0}
             max={1}
@@ -165,21 +161,18 @@ export const TerrainProfileInspector: React.FC<TerrainProfileInspectorProps> = (
             value={profile.lakesFill ?? 0.16}
             onCommit={(v) => update({ lakesFill: v })}
           />
-        </label>
-        <label>
-          <span>{t('terrainMinLakeArea')}</span>
+        </Field>
+        <Field label={t('terrainMinLakeArea')}>
           <NumberField
             min={1}
             step={1}
             value={profile.minLakeArea ?? 8}
             onCommit={(v) => update({ minLakeArea: v })}
           />
-        </label>
-      </div>
-      <p className="field-note" style={{ marginTop: 0 }}>{t('terrainLakesHelp')}</p>
+        </Field>
+      </FieldRow>
 
-      <label>
-        {t('terrainElevation')}
+      <Field label={t('terrainElevation')} tip={t('terrainElevationHelp')}>
         <select
           value={elevationPreset}
           onChange={(e) => {
@@ -196,12 +189,10 @@ export const TerrainProfileInspector: React.FC<TerrainProfileInspectorProps> = (
             <option value="custom">{t('terrainElevation_custom')}</option>
           )}
         </select>
-      </label>
-      <p className="field-note" style={{ marginTop: 0 }}>{t('terrainElevationHelp')}</p>
+      </Field>
 
-      <div className="field-row">
-        <label>
-          <span>{t('terrainElevationScale')}</span>
+      <FieldRow hint={t('terrainScaleHelp')}>
+        <Field label={t('terrainElevationScale')}>
           <NumberField
             min={0.01}
             max={1}
@@ -209,18 +200,16 @@ export const TerrainProfileInspector: React.FC<TerrainProfileInspectorProps> = (
             value={profile.elevationClusterScale ?? 0.1}
             onCommit={(v) => update({ elevationClusterScale: v })}
           />
-        </label>
-        <label>
-          <span>{t('terrainRoadCluster')}</span>
+        </Field>
+        <Field label={t('terrainRoadCluster')}>
           <NumberField
             min={1}
             step={8}
             value={profile.roadClusterArea ?? 80}
             onCommit={(v) => update({ roadClusterArea: v })}
           />
-        </label>
-      </div>
-      <p className="field-note" style={{ marginTop: 0 }}>{t('terrainScaleHelp')}</p>
+        </Field>
+      </FieldRow>
     </div>
   );
 };

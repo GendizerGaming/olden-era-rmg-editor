@@ -23,13 +23,13 @@ export const ElementsListInspector: React.FC<ElementsListInspectorProps> = ({
     <div style={{ display: 'grid', gap: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid var(--line)', paddingBottom: '6px' }}>
         <List size={16} />
-        <h3 style={{ margin: 0, fontSize: '14px' }}>
+        <h3 style={{ margin: 0, fontSize: 'var(--fz-emph)' }}>
           {t('elementsListTitle') || 'Все элементы схемы'}
         </h3>
       </div>
 
       <div style={{ display: 'grid', gap: '8px' }}>
-        <h4 style={{ margin: '4px 0 2px 0', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }}>
+        <h4 style={{ margin: '4px 0 2px 0', fontSize: 'var(--fz-base)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }}>
           {t('elementsListZones') || 'Зоны схемы'} ({zones.length})
         </h4>
         
@@ -46,7 +46,7 @@ export const ElementsListInspector: React.FC<ElementsListInspectorProps> = ({
                 className="list-content-entry"
                 style={{
                   border: '1px solid var(--line)',
-                  borderRadius: '6px',
+                  borderRadius: 'var(--radius-sm)',
                   background: 'var(--panel-2)',
                   overflow: 'hidden'
                 }}
@@ -67,15 +67,15 @@ export const ElementsListInspector: React.FC<ElementsListInspectorProps> = ({
                         width: '8px',
                         height: '8px',
                         borderRadius: '50%',
-                        backgroundColor: zone.type === 'spawn' ? '#fef08a' : zone.type === 'neutral' ? '#cbd5e1' : '#bbf7d0',
+                        backgroundColor: zone.type === 'spawn' ? 'var(--zone-dot-spawn)' : zone.type === 'neutral' ? 'var(--zone-dot-neutral)' : 'var(--zone-dot-other)',
                         border: '1px solid var(--line-dark)',
                         flexShrink: 0
                       }}
                     />
-                    <strong style={{ fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <strong style={{ fontSize: 'var(--fz-base)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {zone.label || zone.id}
                     </strong>
-                    <span style={{ fontSize: '10px', color: 'var(--muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       ({zone.id})
                     </span>
                   </div>
@@ -87,13 +87,13 @@ export const ElementsListInspector: React.FC<ElementsListInspectorProps> = ({
                       actions.setSelected({ type: 'zone', id: zone.id });
                     }}
                     className="compact-button primary"
-                    style={{ padding: '2px 6px', fontSize: '11px', height: '22px', marginLeft: '8px', flexShrink: 0 }}
+                    style={{ padding: '2px 6px', fontSize: 'var(--fz-caption)', height: '22px', marginLeft: '8px', flexShrink: 0 }}
                   >
                     {t('selectMode') || 'Выбрать'}
                   </button>
                 </summary>
                 
-                <div style={{ padding: '8px 10px', display: 'grid', gap: '6px', fontSize: '11px', borderTop: '1px solid var(--line)', background: 'var(--panel)', lineHeight: 1.35 }}>
+                <div style={{ padding: '8px 10px', display: 'grid', gap: '6px', fontSize: 'var(--fz-caption)', borderTop: '1px solid var(--line)', background: 'var(--panel)', lineHeight: 1.35 }}>
                   <div><strong>{t('zoneType')}:</strong> {zone.type}</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                     <div><strong>{t('guarded')}:</strong> {zone.guardedValue.toLocaleString()}</div>
@@ -106,7 +106,7 @@ export const ElementsListInspector: React.FC<ElementsListInspectorProps> = ({
                   
                   {hasMainObjects && (
                     <div style={{ marginTop: '4px' }}>
-                      <div style={{ fontWeight: 'bold', color: 'var(--muted-soft)', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>
+                      <div style={{ fontWeight: 'bold', color: 'var(--muted-soft)', fontSize: 'var(--fz-caption)', textTransform: 'uppercase', marginBottom: '2px' }}>
                         {t('elementsListMainObjects') || 'Замки и стартовые позиции'}
                       </div>
                       <ul style={{ margin: 0, paddingLeft: '12px', listStyleType: 'disc' }}>
@@ -122,7 +122,7 @@ export const ElementsListInspector: React.FC<ElementsListInspectorProps> = ({
                   )}
 
                   <div style={{ marginTop: '4px' }}>
-                    <div style={{ fontWeight: 'bold', color: 'var(--muted-soft)', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>
+                    <div style={{ fontWeight: 'bold', color: 'var(--muted-soft)', fontSize: 'var(--fz-caption)', textTransform: 'uppercase', marginBottom: '2px' }}>
                       {t('elementsListObjects') || 'Объекты'} ({zone.objects.length})
                     </div>
                     {hasObjects ? (
@@ -131,14 +131,14 @@ export const ElementsListInspector: React.FC<ElementsListInspectorProps> = ({
                           const name = obj.labelByLang?.[language] || obj.label || obj.sid || obj.includeList || obj.id;
                           return (
                             <li key={obj.key} style={{ marginBottom: '2px' }}>
-                              <code className="sid-badge" style={{ fontSize: '9px', padding: '0px 3px' }}>{obj.sid || obj.includeList || obj.id}</code>
+                              <code className="sid-badge" style={{ fontSize: 'var(--fz-caption)', padding: '0px 3px' }}>{obj.sid || obj.includeList || obj.id}</code>
                               <span>{name} x{obj.count} {obj.guarded ? `(${t('guardedShort') || 'охр.'})` : `(${t('unguardedShort') || 'без охр.'})`}</span>
                             </li>
                           );
                         })}
                       </ul>
                     ) : (
-                      <span style={{ fontSize: '11px', color: 'var(--muted-soft)', fontStyle: 'italic' }}>
+                      <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', fontStyle: 'italic' }}>
                         {t('elementsListNoObjects') || 'Нет объектов'}
                       </span>
                     )}
@@ -152,7 +152,7 @@ export const ElementsListInspector: React.FC<ElementsListInspectorProps> = ({
 
       {/* Divider keeps the two sections from blending together */}
       <div style={{ display: 'grid', gap: '8px', marginTop: '4px', borderTop: '1px solid var(--line)', paddingTop: '12px' }}>
-        <h4 style={{ margin: '4px 0 2px 0', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }}>
+        <h4 style={{ margin: '4px 0 2px 0', fontSize: 'var(--fz-base)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }}>
           {t('elementsListEdges') || 'Связи между зонами'} ({edges.length})
         </h4>
 
@@ -164,7 +164,7 @@ export const ElementsListInspector: React.FC<ElementsListInspectorProps> = ({
                 key={edge.id}
                 style={{
                   border: '1px solid var(--line)',
-                  borderRadius: '6px',
+                  borderRadius: 'var(--radius-sm)',
                   background: 'var(--panel-2)',
                   padding: '6px 10px',
                   display: 'flex',
@@ -173,10 +173,10 @@ export const ElementsListInspector: React.FC<ElementsListInspectorProps> = ({
                 }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: '11px', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: 'var(--fz-caption)', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {edge.from} ↔ {edge.to}
                   </div>
-                  <span style={{ fontSize: '9px', color: 'var(--muted-soft)' }}>
+                  <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)' }}>
                     {isProximity
                       ? `${t('connTypeProximity') || 'Пружина (Proximity)'}`
                       : `${t(`connType${edge.connectionType}`) || edge.connectionType}: ${edge.guardValue.toLocaleString()} ${edge.road ? `(${t('road')})` : ''}`}
@@ -186,7 +186,7 @@ export const ElementsListInspector: React.FC<ElementsListInspectorProps> = ({
                   type="button"
                   onClick={() => actions.setSelected({ type: 'edge', id: edge.id })}
                   className="compact-button primary"
-                  style={{ padding: '2px 6px', fontSize: '11px', height: '22px', marginLeft: '8px', flexShrink: 0 }}
+                  style={{ padding: '2px 6px', fontSize: 'var(--fz-caption)', height: '22px', marginLeft: '8px', flexShrink: 0 }}
                 >
                   {t('selectMode') || 'Выбрать'}
                 </button>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useEditorStore } from '../../store/useEditorStore';
 import { useTranslation } from '../../i18n/context';
 import { Layers, Plus, Copy, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { ListRow } from '../shared/primitives';
 
 export const VariantsSection: React.FC = () => {
   const { t } = useTranslation();
@@ -37,7 +38,7 @@ export const VariantsSection: React.FC = () => {
 
       {expanded && (
         <div className="collapsible-body">
-          <p className="field-note" style={{ marginBottom: '8px' }}>
+          <p className="ui-field-hint" style={{ marginBottom: '8px' }}>
             {t('variantsHelp') ||
               'Each variant is an alternative map layout. The game picks one at random when generating a map.'}
           </p>
@@ -47,55 +48,38 @@ export const VariantsSection: React.FC = () => {
               const isSelected = variant.id === activeVariantId;
               const counts = countsFor(variant.id, isSelected);
               return (
-                <div
+                <ListRow
                   key={variant.id}
-                  className={`preset-list-row ${isSelected ? 'active' : ''}`}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '6px 8px',
-                    borderRadius: '6px',
-                    background: isSelected ? 'var(--accent-dim)' : 'var(--panel-2)',
-                    border: isSelected ? '1px solid var(--accent)' : '1px solid var(--line)',
-                    cursor: 'pointer',
-                    transition: 'background 150ms ease, border-color 150ms ease'
-                  }}
+                  active={isSelected}
                   onClick={() => actions.setActiveVariant(variant.id)}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                    <span style={{ fontSize: '12px', fontWeight: isSelected ? 600 : 500 }}>
-                      {variantLabel(index)}
-                    </span>
-                    <span style={{ fontSize: '10px', color: 'var(--muted-soft)' }}>
-                      {t('variantZonesLinks', { zones: counts.zones, links: counts.links })}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      className="compact-button"
-                      title={t('duplicateVariant') || 'Duplicate variant'}
-                      onClick={() => actions.duplicateVariant(variant.id)}
-                    >
-                      <Copy size={10} />
-                    </button>
-                    <button
-                      type="button"
-                      className="compact-button danger"
-                      title={t('deleteVariant') || 'Delete variant'}
-                      disabled={variants.length <= 1}
-                      onClick={() => {
-                        if (window.confirm(t('confirmDeleteVariant', { name: variantLabel(index) }))) {
-                          actions.deleteVariant(variant.id);
-                        }
-                      }}
-                    >
-                      <Trash2 size={10} />
-                    </button>
-                  </div>
-                </div>
+                  title={variantLabel(index)}
+                  subtitle={t('variantZonesLinks', { zones: counts.zones, links: counts.links })}
+                  trailing={
+                    <>
+                      <button
+                        type="button"
+                        className="compact-button"
+                        title={t('duplicateVariant') || 'Duplicate variant'}
+                        onClick={() => actions.duplicateVariant(variant.id)}
+                      >
+                        <Copy size={10} />
+                      </button>
+                      <button
+                        type="button"
+                        className="compact-button danger"
+                        title={t('deleteVariant') || 'Delete variant'}
+                        disabled={variants.length <= 1}
+                        onClick={() => {
+                          if (window.confirm(t('confirmDeleteVariant', { name: variantLabel(index) }))) {
+                            actions.deleteVariant(variant.id);
+                          }
+                        }}
+                      >
+                        <Trash2 size={10} />
+                      </button>
+                    </>
+                  }
+                />
               );
             })}
           </div>

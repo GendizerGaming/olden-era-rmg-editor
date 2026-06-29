@@ -584,6 +584,8 @@
   "roadRemove": "Remove road",
   "roadWarnObject": "Road {index}: main-object index {ref} is out of range.",
   "roadWarnConnection": "Road {index}: connection {ref} does not touch this zone.",
+  "zoneValuesSection": "Values",
+  "zoneTerrainLimitsSection": "Terrain & limits",
   "zonePerAreaSection": "Value growth per area",
   "zonePerAreaHelp": "Extra value from the zone's actual area: total = value × walkable area × 0.1, so bigger zones get richer automatically. 0 — the field is not written to the template. The game's native scaling mechanism, used by a third of official zones.",
   "contentLimitsTitle": "OBJECT LIMITS",
