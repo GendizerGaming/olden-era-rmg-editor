@@ -4,12 +4,12 @@ import { makeDefaultSpawnObject, nextPlayerNumber, zoneContentScale } from '../.
 import { uniqueKey } from '../../store/ids';
 import type { EditorActions } from '../../store/useEditorStore';
 import type { TranslationFunction } from '../../i18n/context';
-import { Trash2, Save, Castle, Leaf, Boxes } from 'lucide-react';
+import { Trash2, Save, Castle, Leaf, Boxes, Coins, Mountain, Package, Shield, Spline, Users } from 'lucide-react';
 import type { Edge, Faction, MainObjectPlacement, MainObjectType, Zone, ZoneMainObject, ZoneObject } from '../../types/editor';
 import { fieldUpdate } from '../shared/forms';
 import { GuardReactionEditor } from '../shared/GuardReactionEditor';
 import { LazyDetails } from '../shared/LazyDetails';
-import { Card, Badge, Field, FieldRow } from '../shared/primitives';
+import { Card, Badge, Field, FieldRow, InfoTip } from '../shared/primitives';
 import { CollapsibleSubsection } from '../shared/CollapsibleSubsection';
 import { RoadsSection } from './RoadsSection';
 import { isBiomeMode, isCityFactionMode } from '../shared/guards';
@@ -38,15 +38,6 @@ const CONSTRUCTION_OPTIONS: Array<{ sid: string; labelKey: string }> = [
 ];
 
 /** Small uppercase section header matching the map-settings subsections. */
-const SectionHeader: React.FC<{ icon: React.ReactNode; label: string }> = ({ icon, label }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-    {icon}
-    <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, color: 'var(--muted-soft)' }}>
-      {label}
-    </span>
-  </div>
-);
-
 /**
  * One zone pool slot (guarded/unguarded/resources): a list of pool names with
  * an add select and a reset back to the type-based "Auto" reference.
@@ -79,7 +70,7 @@ const PoolRefsEditor: React.FC<{
               border: '1px solid var(--line)'
             }}
           >
-            <span title={ref} style={{ fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span title={ref} style={{ flex: 1, minWidth: 0, fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {ref}
             </span>
             <button
@@ -450,7 +441,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
   };
 
   return (
-    <div style={{ display: 'grid', gap: '8px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       <Field label={t('zoneId')}>
         <input
           type="text"
@@ -500,6 +491,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
         </div>
       </Field>
       
+      <CollapsibleSubsection id={`zone.values.${zone.id}`} title={t('zoneValuesSection')} icon={<Coins size={12} style={{ color: 'var(--accent)' }} />} defaultOpen>
       <FieldRow>
         <Field label={<>{t('guarded')}<ValueBadge kind="zoneGuarded" value={zone.guardedValue} /></>}>
           <NumberField
@@ -556,7 +548,8 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
       )}
 
       {isExpert && (
-      <CollapsibleSubsection id={`zone.perArea.${zone.id}`} title={t('zonePerAreaSection')} defaultOpen={false}>
+      <>
+        <div className="control-label" style={{ marginTop: '4px' }}>{t('zonePerAreaSection')} <InfoTip text={t('zonePerAreaHelp')} /></div>
         <div className="field-row" style={{ marginBottom: 0 }}>
           <label style={{ marginBottom: 0 }}>
             <span>{t('guarded')}</span>
@@ -586,13 +579,14 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             onCommit={(v) => handleFieldChange('resourcesValuePerArea', v || undefined)}
           />
         </label>
-        <p className="ui-field-hint" style={{ margin: 0 }}>{t('zonePerAreaHelp')}</p>
-      </CollapsibleSubsection>
+      </>
       )}
+      </CollapsibleSubsection>
 
       {isExpert && (
       <>
-      <Field label={t('zoneTerrainProfile')}>
+      <CollapsibleSubsection id={`zone.terrain.${zone.id}`} title={t('zoneTerrainLimitsSection')} icon={<Mountain size={12} style={{ color: 'var(--accent)' }} />} defaultOpen>
+      <Field label={t('zoneTerrainProfile')} tip={t('zoneTerrainProfileHelp')}>
         <select
           value={zone.layout ?? ''}
           onChange={(e) => handleFieldChange('layout', e.target.value || undefined)}
@@ -606,7 +600,6 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
           ))}
         </select>
       </Field>
-      <p className="ui-field-hint" style={{ marginTop: 0 }}>{t('zoneTerrainProfileHelp')}</p>
 
       {/* Content-limit preset references */}
       <div style={{ display: 'grid', gap: '4px' }}>
@@ -634,7 +627,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                     border: '1px solid var(--line)'
                   }}
                 >
-                  <span title={ref} style={{ fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span title={ref} style={{ flex: 1, minWidth: 0, fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {ref}{missing ? ` (${t('terrainProfileMissingMark')})` : ''}
                   </span>
                   <button
@@ -679,9 +672,10 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
         </select>
         <p className="ui-field-hint" style={{ margin: 0 }}>{t('zoneContentLimitsHelp')}</p>
       </div>
+      </CollapsibleSubsection>
 
       {/* Content pool references */}
-      <CollapsibleSubsection id={`zone.pools.${zone.id}`} title={t('zonePoolsSection')} defaultOpen={false}>
+      <CollapsibleSubsection id={`zone.pools.${zone.id}`} title={t('zonePoolsSection')} icon={<Package size={12} style={{ color: 'var(--accent)' }} />} tip={t('zonePoolsHelp')} defaultOpen={false}>
         <PoolRefsEditor
           label={t('zonePoolGuarded')}
           autoName={`visual_pool_guarded_${poolTier}`}
@@ -706,12 +700,11 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
           t={t}
           onChange={(refs) => handleFieldChange('resourcesContentPool', refs)}
         />
-        <p className="ui-field-hint" style={{ margin: 0 }}>{t('zonePoolsHelp')}</p>
       </CollapsibleSubsection>
 
       {/* Guard & neutrals tuning. Deliberately NOT list-content-entry: its
           display:grid summary rule would push the chevron onto a second row. */}
-      <CollapsibleSubsection id={`zone.guard.${zone.id}`} title={t('zoneGuardSection')} defaultOpen={false}>
+      <CollapsibleSubsection id={`zone.guard.${zone.id}`} title={t('zoneGuardSection')} icon={<Shield size={12} style={{ color: 'var(--accent)' }} />} tip={t('zoneGuardMainHelp')} defaultOpen={false}>
               <GuardReactionEditor
                 key={zone.id}
                 value={zone.guardReactionDistribution}
@@ -741,7 +734,6 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                   />
                 </label>
               </div>
-              <p className="ui-field-hint" style={{ margin: 0 }}>{t('zoneGuardMainHelp')}</p>
 
               <div className="field-row" style={{ marginBottom: 0 }}>
                 <label style={{ marginBottom: 0 }}>
@@ -830,7 +822,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
           Boolean(o.rawIncludeLists?.some((list) => list.includes('random_hire'))) ||
           Boolean(o.sid?.includes('random_hire')))
       ) && (
-        <CollapsibleSubsection id={`zone.randomHire.${zone.id}`} title={t('zoneRandomHireSection')} defaultOpen={false}>
+        <CollapsibleSubsection id={`zone.randomHire.${zone.id}`} title={t('zoneRandomHireSection')} icon={<Users size={12} style={{ color: 'var(--accent)' }} />} tip={t('zoneRandomHireHelp')} defaultOpen={false}>
           {(() => {
             const TIERS = 7;
             const init = zone.randomHireInitialUnitIncrement ?? Array(TIERS).fill(0);
@@ -849,7 +841,6 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             const headerCell: React.CSSProperties = { fontSize: '10px', color: 'var(--muted-soft)', textTransform: 'uppercase', letterSpacing: '0.03em' };
             return (
               <div style={{ display: 'grid', gap: '8px', padding: '6px 8px 10px' }}>
-                <p className="ui-field-hint" style={{ margin: 0 }}>{t('zoneRandomHireHelp')}</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '44px 1fr auto', gap: '4px 10px', alignItems: 'center' }}>
                   <span style={headerCell}>{t('zoneRandomHireTierHeader')}</span>
                   <span style={headerCell}>{t('zoneRandomHireInitial')}</span>
@@ -875,8 +866,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
       )}
 
       {/* Castle Section */}
-      <div style={{ marginTop: '12px' }}>
-        <SectionHeader icon={<Castle size={12} style={{ color: 'var(--accent)' }} />} label={t('zoneCity')} />
+      <CollapsibleSubsection id={`zone.castles.${zone.id}`} title={t('zoneCity')} icon={<Castle size={12} style={{ color: 'var(--accent)' }} />} defaultOpen>
         
         <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
           <button
@@ -1258,16 +1248,15 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             </p>
           )}
         </div>
-      </div>
+      </CollapsibleSubsection>
 
       {/* Roads Section */}
-      <CollapsibleSubsection id={`zone.roads.${zone.id}`} title={t('zoneRoadsSection')} defaultOpen={false}>
+      <CollapsibleSubsection id={`zone.roads.${zone.id}`} title={t('zoneRoadsSection')} icon={<Spline size={12} style={{ color: 'var(--accent)' }} />} defaultOpen={false}>
         <RoadsSection zone={zone} edges={edges} />
       </CollapsibleSubsection>
 
       {/* Biome Section */}
-      <div style={{ marginTop: '4px' }}>
-        <SectionHeader icon={<Leaf size={12} style={{ color: 'var(--accent)' }} />} label={t('zoneBiome')} />
+      <CollapsibleSubsection id={`zone.biome.${zone.id}`} title={t('zoneBiome')} icon={<Leaf size={12} style={{ color: 'var(--accent)' }} />} tip={t('zoneBiomeHelp')} defaultOpen>
         <Field label={t('zoneBiomeMode')}>
           <select
             value={zone.biomeMode}
@@ -1312,7 +1301,6 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             </select>
           </Field>
         )}
-        <p className="ui-field-hint">{t('zoneBiomeHelp')}</p>
 
         {/* Content & meta-object biomes: 'land' (default) follows the ground */}
         {isExpert && ([
@@ -1371,12 +1359,10 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
           );
         })}
         {isExpert && <p className="ui-field-hint">{t('auxBiomeHelp')}</p>}
-      </div>
+      </CollapsibleSubsection>
 
       {/* Objects list */}
-      <div style={{ marginTop: '4px' }}>
-        <SectionHeader icon={<Boxes size={12} style={{ color: 'var(--accent)' }} />} label={t('zoneObjects')} />
-        <p className="ui-field-hint" style={{ marginTop: 0 }}>{t('zoneObjectsMandatoryHelp')}</p>
+      <CollapsibleSubsection id={`zone.objects.${zone.id}`} title={t('zoneObjects')} icon={<Boxes size={12} style={{ color: 'var(--accent)' }} />} tip={t('zoneObjectsMandatoryHelp')} defaultOpen>
         <div className="object-list">
           {zone.objects.map((obj) => {
             const label = obj.labelByLang?.[language] || obj.label || obj.sid || obj.includeList || obj.id || '';
@@ -1581,7 +1567,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             );
           })}
         </div>
-      </div>
+      </CollapsibleSubsection>
     </div>
   );
 };

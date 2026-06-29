@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import { InfoTip } from './primitives';
 
 const STORAGE_PREFIX = 'rmg.ui.subsection.';
 
@@ -19,6 +20,8 @@ interface CollapsibleSubsectionProps {
   title: string;
   /** Optional leading icon node. */
   icon?: React.ReactNode;
+  /** Short help shown as an (i) tooltip next to the title. */
+  tip?: string;
   /** Optional content shown on the right of the header (badges, counters). */
   actions?: React.ReactNode;
   /** Initial state when nothing is stored yet. Defaults to open. */
@@ -36,6 +39,7 @@ export const CollapsibleSubsection: React.FC<CollapsibleSubsectionProps> = ({
   id,
   title,
   icon,
+  tip,
   actions,
   defaultOpen = true,
   children
@@ -65,6 +69,7 @@ export const CollapsibleSubsection: React.FC<CollapsibleSubsectionProps> = ({
         <span className="collapsible-subsection-title">
           {icon}
           <span>{title}</span>
+          {tip && <span onClick={(e) => e.stopPropagation()}><InfoTip text={tip} /></span>}
         </span>
         <span className="collapsible-subsection-header-actions">
           {actions}
