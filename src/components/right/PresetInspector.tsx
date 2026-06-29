@@ -11,6 +11,9 @@ import { isPresetBaseType } from '../shared/guards';
 import { NumberField } from '../shared/NumberField';
 import { DistanceField } from '../shared/DistanceField';
 import { ValueBadge } from '../shared/ValueBadge';
+import { Field, FieldRow, Toggle, Card, Badge, InfoTip } from '../shared/primitives';
+import { CollapsibleSubsection } from '../shared/CollapsibleSubsection';
+import { Shield } from 'lucide-react';
 
 interface PresetInspectorProps {
   presetId: string;
@@ -90,243 +93,171 @@ export const PresetInspector: React.FC<PresetInspectorProps> = ({ presetId, pres
         </div>
       </div>
 
-      <div style={{ display: 'grid', gap: '4px', minWidth: 0 }}>
-        <label>
-          {t('presetName') || 'Name'}
-          <input
-            type="text"
-            value={preset.label}
-            onChange={(e) => handleFieldChange('label', e.target.value)}
-            disabled={!preset.isCustom}
-          />
-        </label>
-      </div>
+      <Field label={t('presetName') || 'Name'}>
+        <input
+          type="text"
+          value={preset.label}
+          onChange={(e) => handleFieldChange('label', e.target.value)}
+          disabled={!preset.isCustom}
+        />
+      </Field>
 
-      <div style={{ display: 'grid', gap: '4px', minWidth: 0 }}>
-        <label>
-          {t('presetBaseType') || 'Base Type'}
-          <select
-            value={preset.baseType}
-            onChange={(e) => {
-              if (isPresetBaseType(e.target.value)) {
-                handleFieldChange('baseType', e.target.value);
-              }
-            }}
-            disabled={!preset.isCustom}
-          >
-            <option value="spawn">{t('zoneTypeOptionSpawn') || 'Spawn'}</option>
-            <option value="blank">{t('zoneTypeOptionBlank') || 'Blank'}</option>
-            <option value="low">{t('zoneTypeOptionLow') || 'Low'}</option>
-            <option value="medium">{t('zoneTypeOptionMedium') || 'Medium'}</option>
-            <option value="high">{t('zoneTypeOptionHigh') || 'High'}</option>
-            <option value="neutral">{t('zoneTypeOptionNeutral') || 'Neutral'}</option>
-            <option value="custom">{t('zoneTypeOptionCustom') || 'Custom (no preset)'}</option>
-          </select>
-        </label>
-        <p className="field-note">{t('presetBaseTypeHelp')}</p>
-      </div>
+      <Field label={t('presetBaseType') || 'Base Type'} tip={t('presetBaseTypeHelp')}>
+        <select
+          value={preset.baseType}
+          onChange={(e) => {
+            if (isPresetBaseType(e.target.value)) {
+              handleFieldChange('baseType', e.target.value);
+            }
+          }}
+          disabled={!preset.isCustom}
+        >
+          <option value="spawn">{t('zoneTypeOptionSpawn') || 'Spawn'}</option>
+          <option value="blank">{t('zoneTypeOptionBlank') || 'Blank'}</option>
+          <option value="low">{t('zoneTypeOptionLow') || 'Low'}</option>
+          <option value="medium">{t('zoneTypeOptionMedium') || 'Medium'}</option>
+          <option value="high">{t('zoneTypeOptionHigh') || 'High'}</option>
+          <option value="neutral">{t('zoneTypeOptionNeutral') || 'Neutral'}</option>
+          <option value="custom">{t('zoneTypeOptionCustom') || 'Custom (no preset)'}</option>
+        </select>
+      </Field>
 
       <div>
-        <h2 style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', margin: '8px 0 6px 0' }}>
-          {t('presetValues') || 'Values'}
-        </h2>
+        <div className="ui-group-label">{t('presetValues') || 'Values'}</div>
         <div style={{ display: 'grid', gap: '8px', minWidth: 0 }}>
-          <div style={{ display: 'grid', gap: '4px', minWidth: 0 }}>
-            <label>
-              <span>{t('guardedValue')}<ValueBadge kind="zoneGuarded" value={preset.guardedValue} /></span>
-              <NumberField
-                min={0}
-                step={10000}
-                value={preset.guardedValue}
-                onCommit={(v) => handleFieldChange('guardedValue', v)}
-              />
-            </label>
-            <p className="field-note" style={{ marginTop: 0 }}>{t('guardedValueHelp')}</p>
-          </div>
-          <div style={{ display: 'grid', gap: '4px', minWidth: 0 }}>
-            <label>
-              <span>{t('unguardedValue')}<ValueBadge kind="zoneUnguarded" value={preset.unguardedValue} /></span>
-              <NumberField
-                min={0}
-                step={5000}
-                value={preset.unguardedValue}
-                onCommit={(v) => handleFieldChange('unguardedValue', v)}
-              />
-            </label>
-            <p className="field-note" style={{ marginTop: 0 }}>{t('unguardedValueHelp')}</p>
-          </div>
-          <div style={{ display: 'grid', gap: '4px', minWidth: 0 }}>
-            <label>
-              <span>{t('resourcesValue')}<ValueBadge kind="zoneResources" value={preset.resourcesValue} /></span>
-              <NumberField
-                min={0}
-                step={5000}
-                value={preset.resourcesValue}
-                onCommit={(v) => handleFieldChange('resourcesValue', v)}
-              />
-            </label>
-            <p className="field-note" style={{ marginTop: 0 }}>{t('resourcesValueHelp')}</p>
-          </div>
+          <Field label={<>{t('guardedValue')}<ValueBadge kind="zoneGuarded" value={preset.guardedValue} /></>} tip={t('guardedValueHelp')}>
+            <NumberField
+              min={0}
+              step={10000}
+              value={preset.guardedValue}
+              onCommit={(v) => handleFieldChange('guardedValue', v)}
+            />
+          </Field>
+          <Field label={<>{t('unguardedValue')}<ValueBadge kind="zoneUnguarded" value={preset.unguardedValue} /></>} tip={t('unguardedValueHelp')}>
+            <NumberField
+              min={0}
+              step={5000}
+              value={preset.unguardedValue}
+              onCommit={(v) => handleFieldChange('unguardedValue', v)}
+            />
+          </Field>
+          <Field label={<>{t('resourcesValue')}<ValueBadge kind="zoneResources" value={preset.resourcesValue} /></>} tip={t('resourcesValueHelp')}>
+            <NumberField
+              min={0}
+              step={5000}
+              value={preset.resourcesValue}
+              onCommit={(v) => handleFieldChange('resourcesValue', v)}
+            />
+          </Field>
 
-          <LazyDetails
-            className="inspector-subsection"
-            style={{
-              border: '1px solid var(--line)',
-              borderRadius: '6px',
-              background: 'var(--panel-2)',
-              overflow: 'hidden'
-            }}
-            summary={
-              <strong style={{ fontSize: '12px' }}>
-                {t('zonePerAreaSection')}
-              </strong>
-            }
-            renderContent={() => (
-              <div style={{ display: 'grid', gap: '8px', padding: '6px 8px 10px' }}>
-                <div className="field-row" style={{ marginBottom: 0 }}>
-                  <label style={{ marginBottom: 0 }}>
-                    <span>{t('guarded')}</span>
-                    <NumberField
-                      min={0}
-                      step={100}
-                      value={preset.guardedValuePerArea ?? 0}
-                      onCommit={(v) => handleFieldChange('guardedValuePerArea', v || undefined)}
-                    />
-                  </label>
-                  <label style={{ marginBottom: 0 }}>
-                    <span>{t('unguarded')}</span>
-                    <NumberField
-                      min={0}
-                      step={50}
-                      value={preset.unguardedValuePerArea ?? 0}
-                      onCommit={(v) => handleFieldChange('unguardedValuePerArea', v || undefined)}
-                    />
-                  </label>
-                </div>
-                <label style={{ marginBottom: 0 }}>
-                  <span>{t('resources')}</span>
-                  <NumberField
-                    min={0}
-                    step={50}
-                    value={preset.resourcesValuePerArea ?? 0}
-                    onCommit={(v) => handleFieldChange('resourcesValuePerArea', v || undefined)}
-                  />
-                </label>
-                <p className="field-note" style={{ margin: 0 }}>{t('zonePerAreaHelp')}</p>
-              </div>
-            )}
-          />
+          <div className="control-label" style={{ marginTop: '4px' }}>{t('zonePerAreaSection')} <InfoTip text={t('zonePerAreaHelp')} /></div>
+          <FieldRow>
+            <Field label={t('guarded')}>
+              <NumberField
+                min={0}
+                step={100}
+                value={preset.guardedValuePerArea ?? 0}
+                onCommit={(v) => handleFieldChange('guardedValuePerArea', v || undefined)}
+              />
+            </Field>
+            <Field label={t('unguarded')}>
+              <NumberField
+                min={0}
+                step={50}
+                value={preset.unguardedValuePerArea ?? 0}
+                onCommit={(v) => handleFieldChange('unguardedValuePerArea', v || undefined)}
+              />
+            </Field>
+          </FieldRow>
+          <Field label={t('resources')}>
+            <NumberField
+              min={0}
+              step={50}
+              value={preset.resourcesValuePerArea ?? 0}
+              onCommit={(v) => handleFieldChange('resourcesValuePerArea', v || undefined)}
+            />
+          </Field>
 
-          <LazyDetails
-            className="inspector-subsection"
-            style={{
-              border: '1px solid var(--line)',
-              borderRadius: '6px',
-              background: 'var(--panel-2)',
-              overflow: 'hidden'
-            }}
-            summary={
-              <strong style={{ fontSize: '12px' }}>
-                {t('zoneGuardSection')}
-              </strong>
-            }
-            renderContent={() => (
-              <div style={{ display: 'grid', gap: '8px', padding: '6px 8px 10px' }}>
-                <GuardReactionEditor
-                  key={presetId}
-                  value={preset.guardReactionDistribution}
-                  t={t}
-                  onChange={(value) => handleFieldChange('guardReactionDistribution', value)}
+          <CollapsibleSubsection id={`preset.guard.${presetId}`} title={t('zoneGuardSection')} icon={<Shield size={12} style={{ color: 'var(--accent)' }} />} tip={t('zoneGuardMainHelp')} defaultOpen={false}>
+            <GuardReactionEditor
+              key={presetId}
+              value={preset.guardReactionDistribution}
+              t={t}
+              onChange={(value) => handleFieldChange('guardReactionDistribution', value)}
+            />
+            <FieldRow>
+              <Field label={t('zoneGuardMultiplier')}>
+                <NumberField
+                  min={0}
+                  max={10}
+                  step={0.05}
+                  value={preset.guardMultiplier ?? 1.4}
+                  onCommit={(v) => handleFieldChange('guardMultiplier', v)}
                 />
+              </Field>
+              <Field label={t('zoneDiplomacy')}>
+                <NumberField
+                  min={-1}
+                  max={1}
+                  step={0.05}
+                  value={preset.diplomacyModifier ?? -0.25}
+                  onCommit={(v) => handleFieldChange('diplomacyModifier', v)}
+                />
+              </Field>
+            </FieldRow>
+            <FieldRow>
+              <Field label={t('zoneGuardCutoff')}>
+                <NumberField
+                  min={0}
+                  step={250}
+                  value={preset.guardCutoffValue ?? 1500}
+                  onCommit={(v) => handleFieldChange('guardCutoffValue', v)}
+                />
+              </Field>
+              <Field label={t('guardWeeklyIncrement')}>
+                <NumberField
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={preset.guardWeeklyIncrement ?? 0.15}
+                  onCommit={(v) => handleFieldChange('guardWeeklyIncrement', v)}
+                />
+              </Field>
+            </FieldRow>
+            <Field label={t('guardRandomization')}>
+              <NumberField
+                min={0}
+                max={1}
+                step={0.05}
+                value={preset.guardRandomization ?? 0.25}
+                onCommit={(v) => handleFieldChange('guardRandomization', v)}
+              />
+            </Field>
+            <p className="ui-field-hint" style={{ margin: 0 }}>{t('presetGuardApplyNote')}</p>
+          </CollapsibleSubsection>
 
-                <div className="field-row" style={{ marginBottom: 0 }}>
-                  <label style={{ marginBottom: 0 }}>
-                    <span>{t('zoneGuardMultiplier')}</span>
-                    <NumberField
-                      min={0}
-                      max={10}
-                      step={0.05}
-                      value={preset.guardMultiplier ?? 1.4}
-                      onCommit={(v) => handleFieldChange('guardMultiplier', v)}
-                    />
-                  </label>
-                  <label style={{ marginBottom: 0 }}>
-                    <span>{t('zoneDiplomacy')}</span>
-                    <NumberField
-                      min={-1}
-                      max={1}
-                      step={0.05}
-                      value={preset.diplomacyModifier ?? -0.25}
-                      onCommit={(v) => handleFieldChange('diplomacyModifier', v)}
-                    />
-                  </label>
-                </div>
-                <p className="field-note" style={{ margin: 0 }}>{t('zoneGuardMainHelp')}</p>
-
-                <div className="field-row" style={{ marginBottom: 0 }}>
-                  <label style={{ marginBottom: 0 }}>
-                    <span>{t('zoneGuardCutoff')}</span>
-                    <NumberField
-                      min={0}
-                      step={250}
-                      value={preset.guardCutoffValue ?? 1500}
-                      onCommit={(v) => handleFieldChange('guardCutoffValue', v)}
-                    />
-                  </label>
-                  <label style={{ marginBottom: 0 }}>
-                    <span>{t('guardWeeklyIncrement')}</span>
-                    <NumberField
-                      min={0}
-                      max={1}
-                      step={0.05}
-                      value={preset.guardWeeklyIncrement ?? 0.15}
-                      onCommit={(v) => handleFieldChange('guardWeeklyIncrement', v)}
-                    />
-                  </label>
-                </div>
-                <label style={{ marginBottom: 0 }}>
-                  <span>{t('guardRandomization')}</span>
-                  <NumberField
-                    min={0}
-                    max={1}
-                    step={0.05}
-                    value={preset.guardRandomization ?? 0.25}
-                    onCommit={(v) => handleFieldChange('guardRandomization', v)}
-                  />
-                </label>
-                <p className="field-note" style={{ margin: 0 }}>{t('presetGuardApplyNote')}</p>
-              </div>
-            )}
-          />
-
-          <div style={{ display: 'grid', gap: '4px', minWidth: 0 }}>
-            <label>
-              {t('zoneTerrainProfile')}
-              <select
-                value={preset.layout ?? ''}
-                onChange={(e) => handleFieldChange('layout', e.target.value || undefined)}
-              >
-                <option value="">
-                  {t('terrainProfileAuto', { name: zoneTypes[preset.baseType]?.layout || zoneTypes.neutral.layout })}
-                </option>
-                {preset.layout && !settings.terrainProfiles.some((profile) => profile.name === preset.layout) && (
-                  <option value={preset.layout}>{preset.layout} ({t('terrainProfileMissingMark')})</option>
-                )}
-                {settings.terrainProfiles.map((profile) => (
-                  <option key={profile.name} value={profile.name}>{profile.name}</option>
-                ))}
-              </select>
-            </label>
-            <p className="field-note" style={{ marginTop: 0 }}>{t('zoneTerrainProfileHelp')}</p>
-          </div>
+          <Field label={t('zoneTerrainProfile')} tip={t('zoneTerrainProfileHelp')}>
+            <select
+              value={preset.layout ?? ''}
+              onChange={(e) => handleFieldChange('layout', e.target.value || undefined)}
+            >
+              <option value="">
+                {t('terrainProfileAuto', { name: zoneTypes[preset.baseType]?.layout || zoneTypes.neutral.layout })}
+              </option>
+              {preset.layout && !settings.terrainProfiles.some((profile) => profile.name === preset.layout) && (
+                <option value={preset.layout}>{preset.layout} ({t('terrainProfileMissingMark')})</option>
+              )}
+              {settings.terrainProfiles.map((profile) => (
+                <option key={profile.name} value={profile.name}>{profile.name}</option>
+              ))}
+            </select>
+          </Field>
         </div>
       </div>
 
       <div style={{ marginTop: '4px' }}>
-        <h2 style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', margin: '8px 0 4px 0' }}>
-          {t('presetObjects')}
-        </h2>
-        <p className="field-note" style={{ marginBottom: '8px' }}>
+        <div className="ui-group-label">{t('presetObjects')}</div>
+        <p className="ui-field-hint" style={{ marginBottom: '8px' }}>
           {t('presetObjectsHelp') || 'Click on items in the catalog (left panel) to add them to this preset.'}
         </p>
         <div className="object-list">
@@ -344,17 +275,17 @@ export const PresetInspector: React.FC<PresetInspectorProps> = ({ presetId, pres
               const desc = obj.descriptionByLang?.[language] || obj.description || (catalogItem ? t('listDescription', { count: catalogItem.count || 0 }) : '');
 
               return (
-                <LazyDetails
+                <Card
                   key={obj.key}
-                  className="object-chip"
-                  summary={
+                  id={`presetobj.${presetId}.${obj.key}`}
+                  title={label}
+                  meta={
                     <>
-                      <span className="object-chip-name">{label}</span>
-                      <span className="object-chip-meta">x{obj.count} · {guardStr}</span>
+                      <Badge tone="neutral">×{obj.count}</Badge>
+                      <Badge tone="neutral">{guardStr}</Badge>
                     </>
                   }
-                  renderContent={() => (
-                    <div className="object-settings">
+                >
                       <div className="object-description">
                         <strong>{t('objectDescription')}</strong>
                         <p>{desc}</p>
@@ -388,46 +319,36 @@ export const PresetInspector: React.FC<PresetInspectorProps> = ({ presetId, pres
                         />
                       )}
 
-                      <div className="field-row">
-                        <label>
-                          {t('objectCount')}
+                      <FieldRow hint={t('objectVariantHelp')}>
+                        <Field label={t('objectCount')}>
                           <NumberField
                             min={1}
                             max={99}
                             value={obj.count}
                             onCommit={(v) => handleObjectFieldChange(obj.key, 'count', v)}
                           />
-                        </label>
-                        <label>
-                          {t('objectVariant')}
+                        </Field>
+                        <Field label={t('objectVariant')}>
                           <input
                             type="number"
                             placeholder={t('objectVariantAuto')}
                             value={obj.variant ?? ''}
                             onChange={(e) => handleObjectFieldChange(obj.key, 'variant', e.target.value === '' ? null : Number(e.target.value))}
                           />
-                        </label>
-                      </div>
-                      <p className="field-note object-field-help">{t('objectVariantHelp')}</p>
-                      
-                      <label className="toggle-line">
-                        <input
-                          type="checkbox"
-                          checked={obj.guarded}
-                          onChange={(e) => handleObjectFieldChange(obj.key, 'guarded', e.target.checked)}
-                        />
-                        <span>{t('objectGuarded')}</span>
-                      </label>
-                      
-                      <label className="toggle-line">
-                        <input
-                          type="checkbox"
-                          checked={obj.soloEncounter}
-                          onChange={(e) => handleObjectFieldChange(obj.key, 'soloEncounter', e.target.checked)}
-                        />
-                        <span>{t('objectSoloEncounter')}</span>
-                      </label>
-                      <p className="field-note object-field-help">{t('objectSoloEncounterHelp')}</p>
+                        </Field>
+                      </FieldRow>
+
+                      <Toggle
+                        checked={Boolean(obj.guarded)}
+                        onChange={(v) => handleObjectFieldChange(obj.key, 'guarded', v)}
+                        label={t('objectGuarded')}
+                      />
+                      <Toggle
+                        checked={obj.soloEncounter}
+                        onChange={(v) => handleObjectFieldChange(obj.key, 'soloEncounter', v)}
+                        label={t('objectSoloEncounter')}
+                        tip={t('objectSoloEncounterHelp')}
+                      />
                       
                       <DistanceField
                         label={t('objectRoadDistance')}
@@ -441,10 +362,10 @@ export const PresetInspector: React.FC<PresetInspectorProps> = ({ presetId, pres
                         disabled={!hasTown}
                         onChange={(v) => handleObjectFieldChange(obj.key, 'townDistance', v)}
                       />
-                      <p className="field-note">
+                      <p className="ui-field-hint">
                         {hasTown ? t('objectPlacementHelp') : t('objectTownDistanceUnavailablePreset')}
                       </p>
-                      
+
                       <button
                         className="small-button object-remove-button"
                         type="button"
@@ -453,9 +374,7 @@ export const PresetInspector: React.FC<PresetInspectorProps> = ({ presetId, pres
                         <Trash2 size={12} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />
                         {t('removeObject')}
                       </button>
-                    </div>
-                  )}
-                />
+                </Card>
               );
             })
           )}

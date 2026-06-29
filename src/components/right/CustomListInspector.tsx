@@ -5,6 +5,7 @@ import type { TranslationFunction } from '../../i18n/context';
 import { Trash2 } from 'lucide-react';
 import type { CatalogItem, CustomObjectList, CustomObjectListEntry } from '../../types/editor';
 import { NumberField } from '../shared/NumberField';
+import { Field } from '../shared/primitives';
 
 interface CustomListInspectorProps {
   listId: string;
@@ -104,8 +105,7 @@ export const CustomListInspectorContent: React.FC<CustomListInspectorContentProp
 
   return (
     <div style={{ display: 'grid', gap: '8px' }}>
-      <label>
-        {t('customListIdLabel') || 'ID набора (латиница, без пробелов):'}
+      <Field label={t('customListIdLabel') || 'ID набора (латиница, без пробелов):'}>
         <input
           type="text"
           value={localId}
@@ -113,10 +113,9 @@ export const CustomListInspectorContent: React.FC<CustomListInspectorContentProp
           onBlur={handleCommitId}
           onKeyDown={handleKeyDown}
         />
-      </label>
+      </Field>
 
-      <label>
-        {t('customListLabelLabel') || 'Название набора:'}
+      <Field label={t('customListLabelLabel') || 'Название набора:'}>
         <input
           type="text"
           value={localLabel}
@@ -124,12 +123,10 @@ export const CustomListInspectorContent: React.FC<CustomListInspectorContentProp
           onBlur={handleCommitLabel}
           onKeyDown={handleKeyDown}
         />
-      </label>
+      </Field>
 
-      <div className="inspector-section-title" style={{ marginTop: '12px', borderBottom: '1px solid var(--border-color)', paddingBottom: '4px' }}>
-        <h3 style={{ margin: 0, fontSize: '14px' }}>
-          {t('customListEntriesTitle') || 'Содержимое набора:'} ({list.entries.length})
-        </h3>
+      <div className="ui-group-label" style={{ marginTop: '12px' }}>
+        {t('customListEntriesTitle') || 'Содержимое набора:'} ({list.entries.length})
       </div>
 
       <div style={{ display: 'grid', gap: '8px', maxHeight: '360px', overflowY: 'auto', paddingRight: '4px' }}>
@@ -137,10 +134,10 @@ export const CustomListInspectorContent: React.FC<CustomListInspectorContentProp
           <div
             key={entry.key}
             style={{
-              border: '1px solid var(--border-color)',
-              borderRadius: '4px',
+              border: '1px solid var(--line)',
+              borderRadius: 'var(--radius-sm)',
               padding: '8px',
-              backgroundColor: 'var(--panel-bg-dark)',
+              backgroundColor: 'var(--json-bg)',
               display: 'grid',
               gap: '6px'
             }}
@@ -165,10 +162,10 @@ export const CustomListInspectorContent: React.FC<CustomListInspectorContentProp
                 style={{
                   border: 'none',
                   background: 'none',
-                  color: 'var(--red-color)',
+                  color: 'var(--danger)',
                   cursor: 'pointer',
                   padding: '2px 4px',
-                  fontSize: '11px'
+                  fontSize: 'var(--fz-caption)'
                 }}
               >
                 <Trash2 size={14} />
@@ -191,7 +188,7 @@ export const CustomListInspectorContent: React.FC<CustomListInspectorContentProp
         ))}
 
         {list.entries.length === 0 && (
-          <div style={{ padding: '16px', textAlign: 'center', opacity: 0.7, border: '1px dashed var(--border-color)', borderRadius: '4px', fontSize: '12px' }}>
+          <div style={{ padding: '16px', textAlign: 'center', opacity: 0.7, border: '1px dashed var(--line)', borderRadius: 'var(--radius-sm)', fontSize: 'var(--fz-base)' }}>
             {t('emptyCustomListTip') || 'Выбирайте объекты в библиотеке слева и нажимайте "+", чтобы добавить их в этот набор.'}
           </div>
         )}

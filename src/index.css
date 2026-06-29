@@ -45,6 +45,10 @@
   --map-frame-stroke: #434c5e;
   --map-grid-stroke: rgba(255, 255, 255, 0.12);
   --zone-circle-stroke: #0f1115;
+  /* Zone-type indicator dots in the "all elements" overview list. */
+  --zone-dot-spawn: #fef08a;
+  --zone-dot-neutral: #cbd5e1;
+  --zone-dot-other: #bbf7d0;
   --edge-line-stroke: var(--muted);
   --edge-direct: #57c97b;
   --edge-portal: #b08cff;

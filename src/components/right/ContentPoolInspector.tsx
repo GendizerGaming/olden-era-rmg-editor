@@ -4,6 +4,7 @@ import type { EditorActions } from '../../store/useEditorStore';
 import type { TranslationFunction } from '../../i18n/context';
 import type { CatalogItem, ContentPoolPreset, Zone } from '../../types/editor';
 import { NumberField } from '../shared/NumberField';
+import { Field } from '../shared/primitives';
 import { Copy, Plus, Search, Trash2 } from 'lucide-react';
 
 interface ContentPoolInspectorProps {
@@ -20,7 +21,7 @@ const rowStyle: React.CSSProperties = {
   justifyContent: 'space-between',
   gap: '8px',
   padding: '5px 8px',
-  borderRadius: '6px',
+  borderRadius: 'var(--radius-sm)',
   background: 'var(--panel-2)',
   border: '1px solid var(--line)'
 };
@@ -107,7 +108,7 @@ export const ContentPoolInspector: React.FC<ContentPoolInspectorProps> = ({ pres
   return (
     <div style={{ display: 'grid', gap: '8px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <strong style={{ fontSize: '13px' }}>{t('contentPoolTitle')}</strong>
+        <strong style={{ fontSize: 'var(--fz-emph)' }}>{t('contentPoolTitle')}</strong>
         <div style={{ display: 'flex', gap: '4px' }}>
           <button
             type="button"
@@ -130,8 +131,7 @@ export const ContentPoolInspector: React.FC<ContentPoolInspectorProps> = ({ pres
         </div>
       </div>
 
-      <label>
-        {t('contentPoolName')}
+      <Field label={t('contentPoolName')}>
         <input
           type="text"
           value={nameDraft}
@@ -141,9 +141,9 @@ export const ContentPoolInspector: React.FC<ContentPoolInspectorProps> = ({ pres
             if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
           }}
         />
-      </label>
+      </Field>
 
-      <p className="field-note" style={{ margin: 0 }}>
+      <p className="ui-field-hint" style={{ margin: 0 }}>
         {usedBy.length > 0
           ? t('contentPoolUsedBy', { zones: usedBy.join(', ') })
           : t('contentPoolUnused')}
@@ -167,7 +167,7 @@ export const ContentPoolInspector: React.FC<ContentPoolInspectorProps> = ({ pres
             const to = index < distribution.priceBounds.length ? distribution.priceBounds[index] : undefined;
             return (
               <div key={index} style={rowStyle}>
-                <span style={{ fontSize: '11px', minWidth: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 'var(--fz-caption)', minWidth: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {to !== undefined
                     ? t('contentPoolBucket', { from, to })
                     : t('contentPoolBucketLast', { from })}
@@ -231,12 +231,12 @@ export const ContentPoolInspector: React.FC<ContentPoolInspectorProps> = ({ pres
           </button>
         </div>
       )}
-      <p className="field-note" style={{ margin: 0 }}>{t('contentPoolDistributionHelp')}</p>
+      <p className="ui-field-hint" style={{ margin: 0 }}>{t('contentPoolDistributionHelp')}</p>
 
       {/* Groups */}
       <div className="control-label">{t('contentPoolGroupsTitle')} ({preset.groups.length})</div>
       {preset.groups.length === 0 && (
-        <p className="field-note" style={{ margin: 0 }}>{t('contentPoolGroupsEmpty')}</p>
+        <p className="ui-field-hint" style={{ margin: 0 }}>{t('contentPoolGroupsEmpty')}</p>
       )}
       {preset.groups.map((group, index) => {
         const title = group.raw !== undefined
@@ -245,11 +245,11 @@ export const ContentPoolInspector: React.FC<ContentPoolInspectorProps> = ({ pres
         return (
           <div key={`${title}:${index}`} style={rowStyle}>
             <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0, flex: 1 }}>
-              <span title={title} style={{ fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span title={title} style={{ fontSize: 'var(--fz-base)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {title}
               </span>
               {group.raw !== undefined && (
-                <span style={{ fontSize: '9px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {JSON.stringify(group.raw).slice(0, 60)}
                 </span>
               )}
@@ -321,10 +321,10 @@ export const ContentPoolInspector: React.FC<ContentPoolInspectorProps> = ({ pres
                   </button>
                 )}
                 <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
-                  <span title={entry.label} style={{ fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span title={entry.label} style={{ fontSize: 'var(--fz-base)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {entry.label}
                   </span>
-                  <span title={entry.id} style={{ fontSize: '9px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span title={entry.id} style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {entry.id}
                   </span>
                 </span>
@@ -342,7 +342,7 @@ export const ContentPoolInspector: React.FC<ContentPoolInspectorProps> = ({ pres
           : `${labelForSid(ban.sid || '')}${ban.variant !== undefined ? ` · v${ban.variant}` : ''}`;
         return (
           <div key={`${ban.sid ?? 'raw'}:${index}`} style={rowStyle}>
-            <span title={title} style={{ fontSize: '12px', minWidth: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span title={title} style={{ fontSize: 'var(--fz-base)', minWidth: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {title}
             </span>
             <button
@@ -379,17 +379,17 @@ export const ContentPoolInspector: React.FC<ContentPoolInspectorProps> = ({ pres
               <Plus size={10} />
             </button>
             <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
-              <span title={entry.label} style={{ fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span title={entry.label} style={{ fontSize: 'var(--fz-base)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {entry.label}
               </span>
-              <span title={entry.id} style={{ fontSize: '9px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span title={entry.id} style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {entry.id}
               </span>
             </span>
           </span>
         </div>
       ))}
-      <p className="field-note" style={{ margin: 0 }}>{t('contentPoolBansHelp')}</p>
+      <p className="ui-field-hint" style={{ margin: 0 }}>{t('contentPoolBansHelp')}</p>
     </div>
   );
 };

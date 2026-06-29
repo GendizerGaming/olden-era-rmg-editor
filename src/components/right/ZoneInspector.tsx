@@ -947,10 +947,10 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                     style={{
                       border: 'none',
                       background: 'none',
-                      color: 'var(--red-color)',
+                      color: 'var(--danger)',
                       cursor: 'pointer',
                       padding: '2px 4px',
-                      fontSize: '11px'
+                      fontSize: 'var(--fz-caption)'
                     }}
                   >
                     {t('remove')}
