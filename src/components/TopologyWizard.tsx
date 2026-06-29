@@ -3,6 +3,7 @@ import { useEditorStore } from '../store/useEditorStore';
 import { useTranslation } from '../i18n/context';
 import type { TopologyKind } from '../services/topologyGenerator';
 import { NumberField } from './shared/NumberField';
+import { Field, FieldRow, Toggle } from './shared/primitives';
 import { presetDisplayName } from './shared/presetNames';
 import { Wand2, X } from 'lucide-react';
 
@@ -81,7 +82,7 @@ export const TopologyWizard: React.FC<TopologyWizardProps> = ({ onClose }) => {
         style={{
           background: 'var(--panel)',
           border: '1px solid var(--line)',
-          borderRadius: '10px',
+          borderRadius: 'var(--radius-lg)',
           padding: '16px',
           width: 'min(420px, calc(100vw - 32px))',
           maxHeight: 'calc(100vh - 64px)',
@@ -92,7 +93,7 @@ export const TopologyWizard: React.FC<TopologyWizardProps> = ({ onClose }) => {
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <strong style={{ fontSize: '14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <strong style={{ fontSize: 'var(--fz-emph)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             <Wand2 size={15} style={{ color: 'var(--accent)' }} />
             {t('topologyWizardTitle')}
           </strong>
@@ -101,19 +102,17 @@ export const TopologyWizard: React.FC<TopologyWizardProps> = ({ onClose }) => {
           </button>
         </div>
 
-        <label>
-          {t('topologyKind')}
+        <Field label={t('topologyKind')}>
           <select value={kind} onChange={(e) => setKind(e.target.value as TopologyKind)}>
             {KINDS.map((candidate) => (
               <option key={candidate} value={candidate}>{t(`topology_${candidate}`)}</option>
             ))}
           </select>
-        </label>
-        <p className="field-note" style={{ marginTop: 0 }}>{t(`topologyHelp_${kind}`)}</p>
+        </Field>
+        <p className="ui-field-hint" style={{ marginTop: 0 }}>{t(`topologyHelp_${kind}`)}</p>
 
-        <div className="field-row" style={{ marginBottom: 0 }}>
-          <label style={{ marginBottom: 0 }}>
-            <span>{t('topologyPlayers')}</span>
+        <FieldRow>
+          <Field label={t('topologyPlayers')}>
             <NumberField
               min={2}
               max={8}
@@ -121,10 +120,9 @@ export const TopologyWizard: React.FC<TopologyWizardProps> = ({ onClose }) => {
               value={players}
               onCommit={(v) => setPlayers(Math.min(8, Math.max(2, Math.trunc(v))))}
             />
-          </label>
+          </Field>
           {showSegments ? (
-            <label style={{ marginBottom: 0 }}>
-              <span>{t(kind === 'star' ? 'topologyNeutralsPerSpoke' : 'topologyNeutralsPerSegment')}</span>
+            <Field label={t(kind === 'star' ? 'topologyNeutralsPerSpoke' : 'topologyNeutralsPerSegment')}>
               <NumberField
                 min={0}
                 max={6}
@@ -132,10 +130,9 @@ export const TopologyWizard: React.FC<TopologyWizardProps> = ({ onClose }) => {
                 value={neutralsPerSegment}
                 onCommit={(v) => setNeutralsPerSegment(Math.min(6, Math.max(0, Math.trunc(v))))}
               />
-            </label>
+            </Field>
           ) : (
-            <label style={{ marginBottom: 0 }}>
-              <span>{t('topologyExtraNeutrals')}</span>
+            <Field label={t('topologyExtraNeutrals')}>
               <NumberField
                 min={0}
                 max={40}
@@ -143,34 +140,27 @@ export const TopologyWizard: React.FC<TopologyWizardProps> = ({ onClose }) => {
                 value={extraNeutrals}
                 onCommit={(v) => setExtraNeutrals(Math.min(40, Math.max(0, Math.trunc(v))))}
               />
-            </label>
+            </Field>
           )}
-        </div>
+        </FieldRow>
 
         {showCenterToggle && (
-          <label className="toggle-line" style={{ margin: 0 }}>
-            <input
-              type="checkbox"
-              checked={centerZone}
-              onChange={(e) => setCenterZone(e.target.checked)}
-            />
-            <span>{t('topologyCenterZone')}</span>
-          </label>
+          <Toggle
+            checked={centerZone}
+            onChange={setCenterZone}
+            label={t('topologyCenterZone')}
+          />
         )}
 
-        <label className="toggle-line" style={{ margin: 0 }}>
-          <input
-            type="checkbox"
-            checked={isolatePlayers}
-            onChange={(e) => setIsolatePlayers(e.target.checked)}
-          />
-          <span>{t('topologyIsolate')}</span>
-        </label>
-        <p className="field-note" style={{ marginTop: 0 }}>{t('topologyIsolateHelp')}</p>
+        <Toggle
+          checked={isolatePlayers}
+          onChange={setIsolatePlayers}
+          label={t('topologyIsolate')}
+        />
+        <p className="ui-field-hint" style={{ marginTop: 0 }}>{t('topologyIsolateHelp')}</p>
 
-        <div className="field-row" style={{ marginBottom: 0 }}>
-          <label style={{ marginBottom: 0 }}>
-            <span>{t('topologyCitiesPerPlayer')}</span>
+        <FieldRow>
+          <Field label={t('topologyCitiesPerPlayer')}>
             <NumberField
               min={0}
               max={4}
@@ -178,10 +168,9 @@ export const TopologyWizard: React.FC<TopologyWizardProps> = ({ onClose }) => {
               value={citiesPerPlayer}
               onCommit={(v) => setCitiesPerPlayer(Math.min(4, Math.max(0, Math.trunc(v))))}
             />
-          </label>
+          </Field>
           {hasCenter && (
-            <label style={{ marginBottom: 0 }}>
-              <span>{t('topologyCitiesInCenter')}</span>
+            <Field label={t('topologyCitiesInCenter')}>
               <NumberField
                 min={0}
                 max={4}
@@ -189,63 +178,58 @@ export const TopologyWizard: React.FC<TopologyWizardProps> = ({ onClose }) => {
                 value={citiesInCenter}
                 onCommit={(v) => setCitiesInCenter(Math.min(4, Math.max(0, Math.trunc(v))))}
               />
-            </label>
+            </Field>
           )}
-        </div>
-        <p className="field-note" style={{ marginTop: 0 }}>{t('topologyCitiesHelp')}</p>
+        </FieldRow>
+        <p className="ui-field-hint" style={{ marginTop: 0 }}>{t('topologyCitiesHelp')}</p>
 
-        <div className="field-row" style={{ marginBottom: 0 }}>
-          <label style={{ marginBottom: 0 }}>
-            <span>{t('topologySpawnPreset')}</span>
+        <FieldRow>
+          <Field label={t('topologySpawnPreset')}>
             <select value={spawnPresetId} onChange={(e) => setSpawnPresetId(e.target.value)}>
               {presetOptions.map((preset) => (
                 <option key={preset.id} value={preset.id}>{presetDisplayName(preset, t)}</option>
               ))}
             </select>
-          </label>
+          </Field>
           {hasCenter && (
-            <label style={{ marginBottom: 0 }}>
-              <span>{t('topologyCenterPreset')}</span>
+            <Field label={t('topologyCenterPreset')}>
               <select value={centerPresetId} onChange={(e) => setCenterPresetId(e.target.value)}>
                 {presetOptions.map((preset) => (
                   <option key={preset.id} value={preset.id}>{presetDisplayName(preset, t)}</option>
                 ))}
               </select>
-            </label>
+            </Field>
           )}
-        </div>
+        </FieldRow>
 
         <div className="control-label" style={{ marginBottom: 0 }}>{t('topologyNeutralPresets')}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px' }}>
-          <label style={{ marginBottom: 0 }}>
-            <span>{t('topologyNearPreset')}</span>
+          <Field label={t('topologyNearPreset')}>
             <select value={nearPresetId} onChange={(e) => setNearPresetId(e.target.value)}>
               {presetOptions.map((preset) => (
                 <option key={preset.id} value={preset.id}>{presetDisplayName(preset, t)}</option>
               ))}
             </select>
-          </label>
-          <label style={{ marginBottom: 0 }}>
-            <span>{t('topologyMidPreset')}</span>
+          </Field>
+          <Field label={t('topologyMidPreset')}>
             <select value={midPresetId} onChange={(e) => setMidPresetId(e.target.value)}>
               {presetOptions.map((preset) => (
                 <option key={preset.id} value={preset.id}>{presetDisplayName(preset, t)}</option>
               ))}
             </select>
-          </label>
-          <label style={{ marginBottom: 0 }}>
-            <span>{t('topologyFarPreset')}</span>
+          </Field>
+          <Field label={t('topologyFarPreset')}>
             <select value={farPresetId} onChange={(e) => setFarPresetId(e.target.value)}>
               {presetOptions.map((preset) => (
                 <option key={preset.id} value={preset.id}>{presetDisplayName(preset, t)}</option>
               ))}
             </select>
-          </label>
+          </Field>
         </div>
-        <p className="field-note" style={{ marginTop: 0 }}>{t('topologyGradientHelp')}</p>
+        <p className="ui-field-hint" style={{ marginTop: 0 }}>{t('topologyGradientHelp')}</p>
 
         {zonesCount > 0 && (
-          <p className="field-note" style={{ margin: 0, color: 'var(--accent-2)' }}>
+          <p className="ui-field-hint" style={{ margin: 0, color: 'var(--accent-2)' }}>
             {t('topologyReplaceWarning', { count: zonesCount })}
           </p>
         )}

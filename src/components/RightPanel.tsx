@@ -266,7 +266,7 @@ export const RightPanel: React.FC = () => {
                   fontSize: 'var(--fz-caption)',
                   fontWeight: 700,
                   padding: '1px 7px',
-                  borderRadius: '9px',
+                  borderRadius: 'var(--radius-md)',
                   color: 'var(--on-accent)',
                   background: balanceReport.score >= 85
                     ? 'var(--ok)'
