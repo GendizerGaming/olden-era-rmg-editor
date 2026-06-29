@@ -814,11 +814,11 @@ label textarea {
 
 .ui-card-meta {
   display: flex;
-  flex: 0 1 auto;
-  min-width: 0;
-  flex-wrap: wrap;
+  /* Stay on one line at natural width: the title ellipsizes to make room, the
+     badges + remove button never wrap (which would float a badge above the
+     title under align-items:center). */
+  flex: none;
   align-items: center;
-  justify-content: flex-end;
   gap: var(--space-1);
   font-size: var(--fz-caption);
   color: var(--muted);
