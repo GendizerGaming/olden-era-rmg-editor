@@ -9,7 +9,7 @@ import type { Edge, Faction, MainObjectPlacement, MainObjectType, Zone, ZoneMain
 import { fieldUpdate } from '../shared/forms';
 import { GuardReactionEditor } from '../shared/GuardReactionEditor';
 import { LazyDetails } from '../shared/LazyDetails';
-import { Card, Badge, Field, FieldRow, InfoTip } from '../shared/primitives';
+import { Card, Badge, Field, FieldRow, Toggle, InfoTip } from '../shared/primitives';
 import { CollapsibleSubsection } from '../shared/CollapsibleSubsection';
 import { RoadsSection } from './RoadsSection';
 import { isBiomeMode, isCityFactionMode } from '../shared/guards';
@@ -65,12 +65,12 @@ const PoolRefsEditor: React.FC<{
               justifyContent: 'space-between',
               gap: '8px',
               padding: '4px 8px',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               background: 'var(--panel-2)',
               border: '1px solid var(--line)'
             }}
           >
-            <span title={ref} style={{ flex: 1, minWidth: 0, fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span title={ref} style={{ flex: 1, minWidth: 0, fontSize: 'var(--fz-base)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {ref}
             </span>
             <button
@@ -175,8 +175,7 @@ const PlacementEditor: React.FC<{
 
   return (
     <div style={{ display: 'grid', gap: '8px', padding: '6px 8px 10px' }}>
-      <label style={{ marginBottom: 0 }}>
-        <span>{t('placementMode')}</span>
+      <Field label={t('placementMode')}>
         <select value={obj.placement ?? ''} onChange={(e) => handleMode(e.target.value)}>
           <option value="">{t('placementAuto')}</option>
           <option value="Uniform">{t('placementUniform')}</option>
@@ -184,12 +183,11 @@ const PlacementEditor: React.FC<{
           <option value="Connection">{t('placementConnection')}</option>
           <option value="NearZone">{t('placementNearZone')}</option>
         </select>
-      </label>
+      </Field>
 
       {isUniformLike && (
         <>
-          <label style={{ marginBottom: 0 }}>
-            <span>{t('placementArgsLabel')}</span>
+          <Field label={t('placementArgsLabel')}>
             <select
               value={argsSelectValue}
               onChange={(e) => {
@@ -213,20 +211,16 @@ const PlacementEditor: React.FC<{
               ))}
               <option value="custom">{t('placementArgsCustom')}</option>
             </select>
-          </label>
+          </Field>
           {argsSelectValue === 'custom' && args && args.length === 3 && (
             <>
-              <label className="toggle-line" style={{ margin: 0 }}>
-                <input
-                  type="checkbox"
-                  checked={args[0] === 'true'}
-                  onChange={(e) => setArg(0, String(e.target.checked))}
-                />
-                <span style={{ fontSize: '11px' }}>{t('placementArgCenter')}</span>
-              </label>
-              <div className="field-row" style={{ marginBottom: 0 }}>
-                <label style={{ marginBottom: 0 }}>
-                  <span>{t('placementArgBias')}</span>
+              <Toggle
+                checked={args[0] === 'true'}
+                onChange={(checked) => setArg(0, String(checked))}
+                label={t('placementArgCenter')}
+              />
+              <FieldRow>
+                <Field label={t('placementArgBias')}>
                   <NumberField
                     min={-1}
                     max={1}
@@ -234,25 +228,23 @@ const PlacementEditor: React.FC<{
                     value={Number(args[1]) || 0}
                     onCommit={(v) => setArg(1, String(v))}
                   />
-                </label>
-                <label style={{ marginBottom: 0 }}>
-                  <span>{t('placementArgExtra')}</span>
+                </Field>
+                <Field label={t('placementArgExtra')}>
                   <NumberField
                     min={0}
                     step={1}
                     value={Number(args[2]) || 0}
                     onCommit={(v) => setArg(2, String(v))}
                   />
-                </label>
-              </div>
+                </Field>
+              </FieldRow>
             </>
           )}
         </>
       )}
 
       {obj.placement === 'Connection' && (
-        <label style={{ marginBottom: 0 }}>
-          <span>{t('placementConnectionLabel')}</span>
+        <Field label={t('placementConnectionLabel')}>
           <select
             value={args?.[0] ?? ''}
             onChange={(e) => onChange({ placementArgs: [e.target.value] })}
@@ -265,12 +257,11 @@ const PlacementEditor: React.FC<{
               <option key={e.id} value={e.id}>{e.from} ↔ {e.to}</option>
             ))}
           </select>
-        </label>
+        </Field>
       )}
 
       {obj.placement === 'NearZone' && (
-        <label style={{ marginBottom: 0 }}>
-          <span>{t('placementNearZoneLabel')}</span>
+        <Field label={t('placementNearZoneLabel')}>
           <select
             value={args?.[0] ?? ''}
             onChange={(e) => onChange({ placementArgs: [e.target.value] })}
@@ -283,7 +274,7 @@ const PlacementEditor: React.FC<{
               <option key={z.id} value={z.id}>{z.id}</option>
             ))}
           </select>
-        </label>
+        </Field>
       )}
 
       <p className="ui-field-hint" style={{ margin: 0 }}>{t('placementHelp')}</p>
@@ -550,35 +541,32 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
       {isExpert && (
       <>
         <div className="control-label" style={{ marginTop: '4px' }}>{t('zonePerAreaSection')} <InfoTip text={t('zonePerAreaHelp')} /></div>
-        <div className="field-row" style={{ marginBottom: 0 }}>
-          <label style={{ marginBottom: 0 }}>
-            <span>{t('guarded')}</span>
+        <FieldRow>
+          <Field label={t('guarded')}>
             <NumberField
               min={0}
               step={100}
               value={zone.guardedValuePerArea ?? 0}
               onCommit={(v) => handleFieldChange('guardedValuePerArea', v || undefined)}
             />
-          </label>
-          <label style={{ marginBottom: 0 }}>
-            <span>{t('unguarded')}</span>
+          </Field>
+          <Field label={t('unguarded')}>
             <NumberField
               min={0}
               step={50}
               value={zone.unguardedValuePerArea ?? 0}
               onCommit={(v) => handleFieldChange('unguardedValuePerArea', v || undefined)}
             />
-          </label>
-        </div>
-        <label style={{ marginBottom: 0 }}>
-          <span>{t('resources')}</span>
+          </Field>
+        </FieldRow>
+        <Field label={t('resources')}>
           <NumberField
             min={0}
             step={50}
             value={zone.resourcesValuePerArea ?? 0}
             onCommit={(v) => handleFieldChange('resourcesValuePerArea', v || undefined)}
           />
-        </label>
+        </Field>
       </>
       )}
       </CollapsibleSubsection>
@@ -622,12 +610,12 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                     justifyContent: 'space-between',
                     gap: '8px',
                     padding: '4px 8px',
-                    borderRadius: '6px',
+                    borderRadius: 'var(--radius-sm)',
                     background: 'var(--panel-2)',
                     border: '1px solid var(--line)'
                   }}
                 >
-                  <span title={ref} style={{ flex: 1, minWidth: 0, fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span title={ref} style={{ flex: 1, minWidth: 0, fontSize: 'var(--fz-base)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {ref}{missing ? ` (${t('terrainProfileMissingMark')})` : ''}
                   </span>
                   <button
@@ -712,9 +700,8 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                 onChange={(value) => handleFieldChange('guardReactionDistribution', value)}
               />
 
-              <div className="field-row" style={{ marginBottom: 0 }}>
-                <label style={{ marginBottom: 0 }}>
-                  <span>{t('zoneGuardMultiplier')}<ValueBadge kind="guardMultiplier" value={zone.guardMultiplier ?? 1.4} /></span>
+              <FieldRow>
+                <Field label={<>{t('zoneGuardMultiplier')}<ValueBadge kind="guardMultiplier" value={zone.guardMultiplier ?? 1.4} /></>}>
                   <NumberField
                     min={0}
                     max={10}
@@ -722,9 +709,8 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                     value={zone.guardMultiplier ?? 1.4}
                     onCommit={(v) => handleFieldChange('guardMultiplier', v)}
                   />
-                </label>
-                <label style={{ marginBottom: 0 }}>
-                  <span>{t('zoneDiplomacy')}</span>
+                </Field>
+                <Field label={t('zoneDiplomacy')}>
                   <NumberField
                     min={-1}
                     max={1}
@@ -732,21 +718,19 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                     value={zone.diplomacyModifier ?? -0.25}
                     onCommit={(v) => handleFieldChange('diplomacyModifier', v)}
                   />
-                </label>
-              </div>
+                </Field>
+              </FieldRow>
 
-              <div className="field-row" style={{ marginBottom: 0 }}>
-                <label style={{ marginBottom: 0 }}>
-                  <span>{t('zoneGuardCutoff')}</span>
+              <FieldRow>
+                <Field label={t('zoneGuardCutoff')}>
                   <NumberField
                     min={0}
                     step={250}
                     value={zone.guardCutoffValue ?? 1500}
                     onCommit={(v) => handleFieldChange('guardCutoffValue', v)}
                   />
-                </label>
-                <label style={{ marginBottom: 0 }}>
-                  <span>{t('guardWeeklyIncrement')}</span>
+                </Field>
+                <Field label={t('guardWeeklyIncrement')}>
                   <NumberField
                     min={0}
                     max={1}
@@ -754,10 +738,9 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                     value={zone.guardWeeklyIncrement ?? 0.15}
                     onCommit={(v) => handleFieldChange('guardWeeklyIncrement', v)}
                   />
-                </label>
-              </div>
-              <label style={{ marginBottom: 0 }}>
-                <span>{t('guardRandomization')}</span>
+                </Field>
+              </FieldRow>
+              <Field label={t('guardRandomization')}>
                 <NumberField
                   min={0}
                   max={1}
@@ -765,24 +748,20 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                   value={zone.guardRandomization ?? 0.25}
                   onCommit={(v) => handleFieldChange('guardRandomization', v)}
                 />
-              </label>
+              </Field>
               <p className="ui-field-hint" style={{ margin: 0 }}>{t('zoneGuardExtraHelp')}</p>
 
-              <label className="toggle-line" style={{ margin: 0 }}>
-                <input
-                  type="checkbox"
-                  checked={Boolean(zone.encounterHolesSettings)}
-                  onChange={(e) => handleFieldChange(
-                    'encounterHolesSettings',
-                    e.target.checked ? { affectedEncounters: 0.66, twoHoleEncounters: 0.66 } : undefined
-                  )}
-                />
-                <span>{t('zoneHolesToggle')}</span>
-              </label>
+              <Toggle
+                checked={Boolean(zone.encounterHolesSettings)}
+                onChange={(checked) => handleFieldChange(
+                  'encounterHolesSettings',
+                  checked ? { affectedEncounters: 0.66, twoHoleEncounters: 0.66 } : undefined
+                )}
+                label={t('zoneHolesToggle')}
+              />
               {zone.encounterHolesSettings && (
-                <div className="field-row" style={{ marginBottom: 0 }}>
-                  <label style={{ marginBottom: 0 }}>
-                    <span>{t('zoneHolesAffected')}</span>
+                <FieldRow>
+                  <Field label={t('zoneHolesAffected')}>
                     <NumberField
                       min={0}
                       max={1}
@@ -793,9 +772,8 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                         affectedEncounters: v
                       })}
                     />
-                  </label>
-                  <label style={{ marginBottom: 0 }}>
-                    <span>{t('zoneHolesTwo')}</span>
+                  </Field>
+                  <Field label={t('zoneHolesTwo')}>
                     <NumberField
                       min={0}
                       max={1}
@@ -806,8 +784,8 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                         twoHoleEncounters: v
                       })}
                     />
-                  </label>
-                </div>
+                  </Field>
+                </FieldRow>
               )}
               <p className="ui-field-hint" style={{ margin: 0 }}>{t('zoneHolesHelp')}</p>
       </CollapsibleSubsection>
@@ -838,7 +816,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
               next[i] = v;
               handleFieldChange('randomHireEnableWeeklyUnitIncrement', next);
             };
-            const headerCell: React.CSSProperties = { fontSize: '10px', color: 'var(--muted-soft)', textTransform: 'uppercase', letterSpacing: '0.03em' };
+            const headerCell: React.CSSProperties = { fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', textTransform: 'uppercase', letterSpacing: '0.03em' };
             return (
               <div style={{ display: 'grid', gap: '8px', padding: '6px 8px 10px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '44px 1fr auto', gap: '4px 10px', alignItems: 'center' }}>
@@ -847,7 +825,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                   <span style={headerCell} title={t('zoneRandomHireWeeklyHelp')}>{t('zoneRandomHireWeekly')}</span>
                   {Array.from({ length: rows }, (_, i) => (
                     <React.Fragment key={i}>
-                      <span style={{ fontSize: '12px' }}>{i + 1}</span>
+                      <span style={{ fontSize: 'var(--fz-base)' }}>{i + 1}</span>
                       <NumberField min={0} value={Number(init[i]) || 0} onCommit={(v) => setInit(i, v)} />
                       <input
                         type="checkbox"
@@ -873,7 +851,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             type="button"
             className="secondary-btn"
             onClick={() => handleAddMainObject('City')}
-            style={{ flex: 1, padding: '6px 8px', fontSize: '12px' }}
+            style={{ flex: 1, padding: '6px 8px', fontSize: 'var(--fz-base)' }}
           >
             + {t('addCity')}
           </button>
@@ -882,7 +860,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             className="secondary-btn"
             onClick={() => handleAddMainObject('AbandonedOutpost')}
             title={t('addOutpostTooltip')}
-            style={{ flex: 1, padding: '6px 8px', fontSize: '12px' }}
+            style={{ flex: 1, padding: '6px 8px', fontSize: 'var(--fz-base)' }}
           >
             + {t('addOutpost')}
           </button>
@@ -892,7 +870,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
             disabled={arenaExists}
             onClick={() => handleAddMainObject('GladiatorArena')}
             title={arenaExists ? t('addArenaLimitTooltip') : t('addArenaTooltip')}
-            style={{ flex: 1, padding: '6px 8px', fontSize: '12px', opacity: arenaExists ? 0.5 : 1, cursor: arenaExists ? 'not-allowed' : 'pointer' }}
+            style={{ flex: 1, padding: '6px 8px', fontSize: 'var(--fz-base)', opacity: arenaExists ? 0.5 : 1, cursor: arenaExists ? 'not-allowed' : 'pointer' }}
           >
             + {t('addArena')}
           </button>
@@ -959,26 +937,13 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
               >
 
                 {(isSpawnObj || isCity) && (
-                 <label
-                  className="toggle-line"
-                  style={{
-                    marginTop: '2px',
-                    cursor: isSpawnCheckboxDisabled ? 'not-allowed' : 'pointer',
-                    opacity: isSpawnCheckboxDisabled ? 0.5 : 1
-                  }}
+                <Toggle
+                  checked={isSpawnObj}
+                  disabled={isSpawnCheckboxDisabled}
+                  onChange={(checked) => handleToggleSpawn(obj.key, checked)}
                   title={isSpawnCheckboxDisabled ? t('startingZoneLimitReachedTooltip') : undefined}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isSpawnObj}
-                    disabled={isSpawnCheckboxDisabled}
-                    onChange={(e) => handleToggleSpawn(obj.key, e.target.checked)}
-                    style={{ cursor: isSpawnCheckboxDisabled ? 'not-allowed' : 'pointer' }}
-                  />
-                  <span style={{ fontSize: '11px' }}>
-                    {t('startingZoneCheckbox') || 'Стартовая позиция (замок игрока)'}
-                  </span>
-                </label>
+                  label={t('startingZoneCheckbox') || 'Стартовая позиция (замок игрока)'}
+                />
                 )}
 
                 {isArena && (
@@ -986,8 +951,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                 )}
 
                 {isSpawnObj && (
-                  <label>
-                    {t('player') || 'Игрок'}
+                  <Field label={t('player') || 'Игрок'}>
                     <select
                       value={obj.player || ''}
                       onChange={(e) => handleUpdateMainObject(obj.key, { player: Number(e.target.value) })}
@@ -998,14 +962,13 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                         </option>
                       ))}
                     </select>
-                  </label>
+                  </Field>
                 )}
 
                 {(isCity || isOutpost) && (
                   <>
                     {isCity && (
-                      <label>
-                        {t('cityOwner')}
+                      <Field label={t('cityOwner')}>
                         <select
                           value={obj.owner || ''}
                           onChange={(e) => handleUpdateMainObject(obj.key, { owner: e.target.value ? Number(e.target.value) : null })}
@@ -1015,11 +978,10 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                             <option key={pNum} value={pNum}>{t('playerNumber', { num: pNum })}</option>
                           ))}
                         </select>
-                      </label>
+                      </Field>
                     )}
 
-                    <label>
-                      {isOutpost ? t('outpostFaction') : t('cityFactionMode')}
+                    <Field label={isOutpost ? t('outpostFaction') : t('cityFactionMode')}>
                       <select
                         value={obj.factionMode}
                         onChange={(e) => {
@@ -1033,7 +995,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                         <option value="spawn">{t('cityFactionSpawn')}</option>
                         <option value="specific">{t('cityFactionSpecific')}</option>
                       </select>
-                    </label>
+                    </Field>
 
                     {obj.factionMode === 'random' && obj.factionFromList && obj.factionFromList.length > 0 && (
                       <p className="ui-field-hint" style={{ marginTop: '-6px' }}>
@@ -1042,8 +1004,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                     )}
 
                     {obj.factionMode === 'spawn' && (
-                      <label>
-                        {t('citySpawnSource')}
+                      <Field label={t('citySpawnSource')}>
                         <select
                           value={obj.factionSource || ''}
                           onChange={(e) => handleUpdateMainObject(obj.key, { factionSource: e.target.value })}
@@ -1053,12 +1014,11 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                             <option key={opt.id} value={opt.id}>{opt.id}</option>
                           ))}
                         </select>
-                      </label>
+                      </Field>
                     )}
 
                     {obj.factionMode === 'specific' && (
-                      <label>
-                        {t('citySpecificFaction')}
+                      <Field label={t('citySpecificFaction')}>
                         <select
                           value={obj.factionId || ''}
                           onChange={(e) => handleUpdateMainObject(obj.key, { factionId: e.target.value })}
@@ -1070,25 +1030,21 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                             </option>
                           ))}
                         </select>
-                      </label>
+                      </Field>
                     )}
 
                     {isCity && isCityHoldWinCon && (
-                      <label className="toggle-line" style={{ marginTop: '2px' }}>
-                        <input
-                          type="checkbox"
-                          checked={Boolean(obj.holdCityWinCon)}
-                          onChange={(e) => handleUpdateMainObject(obj.key, { holdCityWinCon: e.target.checked })}
-                        />
-                        <span style={{ fontSize: '11px' }}>{t('victoryCityWinConLabel')}</span>
-                      </label>
+                      <Toggle
+                        checked={Boolean(obj.holdCityWinCon)}
+                        onChange={(checked) => handleUpdateMainObject(obj.key, { holdCityWinCon: checked })}
+                        label={t('victoryCityWinConLabel')}
+                      />
                     )}
                   </>
                 )}
 
                 {!isArena && (
-                  <label>
-                    {t('constructionLabel')}
+                  <Field label={t('constructionLabel')}>
                     <select
                       value={obj.buildingsConstructionSid ?? ''}
                       onChange={(e) => handleUpdateMainObject(obj.key, { buildingsConstructionSid: e.target.value || undefined })}
@@ -1104,27 +1060,23 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                         <option key={option.sid} value={option.sid}>{t(option.labelKey)}</option>
                       ))}
                     </select>
-                  </label>
+                  </Field>
                 )}
 
                 {isExpert && !isArena && (
                   <>
-                    <label className="toggle-line">
-                      <input
-                        type="checkbox"
-                        checked={Boolean(obj.enableWeeklyUnitIncrement)}
-                        onChange={(e) => handleUpdateMainObject(obj.key, { enableWeeklyUnitIncrement: e.target.checked ? true : undefined })}
-                      />
-                      <span>{t('objectWeeklyUnitIncrement')}</span>
-                    </label>
-                    <label>
-                      {t('objectInitialUnitIncrement')}
+                    <Toggle
+                      checked={Boolean(obj.enableWeeklyUnitIncrement)}
+                      onChange={(checked) => handleUpdateMainObject(obj.key, { enableWeeklyUnitIncrement: checked ? true : undefined })}
+                      label={t('objectWeeklyUnitIncrement')}
+                    />
+                    <Field label={t('objectInitialUnitIncrement')}>
                       <NumberField
                         min={0}
                         value={obj.initialUnitIncrement ?? 0}
                         onCommit={(v) => handleUpdateMainObject(obj.key, { initialUnitIncrement: v || undefined })}
                       />
-                    </label>
+                    </Field>
                     <p className="ui-field-hint object-field-help">{t('objectUnitIncrementHelp')}</p>
                   </>
                 )}
@@ -1134,30 +1086,28 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                     className="inspector-subsection"
                     style={{
                       border: '1px solid var(--line)',
-                      borderRadius: '6px',
+                      borderRadius: 'var(--radius-sm)',
                       background: 'var(--panel-2)',
                       marginTop: '2px',
                       overflow: 'hidden'
                     }}
                     summary={
-                      <strong style={{ fontSize: '12px' }}>
+                      <strong style={{ fontSize: 'var(--fz-base)' }}>
                         {t('objectGuardSection')}
                       </strong>
                     }
                     renderContent={() => (
                       <div style={{ display: 'grid', gap: '8px', padding: '6px 8px 10px' }}>
-                        <div className="field-row" style={{ marginBottom: 0 }}>
-                          <label style={{ marginBottom: 0 }}>
-                            <span>{t('objectGuardValue')}<ValueBadge kind="guardStrength" value={obj.guardValue ?? 0} /></span>
+                        <FieldRow>
+                          <Field label={<>{t('objectGuardValue')}<ValueBadge kind="guardStrength" value={obj.guardValue ?? 0} /></>}>
                             <NumberField
                               min={0}
                               step={1000}
                               value={obj.guardValue ?? 0}
                               onCommit={(v) => handleUpdateMainObject(obj.key, { guardValue: v })}
                             />
-                          </label>
-                          <label style={{ marginBottom: 0 }}>
-                            <span>{t('objectGuardChance')}</span>
+                          </Field>
+                          <Field label={t('objectGuardChance')}>
                             <NumberField
                               min={0}
                               max={1}
@@ -1165,11 +1115,10 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                               value={obj.guardChance ?? 1}
                               onCommit={(v) => handleUpdateMainObject(obj.key, { guardChance: v })}
                             />
-                          </label>
-                        </div>
-                        <div className="field-row" style={{ marginBottom: 0 }}>
-                          <label style={{ marginBottom: 0 }}>
-                            <span>{t('guardWeeklyIncrement')}</span>
+                          </Field>
+                        </FieldRow>
+                        <FieldRow>
+                          <Field label={t('guardWeeklyIncrement')}>
                             <NumberField
                               min={0}
                               max={1}
@@ -1177,9 +1126,8 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                               value={obj.guardWeeklyIncrement ?? 0}
                               onCommit={(v) => handleUpdateMainObject(obj.key, { guardWeeklyIncrement: v })}
                             />
-                          </label>
-                          <label style={{ marginBottom: 0 }}>
-                            <span>{t('objectGuardRandomization')}</span>
+                          </Field>
+                          <Field label={t('objectGuardRandomization')}>
                             <NumberField
                               min={0}
                               max={1}
@@ -1187,24 +1135,18 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                               value={obj.guardRandomization ?? 0}
                               onCommit={(v) => handleUpdateMainObject(obj.key, { guardRandomization: v || undefined })}
                             />
-                          </label>
-                        </div>
-                        <label className="toggle-line" style={{ margin: 0 }}>
-                          <input
-                            type="checkbox"
-                            checked={Boolean(obj.removeGuardIfHasOwner)}
-                            onChange={(e) => handleUpdateMainObject(obj.key, { removeGuardIfHasOwner: e.target.checked ? true : undefined })}
-                          />
-                          <span style={{ fontSize: '11px' }}>{t('removeGuardIfHasOwner')}</span>
-                        </label>
-                        <label className="toggle-line" style={{ margin: 0 }}>
-                          <input
-                            type="checkbox"
-                            checked={Boolean(obj.isKeyObject)}
-                            onChange={(e) => handleUpdateMainObject(obj.key, { isKeyObject: e.target.checked ? true : undefined })}
-                          />
-                          <span style={{ fontSize: '11px' }}>{t('objectIsKeyObject')}</span>
-                        </label>
+                          </Field>
+                        </FieldRow>
+                        <Toggle
+                          checked={Boolean(obj.removeGuardIfHasOwner)}
+                          onChange={(checked) => handleUpdateMainObject(obj.key, { removeGuardIfHasOwner: checked ? true : undefined })}
+                          label={t('removeGuardIfHasOwner')}
+                        />
+                        <Toggle
+                          checked={Boolean(obj.isKeyObject)}
+                          onChange={(checked) => handleUpdateMainObject(obj.key, { isKeyObject: checked ? true : undefined })}
+                          label={t('objectIsKeyObject')}
+                        />
                         <p className="ui-field-hint" style={{ margin: 0 }}>{t('objectGuardHelp')}</p>
                       </div>
                     )}
@@ -1216,13 +1158,13 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                   className="inspector-subsection"
                   style={{
                     border: '1px solid var(--line)',
-                    borderRadius: '6px',
+                    borderRadius: 'var(--radius-sm)',
                     background: 'var(--panel-2)',
                     marginTop: '2px',
                     overflow: 'hidden'
                   }}
                   summary={
-                    <strong style={{ fontSize: '12px' }}>
+                    <strong style={{ fontSize: 'var(--fz-base)' }}>
                       {t('placementSection')}
                     </strong>
                   }
@@ -1310,8 +1252,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
           const mode = zone[modeField] ?? 'land';
           return (
             <React.Fragment key={modeField}>
-              <label>
-                {t(labelKey)}
+              <Field label={t(labelKey)}>
                 <select
                   value={mode}
                   onChange={(e) => {
@@ -1325,10 +1266,9 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                   {biomeStartZones.length > 0 && <option value="spawn">{t('zoneBiomeSpawn')}</option>}
                   <option value="specific">{t('zoneBiomeSpecific')}</option>
                 </select>
-              </label>
+              </Field>
               {mode === 'spawn' && (
-                <label>
-                  {t('zoneBiomeSpawnSource')}
+                <Field label={t('zoneBiomeSpawnSource')}>
                   <select
                     value={zone[sourceField] || ''}
                     onChange={(e) => handleFieldChange(sourceField, e.target.value)}
@@ -1338,11 +1278,10 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                       <option key={candidate.id} value={candidate.id}>{candidate.id}</option>
                     ))}
                   </select>
-                </label>
+                </Field>
               )}
               {mode === 'specific' && (
-                <label>
-                  {t('zoneBiomeSpecificValue')}
+                <Field label={t('zoneBiomeSpecificValue')}>
                   <select
                     value={zone[idField] || 'Grass'}
                     onChange={(e) => handleFieldChange(idField, e.target.value)}
@@ -1353,7 +1292,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                       </option>
                     ))}
                   </select>
-                </label>
+                </Field>
               )}
             </React.Fragment>
           );
@@ -1422,8 +1361,8 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                     {isExpert && obj.kind === 'list' && (
                       <LazyDetails
                         className="inspector-subsection"
-                        style={{ border: '1px solid var(--line)', borderRadius: '6px', background: 'var(--panel-2)', marginBottom: '10px', overflow: 'hidden' }}
-                        summary={<strong style={{ fontSize: '12px' }}>{t('nestedContentSection')}{obj.nestedContent?.length ? ` (${obj.nestedContent.length})` : ''}</strong>}
+                        style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', background: 'var(--panel-2)', marginBottom: '10px', overflow: 'hidden' }}
+                        summary={<strong style={{ fontSize: 'var(--fz-base)' }}>{t('nestedContentSection')}{obj.nestedContent?.length ? ` (${obj.nestedContent.length})` : ''}</strong>}
                         renderContent={() => (
                           <div style={{ display: 'grid', gap: '6px', padding: '6px 8px 10px' }}>
                             <p className="ui-field-hint" style={{ margin: 0 }}>{t('nestedContentHelp')}</p>
@@ -1438,43 +1377,39 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                       />
                     )}
 
-                    <div className="field-row">
-                      <label>
-                        {t('objectCount')}
+                    <FieldRow>
+                      <Field label={t('objectCount')}>
                         <NumberField
                           min={1}
                           max={99}
                           value={obj.count}
                           onCommit={(v) => handleObjectFieldChange(obj.key, 'count', v)}
                         />
-                      </label>
-                      <label>
-                        {t('objectVariant')}
+                      </Field>
+                      <Field label={t('objectVariant')}>
                         <input
                           type="number"
                           placeholder={t('objectVariantAuto')}
                           value={obj.variant ?? ''}
                           onChange={(e) => handleObjectFieldChange(obj.key, 'variant', e.target.value === '' ? null : Number(e.target.value))}
                         />
-                      </label>
-                    </div>
+                      </Field>
+                    </FieldRow>
                     <p className="ui-field-hint object-field-help">{t('objectVariantHelp')}</p>
 
                     {isExpert && (
                       <>
-                        <label>
-                          {t('objectName')}
+                        <Field label={t('objectName')}>
                           <input
                             type="text"
                             placeholder={t('objectNameAuto')}
                             value={obj.name ?? ''}
                             onChange={(e) => handleObjectFieldChange(obj.key, 'name', e.target.value.trim() || undefined)}
                           />
-                        </label>
+                        </Field>
                         <p className="ui-field-hint object-field-help">{t('objectNameHelp')}</p>
 
-                        <label>
-                          {t('objectOwner')}
+                        <Field label={t('objectOwner')}>
                           <select
                             value={obj.owner ?? ''}
                             onChange={(e) => handleObjectFieldChange(obj.key, 'owner', e.target.value ? Number(e.target.value) : null)}
@@ -1484,13 +1419,12 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                               <option key={pNum} value={pNum}>{t('playerNumber', { num: pNum })}</option>
                             ))}
                           </select>
-                        </label>
+                        </Field>
                         <p className="ui-field-hint object-field-help">{t('objectOwnerHelp')}</p>
                       </>
                     )}
 
-                    <label>
-                      {t('objectGuardLabel')}
+                    <Field label={t('objectGuardLabel')}>
                       <select
                         value={obj.guarded === undefined ? 'default' : obj.guarded ? 'guarded' : 'unguarded'}
                         onChange={(e) => handleObjectFieldChange(
@@ -1503,25 +1437,21 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                         <option value="guarded">{t('objectGuardYes')}</option>
                         <option value="unguarded">{t('objectGuardNo')}</option>
                       </select>
-                    </label>
+                    </Field>
                     {obj.guarded === undefined && (
                       <p className="ui-field-hint object-field-help">{t('objectGuardDefaultHelp')}</p>
                     )}
 
-                    <label className="toggle-line">
-                      <input
-                        type="checkbox"
-                        checked={obj.soloEncounter}
-                        onChange={(e) => handleObjectFieldChange(obj.key, 'soloEncounter', e.target.checked)}
-                      />
-                      <span>{t('objectSoloEncounter')}</span>
-                    </label>
+                    <Toggle
+                      checked={obj.soloEncounter}
+                      onChange={(checked) => handleObjectFieldChange(obj.key, 'soloEncounter', checked)}
+                      label={t('objectSoloEncounter')}
+                    />
                     <p className="ui-field-hint object-field-help">{t('objectSoloEncounterHelp')}</p>
 
                     {isExpert && (
                       <>
-                        <label>
-                          {t('objectDesignatedEncounter')}
+                        <Field label={t('objectDesignatedEncounter')}>
                           <select
                             value={obj.designatedEncounter === undefined ? 'default' : obj.designatedEncounter ? 'on' : 'off'}
                             onChange={(e) => handleObjectFieldChange(
@@ -1534,7 +1464,7 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                             <option value="on">{t('objectDesignatedOn')}</option>
                             <option value="off">{t('objectDesignatedOff')}</option>
                           </select>
-                        </label>
+                        </Field>
                         <p className="ui-field-hint object-field-help">{t('objectDesignatedEncounterHelp')}</p>
                       </>
                     )}

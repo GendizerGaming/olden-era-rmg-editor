@@ -56,12 +56,16 @@ interface ToggleProps {
   hint?: React.ReactNode;
   /** Short help shown as an (i) tooltip next to the label. */
   tip?: string;
+  /** Disables the checkbox and dims the row. */
+  disabled?: boolean;
+  /** Native tooltip on the whole row (e.g. why it's disabled). */
+  title?: string;
 }
 
-export const Toggle: React.FC<ToggleProps> = ({ checked, onChange, label, hint, tip }) => (
+export const Toggle: React.FC<ToggleProps> = ({ checked, onChange, label, hint, tip, disabled, title }) => (
   <>
-    <label className="ui-toggle">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+    <label className={`ui-toggle${disabled ? ' ui-toggle--disabled' : ''}`} title={title}>
+      <input type="checkbox" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
       <span className="ui-toggle-text">
         {label}
         {tip && <InfoTip text={tip} />}

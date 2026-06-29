@@ -137,8 +137,7 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
               )].sort();
               return (
                 <div style={{ display: 'grid', gap: '8px', padding: '6px 8px 10px' }}>
-                  <label style={{ marginBottom: 0 }}>
-                    <span>{t('edgeGuardZone')}</span>
+                  <Field label={t('edgeGuardZone')} tip={t('edgeGuardZoneHelp')}>
                     <select
                       value={guardZone}
                       onChange={(e) => actions.updateEdgeField(edge.id, { guardZone: e.target.value || undefined })}
@@ -149,11 +148,9 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
                       <option value={edge.to}>{t('edgeGuardZoneIn', { id: edge.to })}</option>
                       {!guardZoneKnown && <option value={guardZone}>{guardZone}</option>}
                     </select>
-                  </label>
-                  <p className="ui-field-hint" style={{ margin: 0 }}>{t('edgeGuardZoneHelp')}</p>
+                  </Field>
 
-                  <label style={{ marginBottom: 0 }}>
-                    <span>{t('edgeGuardMatchGroup')}</span>
+                  <Field label={t('edgeGuardMatchGroup')} tip={t('edgeGuardMatchGroupHelp')}>
                     <input
                       type="text"
                       list="edge-guard-match-groups"
@@ -165,11 +162,9 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
                     <datalist id="edge-guard-match-groups">
                       {matchGroups.map((group) => <option key={group} value={group} />)}
                     </datalist>
-                  </label>
-                  <p className="ui-field-hint" style={{ margin: 0 }}>{t('edgeGuardMatchGroupHelp')}</p>
+                  </Field>
 
-                  <label style={{ marginBottom: 0 }}>
-                    <span>{t('edgeGatePlacement')}</span>
+                  <Field label={t('edgeGatePlacement')} tip={t('edgeGatePlacementHelp')}>
                     <select
                       value={gatePlacement}
                       onChange={(e) => actions.updateEdgeField(edge.id, { gatePlacement: e.target.value || undefined })}
@@ -178,8 +173,7 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
                       <option value="Center">{t('edgeGatePlacementCenter')}</option>
                       {!gateKnown && <option value={gatePlacement}>{gatePlacement}</option>}
                     </select>
-                  </label>
-                  <p className="ui-field-hint" style={{ margin: 0 }}>{t('edgeGatePlacementHelp')}</p>
+                  </Field>
                 </div>
               );
             })()}
@@ -187,7 +181,7 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
           )}
 
           {isPortal && isExpert && (
-            <div style={{ display: 'grid', gap: '8px', border: '1px solid var(--line)', borderRadius: '6px', background: 'var(--panel-2)', padding: '8px' }}>
+            <div style={{ display: 'grid', gap: '8px', border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', background: 'var(--panel-2)', padding: '8px' }}>
               <div className="control-label" style={{ margin: 0 }}>{t('portalPlacementSection')}</div>
               <DistanceField
                 label={t('portalPlacementFrom', { zone: edge.from })}
@@ -255,7 +249,7 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
               { val: 4.0, key: 'springDistFar' },
               { val: 6.0, key: 'springDistMax' }
             ].map((item) => (
-              <label key={item.val} className="toggle-line" style={{ cursor: 'pointer', margin: 0 }}>
+              <label key={item.val} className="ui-toggle" style={{ margin: 0 }}>
                 <input
                   type="radio"
                   name="proximity-length"
@@ -263,7 +257,7 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
                   checked={Math.abs((edge.length ?? 0.1) - item.val) < 0.01}
                   onChange={() => actions.updateEdgeField(edge.id, { length: item.val })}
                 />
-                <span style={{ fontSize: '12px' }}>{t(item.key)}</span>
+                <span className="ui-toggle-text">{t(item.key)}</span>
               </label>
             ))}
           </div>

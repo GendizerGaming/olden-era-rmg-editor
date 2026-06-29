@@ -70,7 +70,7 @@ export const PresetInspector: React.FC<PresetInspectorProps> = ({ presetId, pres
     <div style={{ display: 'grid', gap: '12px', minWidth: 0 }}>
       <div className="inspector-preset-header" style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minWidth: 0 }}>
-          <h3 style={{ margin: 0, fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <h3 style={{ margin: 0, fontSize: 'var(--fz-emph)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {preset.isCustom ? t('customPreset') : t('standardPreset')}
           </h3>
         </div>

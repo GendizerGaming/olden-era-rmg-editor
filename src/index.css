@@ -638,6 +638,12 @@ label textarea {
   margin: 0;
 }
 
+.ui-toggle--disabled,
+.ui-toggle--disabled input {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .ui-toggle-text {
   min-width: 0;
 }

@@ -145,11 +145,11 @@ export const CustomListInspectorContent: React.FC<CustomListInspectorContentProp
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <strong style={{ fontSize: '12px' }}>{getEntryName(entry)}</strong>
-                <span style={{ fontSize: '10px', opacity: 0.6 }}>
+                <span style={{ fontSize: 'var(--fz-caption)', opacity: 0.6 }}>
                   {entry.kind === 'list' ? `${t('nestedListType') || 'Вложенный список'}: ${entry.value}` : `SID: ${entry.value}`}
                 </span>
                 {getEntryDescription(entry) && (
-                  <span style={{ fontSize: '10px', marginTop: '2px', color: 'var(--muted)', opacity: 0.85 }}>
+                  <span style={{ fontSize: 'var(--fz-caption)', marginTop: '2px', color: 'var(--muted)', opacity: 0.85 }}>
                     {getEntryDescription(entry)}
                   </span>
                 )}
@@ -173,7 +173,7 @@ export const CustomListInspectorContent: React.FC<CustomListInspectorContentProp
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <label style={{ fontSize: '11px', margin: 0, whiteSpace: 'nowrap' }} htmlFor={`weight-${entry.key}`}>
+              <label style={{ fontSize: 'var(--fz-caption)', margin: 0, whiteSpace: 'nowrap' }} htmlFor={`weight-${entry.key}`}>
                 {t('customListEntryWeight') || 'Вес:'}
               </label>
               <NumberField

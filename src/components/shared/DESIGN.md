@@ -63,7 +63,10 @@ Controls stay bottom-aligned even when one label wraps.
 <Toggle checked={x} onChange={(v) => set(v)} label={t('singleHeroMode')} tip={t('…Help')} />
 ```
 Props: `checked` · `onChange(value)` · `label` (ReactNode — may contain a Badge) ·
-`hint?` · `tip?`.
+`hint?` · `tip?` · `disabled?` (dims + blocks the row) · `title?` (native row
+tooltip, e.g. why it's disabled). For mutually-exclusive **radio** rows the
+component doesn't fit (it renders a checkbox) — reuse the `ui-toggle` /
+`ui-toggle-text` classes on your own `<label><input type="radio">` instead.
 
 ### `Badge` — pill (qualitative / quantitative)
 ```tsx
