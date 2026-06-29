@@ -360,6 +360,9 @@ textarea {
 .panel {
   min-height: 0;
   overflow: auto;
+  /* Collapsing a section/subsection is re-anchored in JS (useCollapseScrollAnchor);
+     the browser's own scroll anchoring would fight that, so opt out here. */
+  overflow-anchor: none;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -449,6 +452,7 @@ textarea {
 .collapsible-subsection-header {
   position: sticky;
   top: 48px; /* sits flush under the pinned section header */
+  scroll-margin-top: 48px; /* land under that pinned header on scrollIntoView */
   z-index: 10;
   display: flex;
   align-items: center;
