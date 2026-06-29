@@ -3,18 +3,8 @@ import { useEditorStore } from '../../store/useEditorStore';
 import { useTranslation } from '../../i18n/context';
 import type { CatalogItem, ValueOverride } from '../../types/editor';
 import { NumberField } from '../shared/NumberField';
+import { ListRow } from '../shared/primitives';
 import { ShieldHalf, Search, Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
-
-const rowStyle = (active: boolean): React.CSSProperties => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: '8px',
-  padding: '5px 8px',
-  borderRadius: '6px',
-  background: active ? 'var(--accent-dim)' : 'var(--panel-2)',
-  border: active ? '1px solid var(--accent)' : '1px solid var(--line)'
-});
 
 /**
  * Per-object guard overrides (the template's valueOverrides): "object X is
@@ -116,35 +106,33 @@ export const ValueOverridesSection: React.FC = () => {
               }}
             >
               {overrides.map((entry) => (
-                <div key={entry.sid} style={rowStyle(false)}>
-                  <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0, flex: 1 }}>
-                    <span title={labelFor(entry.sid)} style={{ fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {labelFor(entry.sid)}
-                    </span>
-                    <span title={entry.sid} style={{ fontSize: '9px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {entry.sid}
-                    </span>
-                  </span>
-                  <NumberField
-                    className="weight-field"
-                    min={0}
-                    step={500}
-                    value={entry.guardValue}
-                    onCommit={(v) => setOverrides(overrides.map((candidate) =>
-                      candidate.sid === entry.sid ? { ...candidate, guardValue: v } : candidate
-                    ))}
-                    style={{ width: '64px', flexShrink: 0 }}
-                  />
-                  <button
-                    type="button"
-                    className="compact-button danger"
-                    title={t('overridesRemove')}
-                    onClick={() => removeOverride(entry.sid)}
-                    style={{ flexShrink: 0 }}
-                  >
-                    <Trash2 size={10} />
-                  </button>
-                </div>
+                <ListRow
+                  key={entry.sid}
+                  title={labelFor(entry.sid)}
+                  subtitle={entry.sid}
+                  trailing={
+                    <>
+                      <NumberField
+                        className="weight-field"
+                        min={0}
+                        step={500}
+                        value={entry.guardValue}
+                        onCommit={(v) => setOverrides(overrides.map((candidate) =>
+                          candidate.sid === entry.sid ? { ...candidate, guardValue: v } : candidate
+                        ))}
+                        style={{ width: '64px', flexShrink: 0 }}
+                      />
+                      <button
+                        type="button"
+                        className="compact-button danger"
+                        title={t('overridesRemove')}
+                        onClick={() => removeOverride(entry.sid)}
+                      >
+                        <Trash2 size={10} />
+                      </button>
+                    </>
+                  }
+                />
               ))}
             </div>
           )}
@@ -179,7 +167,7 @@ export const ValueOverridesSection: React.FC = () => {
                   style={{
                     cursor: 'pointer',
                     userSelect: 'none',
-                    fontSize: '11px',
+                    fontSize: 'var(--fz-caption)',
                     fontWeight: 600,
                     color: 'var(--muted)',
                     padding: '2px 0'
@@ -192,40 +180,32 @@ export const ValueOverridesSection: React.FC = () => {
                     const sid = item.sid || item.id;
                     const isOverridden = overriddenSids.has(sid);
                     return (
-                      <div key={sid} style={rowStyle(isOverridden)}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
-                          {!isOverridden && (
-                            <button
-                              type="button"
-                              className="compact-button primary"
-                              title={t('overridesAdd')}
-                              style={{ flexShrink: 0 }}
-                              onClick={() => addOverride(sid, itemLabel(item))}
-                            >
-                              <Plus size={10} />
-                            </button>
-                          )}
-                          <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
-                            <span title={itemLabel(item)} style={{ fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {itemLabel(item)}
-                            </span>
-                            <span title={sid} style={{ fontSize: '9px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {sid}
-                            </span>
-                          </span>
-                        </span>
-                        {isOverridden && (
+                      <ListRow
+                        key={sid}
+                        active={isOverridden}
+                        leading={!isOverridden && (
+                          <button
+                            type="button"
+                            className="compact-button primary"
+                            title={t('overridesAdd')}
+                            onClick={() => addOverride(sid, itemLabel(item))}
+                          >
+                            <Plus size={10} />
+                          </button>
+                        )}
+                        title={itemLabel(item)}
+                        subtitle={sid}
+                        trailing={isOverridden && (
                           <button
                             type="button"
                             className="compact-button danger"
                             title={t('overridesRemove')}
-                            style={{ flexShrink: 0 }}
                             onClick={() => removeOverride(sid)}
                           >
                             <Trash2 size={10} />
                           </button>
                         )}
-                      </div>
+                      />
                     );
                   })}
                 </div>

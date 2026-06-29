@@ -150,3 +150,52 @@ export const Card: React.FC<CardProps> = ({ id, title, icon, meta, actions, defa
     </div>
   );
 };
+
+interface ListRowProps {
+  /** Highlight the row as selected/active (e.g. a banned entry). */
+  active?: boolean;
+  /** Primary text (truncated to one line). */
+  title: React.ReactNode;
+  /** Tooltip for the title; defaults to the title when it is a string. */
+  titleTooltip?: string;
+  /** Secondary caption under the title (truncated). */
+  subtitle?: React.ReactNode;
+  subtitleTooltip?: string;
+  /** Leading control shown before the text (e.g. an add button). */
+  leading?: React.ReactNode;
+  /** Trailing controls (e.g. a remove button or a weight field). */
+  trailing?: React.ReactNode;
+  /** Makes the whole row clickable; trailing controls don't trigger it. */
+  onClick?: () => void;
+}
+
+/**
+ * A compact, single-line row for selectable/removable list entries: a title
+ * with an optional caption, plus leading/trailing control slots. Replaces the
+ * bespoke `rowStyle` objects duplicated across the picker/list sections.
+ */
+export const ListRow: React.FC<ListRowProps> = ({
+  active, title, titleTooltip, subtitle, subtitleTooltip, leading, trailing, onClick
+}) => (
+  <div
+    className={`ui-list-row${active ? ' ui-list-row--active' : ''}${onClick ? ' ui-list-row--clickable' : ''}`}
+    onClick={onClick}
+  >
+    <span className="ui-list-row-main">
+      {leading}
+      <span className="ui-list-row-text">
+        <span className="ui-list-row-title" title={titleTooltip ?? (typeof title === 'string' ? title : undefined)}>
+          {title}
+        </span>
+        {subtitle != null && subtitle !== '' && (
+          <span className="ui-list-row-sub" title={subtitleTooltip ?? (typeof subtitle === 'string' ? subtitle : undefined)}>
+            {subtitle}
+          </span>
+        )}
+      </span>
+    </span>
+    {trailing && (
+      <span className="ui-list-row-trail" onClick={(e) => e.stopPropagation()}>{trailing}</span>
+    )}
+  </div>
+);

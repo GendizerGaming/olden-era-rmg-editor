@@ -644,6 +644,65 @@ label textarea {
   cursor: not-allowed;
 }
 
+.ui-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 5px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+}
+
+.ui-list-row--active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.ui-list-row--clickable {
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.ui-list-row-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1;
+}
+
+.ui-list-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ui-list-row-title {
+  font-size: var(--fz-base);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-list-row-sub {
+  font-size: var(--fz-caption);
+  color: var(--muted-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-list-row-trail {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
 .ui-toggle-text {
   min-width: 0;
 }

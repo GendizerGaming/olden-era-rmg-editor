@@ -3,6 +3,7 @@ import { useEditorStore } from '../../store/useEditorStore';
 import { useTranslation } from '../../i18n/context';
 import type { StartingBonus } from '../../types/editor';
 import { NumberField } from '../shared/NumberField';
+import { Field, FieldRow, ListRow } from '../shared/primitives';
 import { Gift, Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 
 /** Bonus types from the game's DB/map_bonuses catalog. `hero` = the bonus
@@ -19,17 +20,6 @@ const BONUS_TYPES: Array<{ sid: string; hero: boolean }> = [
 ];
 
 const RESOURCES = ['gold', 'wood', 'ore', 'gemstones', 'crystals', 'mercury', 'alchemicalDust'];
-
-const rowStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: '8px',
-  padding: '5px 8px',
-  borderRadius: '6px',
-  background: 'var(--panel-2)',
-  border: '1px solid var(--line)'
-};
 
 export const BonusesSection: React.FC = () => {
   const { t, language } = useTranslation();
@@ -155,8 +145,6 @@ export const BonusesSection: React.FC = () => {
     ? (typeSid === 'add_bonus_hero_spell' ? spells.length === 0 : artifacts.length === 0)
     : typeSid === 'add_bonus_hero_stat' && statPreset === 'freeSpell' && spells.length === 0;
 
-  const selectStyle: React.CSSProperties = { marginBottom: 0 };
-
   return (
     <section className="collapsible-section">
       <div className="collapsible-header" onClick={() => setExpanded(!expanded)}>
@@ -195,27 +183,24 @@ export const BonusesSection: React.FC = () => {
               {bonuses.map((bonus, index) => {
                 const summary = summarize(bonus);
                 return (
-                  <div key={index} style={rowStyle}>
-                    <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0, flex: 1 }}>
-                      <span title={summary} style={{ fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {typeLabel(bonus.sid)}: {summary}
-                      </span>
-                      {bonus.receiverFilter && (
-                        <span style={{ fontSize: '9px', color: 'var(--muted-soft)' }}>
-                          {t(bonus.receiverFilter === 'all_heroes' ? 'bonusReceiverAll' : 'bonusReceiverStart')}
-                        </span>
-                      )}
-                    </span>
-                    <button
-                      type="button"
-                      className="compact-button danger"
-                      title={t('bansRemove')}
-                      style={{ flexShrink: 0 }}
-                      onClick={() => removeBonus(index)}
-                    >
-                      <Trash2 size={10} />
-                    </button>
-                  </div>
+                  <ListRow
+                    key={index}
+                    title={`${typeLabel(bonus.sid)}: ${summary}`}
+                    titleTooltip={summary}
+                    subtitle={bonus.receiverFilter
+                      ? t(bonus.receiverFilter === 'all_heroes' ? 'bonusReceiverAll' : 'bonusReceiverStart')
+                      : undefined}
+                    trailing={
+                      <button
+                        type="button"
+                        className="compact-button danger"
+                        title={t('bansRemove')}
+                        onClick={() => removeBonus(index)}
+                      >
+                        <Trash2 size={10} />
+                      </button>
+                    }
+                  />
                 );
               })}
             </div>
@@ -233,82 +218,74 @@ export const BonusesSection: React.FC = () => {
             </button>
           ) : (
             <div className="ui-indent" style={{ display: 'grid', gap: '8px' }}>
-              <label style={selectStyle}>
-                <span>{t('bonusTypeLabel')}</span>
+              <Field label={t('bonusTypeLabel')}>
                 <select value={typeSid} onChange={(e) => setTypeSid(e.target.value)}>
                   {BONUS_TYPES.map((entry) => (
                     <option key={entry.sid} value={entry.sid}>{t(`bonusType_${entry.sid}`)}</option>
                   ))}
                 </select>
-              </label>
+              </Field>
               <p className="ui-field-hint" style={{ margin: 0 }}>{t(`bonusTypeHelp_${typeSid}`)}</p>
 
               {currentType.hero && (
-                <label style={selectStyle}>
-                  <span>{t('bonusReceiver')}</span>
+                <Field label={t('bonusReceiver')}>
                   <select value={receiver} onChange={(e) => setReceiver(e.target.value)}>
                     <option value="start_hero">{t('bonusReceiverStart')}</option>
                     <option value="all_heroes">{t('bonusReceiverAll')}</option>
                   </select>
-                </label>
+                </Field>
               )}
 
               {typeSid === 'add_bonus_res' && (
-                <div className="field-row" style={{ marginBottom: 0 }}>
-                  <label style={selectStyle}>
-                    <span>{t('bonusParamResource')}</span>
+                <FieldRow>
+                  <Field label={t('bonusParamResource')}>
                     <select value={resource} onChange={(e) => setResource(e.target.value)}>
                       {RESOURCES.map((name) => (
                         <option key={name} value={name}>{t(`bonusRes_${name}`)}</option>
                       ))}
                     </select>
-                  </label>
-                  <label style={selectStyle}>
-                    <span>{t('bonusParamAmount')}</span>
+                  </Field>
+                  <Field label={t('bonusParamAmount')}>
                     <NumberField min={1} step={1} value={amount} onCommit={setAmount} />
-                  </label>
-                </div>
+                  </Field>
+                </FieldRow>
               )}
 
               {(typeSid === 'add_bonus_hero_exp' || typeSid === 'add_bonus_side_exp') && (
-                <label style={selectStyle}>
-                  <span>{t('bonusParamExp')}</span>
+                <Field label={t('bonusParamExp')}>
                   <NumberField min={1} step={50} value={expValue} onCommit={setExpValue} />
-                </label>
+                </Field>
               )}
 
               {typeSid === 'add_bonus_hero_spell' && (
                 spells.length ? (
-                  <label style={selectStyle}>
-                    <span>{t('bonusParamSpell')}</span>
+                  <Field label={t('bonusParamSpell')}>
                     <select value={spellId} onChange={(e) => setSpellId(e.target.value)}>
                       <option value="">—</option>
                       {spells.map((spell) => (
                         <option key={spell.id} value={spell.id}>{spell.labelByLang[language] || spell.id}</option>
                       ))}
                     </select>
-                  </label>
+                  </Field>
                 ) : null
               )}
 
               {typeSid === 'add_bonus_hero_item' && (
                 artifacts.length ? (
-                  <label style={selectStyle}>
-                    <span>{t('bonusParamItem')}</span>
+                  <Field label={t('bonusParamItem')}>
                     <select value={itemId} onChange={(e) => setItemId(e.target.value)}>
                       <option value="">—</option>
                       {artifacts.map((item) => (
                         <option key={item.sid} value={item.sid}>{item.labelByLang?.[language] || item.label || item.sid}</option>
                       ))}
                     </select>
-                  </label>
+                  </Field>
                 ) : null
               )}
 
               {typeSid === 'add_bonus_hero_unit' && (
-                <div className="field-row" style={{ marginBottom: 0 }}>
-                  <label style={selectStyle}>
-                    <span>{t('bonusParamUnit')}</span>
+                <FieldRow>
+                  <Field label={t('bonusParamUnit')}>
                     {units.length ? (
                       <select value={unitSid} onChange={(e) => setUnitSid(e.target.value)}>
                         <option value="">—</option>
@@ -321,56 +298,50 @@ export const BonusesSection: React.FC = () => {
                     ) : (
                       <input type="text" value={unitSid} onChange={(e) => setUnitSid(e.target.value)} placeholder="minos" />
                     )}
-                  </label>
-                  <label style={selectStyle}>
-                    <span>{t('bonusParamUnitCount')}</span>
+                  </Field>
+                  <Field label={t('bonusParamUnitCount')}>
                     <NumberField min={1} step={1} value={unitCount} onCommit={setUnitCount} />
-                  </label>
-                </div>
+                  </Field>
+                </FieldRow>
               )}
 
               {typeSid === 'add_bonus_hero_unit_multipler' && (
-                <label style={selectStyle}>
-                  <span>{t('bonusParamMultiplier')}</span>
+                <Field label={t('bonusParamMultiplier')}>
                   <NumberField min={0} step={0.5} value={multiplier} onCommit={setMultiplier} />
-                </label>
+                </Field>
               )}
 
               {typeSid === 'add_bonus_hero_stat' && (
                 <>
-                  <label style={selectStyle}>
-                    <span>{t('bonusStatPreset')}</span>
+                  <Field label={t('bonusStatPreset')}>
                     <select value={statPreset} onChange={(e) => setStatPreset(e.target.value as typeof statPreset)}>
                       <option value="movement">{t('bonusStat_movement')}</option>
                       <option value="freeSpell">{t('bonusStat_freeSpell')}</option>
                       <option value="manual">{t('bonusStat_manual')}</option>
                     </select>
-                  </label>
+                  </Field>
                   {statPreset === 'movement' && (
                     <>
-                      <label style={selectStyle}>
-                        <span>{t('bonusStatValue')}</span>
+                      <Field label={t('bonusStatValue')}>
                         <NumberField min={0} step={5} value={movementValue} onCommit={setMovementValue} />
-                      </label>
+                      </Field>
                       <p className="ui-field-hint" style={{ margin: 0 }}>{t('bonusStatMovementHelp')}</p>
                     </>
                   )}
                   {statPreset === 'freeSpell' && spells.length > 0 && (
-                    <label style={selectStyle}>
-                      <span>{t('bonusParamSpell')}</span>
+                    <Field label={t('bonusParamSpell')}>
                       <select value={statSpellId} onChange={(e) => setStatSpellId(e.target.value)}>
                         <option value="">—</option>
                         {spells.map((spell) => (
                           <option key={spell.id} value={spell.id}>{spell.labelByLang[language] || spell.id}</option>
                         ))}
                       </select>
-                    </label>
+                    </Field>
                   )}
                   {statPreset === 'manual' && (
                     <>
-                      <div className="field-row" style={{ marginBottom: 0 }}>
-                        <label style={selectStyle}>
-                          <span>{t('bonusStatName')}</span>
+                      <FieldRow>
+                        <Field label={t('bonusStatName')}>
                           {heroStatNames.length ? (
                             <select value={statName} onChange={(e) => setStatName(e.target.value)}>
                               <option value="">—</option>
@@ -387,12 +358,11 @@ export const BonusesSection: React.FC = () => {
                               placeholder="movementBonus"
                             />
                           )}
-                        </label>
-                        <label style={selectStyle}>
-                          <span>{t('bonusStatValue')}</span>
+                        </Field>
+                        <Field label={t('bonusStatValue')}>
                           <NumberField step={1} value={statValue} onCommit={setStatValue} />
-                        </label>
-                      </div>
+                        </Field>
+                      </FieldRow>
                       <p className="ui-field-hint" style={{ margin: 0 }}>{t('bonusStatManualHelp')}</p>
                     </>
                   )}

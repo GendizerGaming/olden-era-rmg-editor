@@ -95,6 +95,23 @@ Props: `id?` (persist open/closed) · `title` · `icon?` · `meta?` (right-side
 pills) · `actions?` (controls; clicks here don't toggle) · `defaultOpen?`
 (default `false`) · `children`. Collapsed = one scannable row.
 
+### `ListRow` — compact entry in a picker / list
+```tsx
+<ListRow
+  active={isBanned}
+  leading={!isBanned && <button onClick={add}><Plus size={10} /></button>}
+  title={entry.label}
+  subtitle={entry.detail}
+  trailing={isBanned && <button onClick={remove}><Trash2 size={10} /></button>}
+/>
+```
+For **non-collapsible list/picker rows** (bans, value overrides, variants,
+content-pool/limit pickers). Props: `active?` (highlight, e.g. selected/banned)
+· `title` · `titleTooltip?` · `subtitle?` · `subtitleTooltip?` · `leading?`
+(control before the text) · `trailing?` (controls at the end — their clicks
+don't fire the row) · `onClick?` (whole row clickable). Replaces the bespoke
+`rowStyle` objects that used to be copy-pasted per section.
+
 ### `CollapsibleSubsection` — sticky collapsible group
 ```tsx
 <CollapsibleSubsection id={`zone.guard.${zone.id}`} title={t('zoneGuardSection')}
@@ -127,14 +144,10 @@ When converting an old view onto the system:
 - [ ] `<label className="toggle-line">…checkbox…</label>` → `<Toggle … />`
 - [ ] `<p className="field-note">` → `tip` on the field/subsection, else `ui-field-hint`
 - [ ] `LazyDetails` / `object-chip` `<details>` for an entity → `<Card>`
+- [ ] bespoke `rowStyle` list/picker row → `<ListRow>`
 - [ ] `SectionHeader` (static) for a group → `<CollapsibleSubsection>`
 - [ ] inline `borderLeft: 2px accent…` indent → `className="ui-indent"`
 - [ ] inline `fontSize: 9/10/13px` → drop / `var(--fz-caption)`
 - [ ] inline `borderRadius: 4/10/20px` → `var(--radius-sm|md|lg)`
 - [ ] hardcoded hex colour → `var(--…)`
 - [ ] verify: `tsc -b` green, control counts unchanged, both themes, live check
-
-### Not yet a primitive
-- **`ListRow`** — the repeated `rowStyle` (selectable/removable list rows in
-  Bans / ValueOverrides / Variants / pools / limits) is still duplicated inline.
-  Extract a `ListRow` primitive when migrating the list sections.

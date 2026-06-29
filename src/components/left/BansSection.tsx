@@ -3,6 +3,7 @@ import { useEditorStore } from '../../store/useEditorStore';
 import { standardBanPreset } from '../../store/constants';
 import { useTranslation } from '../../i18n/context';
 import { Ban, Plus, Trash2, ChevronDown, ChevronRight, ShieldBan } from 'lucide-react';
+import { ListRow } from '../shared/primitives';
 
 type BanCategory = 'heroes' | 'spells' | 'items';
 
@@ -18,17 +19,6 @@ const SETTING_BY_CATEGORY = {
   spells: 'bannedSpells',
   items: 'bannedItems'
 } as const;
-
-const rowStyle = (banned: boolean): React.CSSProperties => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: '8px',
-  padding: '5px 8px',
-  borderRadius: '6px',
-  background: banned ? 'var(--accent-dim)' : 'var(--panel-2)',
-  border: banned ? '1px solid var(--accent)' : '1px solid var(--line)'
-});
 
 export const BansSection: React.FC = () => {
   const { t, language } = useTranslation();
@@ -217,25 +207,21 @@ export const BansSection: React.FC = () => {
                 bannedByCategory[cat].map((id) => {
                   const label = bannedEntryLabel(cat, id);
                   return (
-                    <div key={`${cat}:${id}`} style={rowStyle(false)}>
-                      <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0, flex: 1 }}>
-                        <span title={label} style={{ fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {label}
-                        </span>
-                        <span style={{ fontSize: '9px', color: 'var(--muted-soft)' }}>
-                          {categoryTitles[cat]}
-                        </span>
-                      </span>
-                      <button
-                        type="button"
-                        className="compact-button danger"
-                        title={t('bansRemove')}
-                        style={{ flexShrink: 0 }}
-                        onClick={() => removeBan(cat, id, label)}
-                      >
-                        <Trash2 size={10} />
-                      </button>
-                    </div>
+                    <ListRow
+                      key={`${cat}:${id}`}
+                      title={label}
+                      subtitle={categoryTitles[cat]}
+                      trailing={
+                        <button
+                          type="button"
+                          className="compact-button danger"
+                          title={t('bansRemove')}
+                          onClick={() => removeBan(cat, id, label)}
+                        >
+                          <Trash2 size={10} />
+                        </button>
+                      }
+                    />
                   );
                 })
               )}
@@ -291,7 +277,7 @@ export const BansSection: React.FC = () => {
                       style={{
                         cursor: 'pointer',
                         userSelect: 'none',
-                        fontSize: '11px',
+                        fontSize: 'var(--fz-caption)',
                         fontWeight: 600,
                         color: 'var(--muted)',
                         padding: '2px 0'
@@ -303,40 +289,32 @@ export const BansSection: React.FC = () => {
                       {entries.map((entry) => {
                         const isBanned = banned.includes(entry.id);
                         return (
-                          <div key={entry.id} style={rowStyle(isBanned)}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
-                              {!isBanned && (
-                                <button
-                                  type="button"
-                                  className="compact-button primary"
-                                  title={t('bansAdd')}
-                                  style={{ flexShrink: 0 }}
-                                  onClick={() => addBan(category, entry.id, entry.label)}
-                                >
-                                  <Plus size={10} />
-                                </button>
-                              )}
-                              <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
-                                <span title={entry.label} style={{ fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {entry.label}
-                                </span>
-                                <span title={entry.detail} style={{ fontSize: '9px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {entry.detail}
-                                </span>
-                              </span>
-                            </span>
-                            {isBanned && (
+                          <ListRow
+                            key={entry.id}
+                            active={isBanned}
+                            leading={!isBanned && (
+                              <button
+                                type="button"
+                                className="compact-button primary"
+                                title={t('bansAdd')}
+                                onClick={() => addBan(category, entry.id, entry.label)}
+                              >
+                                <Plus size={10} />
+                              </button>
+                            )}
+                            title={entry.label}
+                            subtitle={entry.detail}
+                            trailing={isBanned && (
                               <button
                                 type="button"
                                 className="compact-button danger"
                                 title={t('bansRemove')}
-                                style={{ flexShrink: 0 }}
                                 onClick={() => removeBan(category, entry.id, entry.label)}
                               >
                                 <Trash2 size={10} />
                               </button>
                             )}
-                          </div>
+                          />
                         );
                       })}
                     </div>
