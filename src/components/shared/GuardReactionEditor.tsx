@@ -1,6 +1,7 @@
 import React from 'react';
 import type { TranslationFunction } from '../../i18n/context';
 import { NumberField } from './NumberField';
+import { Field } from './primitives';
 
 // Weights follow the runtime enum order (decompiled ESquadReactionType):
 // index 0 = Aggressive (always fights) … index 5 = Docile (joins/lets pass).
@@ -39,8 +40,7 @@ export const GuardReactionEditor: React.FC<GuardReactionEditorProps> = ({ value,
 
   return (
     <>
-      <label style={{ marginBottom: 0 }}>
-        <span>{t('zoneAggression')}</span>
+      <Field label={t('zoneAggression')}>
         <select
           value={isCustom ? 'custom' : matched!.key}
           onChange={(e) => {
@@ -62,11 +62,11 @@ export const GuardReactionEditor: React.FC<GuardReactionEditorProps> = ({ value,
           ))}
           <option value="custom">{t('zoneAggressionCustom')}</option>
         </select>
-      </label>
-      <p className="field-note" style={{ margin: 0 }}>{t('zoneAggressionHelp')}</p>
+      </Field>
+      <p className="ui-field-hint" style={{ margin: 0 }}>{t('zoneAggressionHelp')}</p>
 
       {isCustom && (
-        <div style={{ display: 'grid', gap: '6px', borderLeft: '2px solid var(--accent)', paddingLeft: '8px' }}>
+        <div className="ui-indent" style={{ display: 'grid', gap: '6px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px' }}>
             {weights.map((weight, index) => (
               <NumberField
@@ -85,7 +85,7 @@ export const GuardReactionEditor: React.FC<GuardReactionEditorProps> = ({ value,
               />
             ))}
           </div>
-          <p className="field-note" style={{ margin: 0 }}>{t('zoneAggressionCustomHelp')}</p>
+          <p className="ui-field-hint" style={{ margin: 0 }}>{t('zoneAggressionCustomHelp')}</p>
         </div>
       )}
     </>

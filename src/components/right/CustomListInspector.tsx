@@ -144,7 +144,7 @@ export const CustomListInspectorContent: React.FC<CustomListInspectorContentProp
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <strong style={{ fontSize: '12px' }}>{getEntryName(entry)}</strong>
+                <strong style={{ fontSize: 'var(--fz-base)' }}>{getEntryName(entry)}</strong>
                 <span style={{ fontSize: 'var(--fz-caption)', opacity: 0.6 }}>
                   {entry.kind === 'list' ? `${t('nestedListType') || 'Вложенный список'}: ${entry.value}` : `SID: ${entry.value}`}
                 </span>
@@ -181,7 +181,7 @@ export const CustomListInspectorContent: React.FC<CustomListInspectorContentProp
                 min="0"
                 value={entry.weight}
                 onCommit={(v) => actions.updateEntryWeightInCustomList(listId, entry.key, Math.max(0, Math.floor(v)))}
-                style={{ width: '70px', padding: '2px 6px', fontSize: '12px' }}
+                style={{ width: '70px', padding: '2px 6px', fontSize: 'var(--fz-base)' }}
               />
             </div>
           </div>

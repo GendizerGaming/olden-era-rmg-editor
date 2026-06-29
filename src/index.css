@@ -49,6 +49,8 @@
   --zone-dot-spawn: #fef08a;
   --zone-dot-neutral: #cbd5e1;
   --zone-dot-other: #bbf7d0;
+  /* Contrast text on a saturated/solid coloured fill (e.g. the balance pill). */
+  --on-accent: #fff;
   --edge-line-stroke: var(--muted);
   --edge-direct: #57c97b;
   --edge-portal: #b08cff;

@@ -263,11 +263,11 @@ export const RightPanel: React.FC = () => {
               <span
                 style={{
                   marginLeft: '8px',
-                  fontSize: '11px',
+                  fontSize: 'var(--fz-caption)',
                   fontWeight: 700,
                   padding: '1px 7px',
                   borderRadius: '9px',
-                  color: '#fff',
+                  color: 'var(--on-accent)',
                   background: balanceReport.score >= 85
                     ? 'var(--ok)'
                     : balanceReport.score >= 60 ? 'var(--accent-2)' : 'var(--danger)'
