@@ -779,7 +779,7 @@ export const LeftPanel: React.FC = () => {
         {isPresetsExpanded && (
           <div className="collapsible-body">
         
-        <p className="field-note" style={{ marginBottom: '8px' }}>
+        <p className="ui-field-hint" style={{ marginBottom: '8px' }}>
           {t('presetsDescription')}
         </p>
 
@@ -806,7 +806,7 @@ export const LeftPanel: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '6px 8px',
-                  borderRadius: '6px',
+                  borderRadius: 'var(--radius-sm)',
                   background: isSelected ? 'var(--accent-dim)' : 'var(--panel-2)',
                   border: isSelected ? '1px solid var(--accent)' : '1px solid var(--line)',
                   cursor: 'pointer',
@@ -840,17 +840,17 @@ export const LeftPanel: React.FC = () => {
                   ></span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', overflow: 'hidden', minWidth: 0, flex: 1 }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                      <span style={{ fontSize: '12px', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 'var(--fz-base)', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {presetDisplayName(preset, t)}
                       </span>
                       {preset.isCustom && (
-                        <span style={{ fontSize: '9px', padding: '1px 4px', borderRadius: '4px', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
+                        <span style={{ fontSize: 'var(--fz-caption)', padding: '1px 4px', borderRadius: 'var(--radius-sm)', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
                           cstm
                         </span>
                       )}
                     </span>
                     {preset.guardedValue > 0 && (
-                      <span style={{ fontSize: '10px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         ≈{Math.round(preset.guardedValue / 1000)}k
                         <ValueBadge kind="zoneGuarded" value={preset.guardedValue} />
                       </span>
@@ -899,15 +899,15 @@ export const LeftPanel: React.FC = () => {
             {t('createPresetBtn') || 'Create Preset'}
           </button>
         ) : (
-          <form onSubmit={handleCreatePreset} style={{ display: 'grid', gap: '6px', padding: '8px', border: '1px solid var(--line)', borderRadius: '6px', background: 'var(--panel-2)' }}>
+          <form onSubmit={handleCreatePreset} style={{ display: 'grid', gap: '6px', padding: '8px', border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', background: 'var(--panel-2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '11px', fontWeight: 600 }}>{t('createNewPreset') || 'Create Preset'}</span>
+              <span style={{ fontSize: 'var(--fz-caption)', fontWeight: 600 }}>{t('createNewPreset') || 'Create Preset'}</span>
               <button type="button" className="compact-button" onClick={() => setShowCreateForm(false)}>
                 ✕
               </button>
             </div>
             
-            <label style={{ fontSize: '11px', display: 'grid', gap: '2px' }}>
+            <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px' }}>
               {t('presetName') || 'Name'}
               <input
                 type="text"
@@ -915,11 +915,11 @@ export const LeftPanel: React.FC = () => {
                 placeholder="My Preset"
                 value={newPresetName}
                 onChange={(e) => setNewPresetName(e.target.value)}
-                style={{ padding: '4px 8px', fontSize: '12px' }}
+                style={{ padding: '4px 8px', fontSize: 'var(--fz-base)' }}
               />
             </label>
             
-            <label style={{ fontSize: '11px', display: 'grid', gap: '2px' }}>
+            <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px' }}>
               {t('presetBaseType') || 'Base Type'}
               <select
                 value={newPresetBaseType}
@@ -928,7 +928,7 @@ export const LeftPanel: React.FC = () => {
                     setNewPresetBaseType(e.target.value);
                   }
                 }}
-                style={{ padding: '4px 6px', fontSize: '12px' }}
+                style={{ padding: '4px 6px', fontSize: 'var(--fz-base)' }}
               >
                 <option value="spawn">Spawn</option>
                 <option value="blank">Blank</option>
@@ -941,7 +941,7 @@ export const LeftPanel: React.FC = () => {
             </label>
             
             <div className="field-row" style={{ marginBottom: 0 }}>
-              <label style={{ fontSize: '11px', display: 'grid', gap: '2px', marginBottom: 0 }}>
+              <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px', marginBottom: 0 }}>
                 {t('presetRole')}
                 <select
                   value={newPresetRole}
@@ -953,7 +953,7 @@ export const LeftPanel: React.FC = () => {
                       setNewPresetBaseType(PRESET_RECIPES[role][newPresetTier].baseType as typeof newPresetBaseType);
                     }
                   }}
-                  style={{ padding: '4px 6px', fontSize: '12px' }}
+                  style={{ padding: '4px 6px', fontSize: 'var(--fz-base)' }}
                 >
                   <option value="">{t('presetRoleNone')}</option>
                   {PRESET_ROLES.map((role) => (
@@ -961,7 +961,7 @@ export const LeftPanel: React.FC = () => {
                   ))}
                 </select>
               </label>
-              <label style={{ fontSize: '11px', display: 'grid', gap: '2px', marginBottom: 0, opacity: newPresetRole ? 1 : 0.5 }}>
+              <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px', marginBottom: 0, opacity: newPresetRole ? 1 : 0.5 }}>
                 {t('presetTier')}
                 <select
                   value={newPresetTier}
@@ -973,7 +973,7 @@ export const LeftPanel: React.FC = () => {
                       setNewPresetBaseType(PRESET_RECIPES[newPresetRole][tier].baseType as typeof newPresetBaseType);
                     }
                   }}
-                  style={{ padding: '4px 6px', fontSize: '12px' }}
+                  style={{ padding: '4px 6px', fontSize: 'var(--fz-base)' }}
                 >
                   {PRESET_TIERS.map((tier) => (
                     <option key={tier} value={tier}>{t(`presetTier_${tier}`)}</option>
@@ -981,15 +981,15 @@ export const LeftPanel: React.FC = () => {
                 </select>
               </label>
             </div>
-            <p className="field-note" style={{ margin: 0 }}>{t('presetRecipeHelp')}</p>
+            <p className="ui-field-hint" style={{ margin: 0 }}>{t('presetRecipeHelp')}</p>
 
-            <label style={{ fontSize: '11px', display: 'grid', gap: '2px', opacity: newPresetRole ? 0.5 : 1 }}>
+            <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px', opacity: newPresetRole ? 0.5 : 1 }}>
               {t('cloneFrom') || 'Clone from'}
               <select
                 value={newPresetCloneSource}
                 disabled={Boolean(newPresetRole)}
                 onChange={(e) => setNewPresetCloneSource(e.target.value)}
-                style={{ padding: '4px 6px', fontSize: '12px' }}
+                style={{ padding: '4px 6px', fontSize: 'var(--fz-base)' }}
               >
                 <option value="">{t('none') || 'None'}</option>
                 {Object.values(presets).map((p) => (
@@ -1036,7 +1036,7 @@ export const LeftPanel: React.FC = () => {
 
         {isTerrainExpanded && (
           <div className="collapsible-body">
-            <p className="field-note" style={{ marginBottom: '8px' }}>
+            <p className="ui-field-hint" style={{ marginBottom: '8px' }}>
               {t('terrainProfilesDescription')}
             </p>
 
@@ -1060,7 +1060,7 @@ export const LeftPanel: React.FC = () => {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '6px 8px',
-                      borderRadius: '6px',
+                      borderRadius: 'var(--radius-sm)',
                       background: isSelected ? 'var(--accent-dim)' : 'var(--panel-2)',
                       border: isSelected ? '1px solid var(--accent)' : '1px solid var(--line)',
                       cursor: 'pointer',
@@ -1070,16 +1070,16 @@ export const LeftPanel: React.FC = () => {
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', overflow: 'hidden', minWidth: 0, flex: 1 }} title={profile.name}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                        <span style={{ fontSize: '12px', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 'var(--fz-base)', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {profile.name}
                         </span>
                         {profile.custom && (
-                          <span style={{ fontSize: '9px', padding: '1px 4px', borderRadius: '4px', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
+                          <span style={{ fontSize: 'var(--fz-caption)', padding: '1px 4px', borderRadius: 'var(--radius-sm)', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
                             cstm
                           </span>
                         )}
                       </span>
-                      <span style={{ fontSize: '10px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {t('terrainProfileSummary', {
                           obstacles: profile.obstaclesFill ?? '—',
                           lakes: profile.lakesFill ?? '—',
@@ -1157,7 +1157,7 @@ export const LeftPanel: React.FC = () => {
 
         {isLimitsExpanded && (
           <div className="collapsible-body">
-            <p className="field-note" style={{ marginBottom: '8px' }}>
+            <p className="ui-field-hint" style={{ marginBottom: '8px' }}>
               {t('contentLimitsDescription')}
             </p>
 
@@ -1182,7 +1182,7 @@ export const LeftPanel: React.FC = () => {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '6px 8px',
-                      borderRadius: '6px',
+                      borderRadius: 'var(--radius-sm)',
                       background: isSelected ? 'var(--accent-dim)' : 'var(--panel-2)',
                       border: isSelected ? '1px solid var(--accent)' : '1px solid var(--line)',
                       cursor: 'pointer',
@@ -1192,16 +1192,16 @@ export const LeftPanel: React.FC = () => {
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', overflow: 'hidden', minWidth: 0, flex: 1 }} title={limitPreset.name}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                        <span style={{ fontSize: '12px', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 'var(--fz-base)', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {limitPreset.name}
                         </span>
                         {limitPreset.custom && (
-                          <span style={{ fontSize: '9px', padding: '1px 4px', borderRadius: '4px', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
+                          <span style={{ fontSize: 'var(--fz-caption)', padding: '1px 4px', borderRadius: 'var(--radius-sm)', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
                             cstm
                           </span>
                         )}
                       </span>
-                      <span style={{ fontSize: '10px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {t('contentLimitSummary', {
                           rows: limitPreset.limits.length,
                           zones: usedCount
@@ -1278,13 +1278,13 @@ export const LeftPanel: React.FC = () => {
 
         {isPoolsExpanded && (
           <div className="collapsible-body">
-            <p className="field-note" style={{ marginBottom: '8px' }}>
+            <p className="ui-field-hint" style={{ marginBottom: '8px' }}>
               {t('contentPoolsDescription')}
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gridAutoRows: 'max-content', alignContent: 'start', gap: '4px', maxHeight: '180px', overflowY: 'auto', overflowX: 'hidden', marginBottom: '8px', paddingRight: '4px' }}>
               {settings.contentPoolPresets.length === 0 && (
-                <p className="field-note" style={{ margin: 0 }}>{t('contentPoolsEmpty')}</p>
+                <p className="ui-field-hint" style={{ margin: 0 }}>{t('contentPoolsEmpty')}</p>
               )}
               {settings.contentPoolPresets.map((pool) => {
                 const isSelected = selected?.type === 'contentPool' && selected.id === pool.name;
@@ -1302,7 +1302,7 @@ export const LeftPanel: React.FC = () => {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '6px 8px',
-                      borderRadius: '6px',
+                      borderRadius: 'var(--radius-sm)',
                       background: isSelected ? 'var(--accent-dim)' : 'var(--panel-2)',
                       border: isSelected ? '1px solid var(--accent)' : '1px solid var(--line)',
                       cursor: 'pointer',
@@ -1312,16 +1312,16 @@ export const LeftPanel: React.FC = () => {
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', overflow: 'hidden', minWidth: 0, flex: 1 }} title={pool.name}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                        <span style={{ fontSize: '12px', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 'var(--fz-base)', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {pool.name}
                         </span>
                         {pool.custom && (
-                          <span style={{ fontSize: '9px', padding: '1px 4px', borderRadius: '4px', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
+                          <span style={{ fontSize: 'var(--fz-caption)', padding: '1px 4px', borderRadius: 'var(--radius-sm)', background: 'var(--line)', color: 'var(--ink)', flexShrink: 0 }}>
                             cstm
                           </span>
                         )}
                       </span>
-                      <span style={{ fontSize: '10px', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 'var(--fz-caption)', color: 'var(--muted-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {t('contentPoolSummary', {
                           groups: pool.groups.length,
                           bans: pool.bans.length,
@@ -1524,10 +1524,10 @@ export const LeftPanel: React.FC = () => {
                     width: '100%',
                     background: 'var(--panel-2)',
                     border: '1px dashed var(--line)',
-                    borderRadius: '8px',
+                    borderRadius: 'var(--radius-md)',
                     color: 'var(--ink)',
                     cursor: 'pointer',
-                    fontSize: '12px',
+                    fontSize: 'var(--fz-base)',
                     fontWeight: 600,
                     textAlign: 'center',
                     transition: 'background 150ms ease, border-color 150ms ease'
@@ -1666,7 +1666,7 @@ export const LeftPanel: React.FC = () => {
                 })}
               
               {Object.keys(customObjectLists).length === 0 && (
-                <div style={{ padding: '10px', textAlign: 'center', fontSize: '11px', opacity: 0.6 }}>
+                <div style={{ padding: '10px', textAlign: 'center', fontSize: 'var(--fz-caption)', opacity: 0.6 }}>
                   {t('noCustomLists') || 'No custom sets'}
                 </div>
               )}
@@ -1698,16 +1698,16 @@ export const LeftPanel: React.FC = () => {
                     setShowCreateCustomListForm(false);
                   }
                 }} 
-                style={{ display: 'grid', gap: '6px', padding: '8px', border: '1px solid var(--line)', borderRadius: '6px', background: 'var(--panel-2)' }}
+                style={{ display: 'grid', gap: '6px', padding: '8px', border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', background: 'var(--panel-2)' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 600 }}>{t('createCustomListBtn') || 'Create List'}</span>
+                  <span style={{ fontSize: 'var(--fz-caption)', fontWeight: 600 }}>{t('createCustomListBtn') || 'Create List'}</span>
                   <button type="button" className="compact-button" onClick={() => setShowCreateCustomListForm(false)}>
                     ✕
                   </button>
                 </div>
                 
-                <label style={{ fontSize: '11px', display: 'grid', gap: '2px' }}>
+                <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px' }}>
                   {t('customListIdLabel') || 'ID набора (латиница):'}
                   <input
                     type="text"
@@ -1715,27 +1715,27 @@ export const LeftPanel: React.FC = () => {
                     placeholder="my_list_id"
                     value={newCustomListId}
                     onChange={(e) => setNewCustomListId(e.target.value)}
-                    style={{ padding: '4px 8px', fontSize: '12px' }}
+                    style={{ padding: '4px 8px', fontSize: 'var(--fz-base)' }}
                   />
                 </label>
 
-                <label style={{ fontSize: '11px', display: 'grid', gap: '2px' }}>
+                <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px' }}>
                   {t('customListLabelLabel') || 'Название набора:'}
                   <input
                     type="text"
                     placeholder="My Custom List"
                     value={newCustomListName}
                     onChange={(e) => setNewCustomListName(e.target.value)}
-                    style={{ padding: '4px 8px', fontSize: '12px' }}
+                    style={{ padding: '4px 8px', fontSize: 'var(--fz-base)' }}
                   />
                 </label>
                 
-                <label style={{ fontSize: '11px', display: 'grid', gap: '2px' }}>
+                <label style={{ fontSize: 'var(--fz-caption)', display: 'grid', gap: '2px' }}>
                   {t('cloneFrom') || 'Clone from'}
                   <select
                     value={newCustomListCloneSource}
                     onChange={(e) => setNewCustomListCloneSource(e.target.value)}
-                    style={{ padding: '4px 6px', fontSize: '12px' }}
+                    style={{ padding: '4px 6px', fontSize: 'var(--fz-base)' }}
                   >
                     <option value="">{t('none') || 'None'}</option>
                     {Object.values(customObjectLists).map((l) => (
