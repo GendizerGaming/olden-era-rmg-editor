@@ -140,7 +140,7 @@ export const Card: React.FC<CardProps> = ({ id, title, icon, meta, actions, defa
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } }}
       >
         <span className="ui-card-chev">{open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
-        <span className="ui-card-title">{icon}{title}</span>
+        <span className="ui-card-title" title={typeof title === 'string' ? title : undefined}>{icon}{title}</span>
         <span className="ui-card-meta">
           {meta}
           {actions && <span className="ui-card-actions" onClick={(e) => e.stopPropagation()}>{actions}</span>}

@@ -787,8 +787,12 @@ label textarea {
 
 .ui-card-head {
   display: flex;
+  /* When the title can't share a line with the meta badges without being
+     crushed, the whole meta group drops to its own row below the title —
+     instead of squeezing the title to a sliver or splitting badges mid-group. */
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1) var(--space-2);
   padding: var(--space-2) var(--space-3);
   cursor: pointer;
   user-select: none;
@@ -801,12 +805,14 @@ label textarea {
 }
 
 .ui-card-title {
-  flex: 1 1 auto;
+  /* flex-basis is a floor, not the full content width: a short title still
+     shares the line with the meta badges when there's room (flex-grow fills
+     the rest), but it's guaranteed at least this much space before the row
+     wraps — so wide meta groups can never crush it to an illegible sliver. */
+  flex: 1 1 64px;
   min-width: 0;
   font-size: var(--fz-base);
   font-weight: 600;
-  /* One line that ellipsizes if cramped — never break the title into vertical
-     glyphs when the meta badges squeeze it. */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -814,9 +820,9 @@ label textarea {
 
 .ui-card-meta {
   display: flex;
-  /* Stay on one line at natural width: the title ellipsizes to make room, the
-     badges + remove button never wrap (which would float a badge above the
-     title under align-items:center). */
+  /* Never wraps internally (that would float a badge above the title under
+     align-items:center) — it either fits on the title's row or the whole
+     group moves to its own row via .ui-card-head's flex-wrap. */
   flex: none;
   align-items: center;
   gap: var(--space-1);
