@@ -297,13 +297,13 @@ export function validate(
   // without a land route between sides — the official "Exodus" tournament map,
   // for instance, splits into one isolated race track per player on purpose — so
   // the split is by design there and we stay silent. For the remaining (combat)
-  // win conditions it is a soft warning, not a hard error: the engine itself
-  // doesn't require one connected graph, this is an editor heuristic.
+  // win conditions, classic included, it is a hard error: the players would never
+  // meet by land, so the objective can never resolve — that is a broken map.
   const parallelWin = settings.tournamentEnabled || settings.gladiatorArenaEnabled;
   const components = connectedZoneComponents(zones, passableEdges);
   if (components.length > 1 && !parallelWin) {
     const groups = components.map((component) => component.join(", ")).join(" | ");
-    messages.push(["warn", t("disconnectedGraph", { count: components.length, groups })]);
+    messages.push(["error", t("disconnectedGraph", { count: components.length, groups })]);
   }
 
   // The game's parser requires weights.length === priceBounds.length + 1.
