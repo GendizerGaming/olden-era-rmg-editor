@@ -292,10 +292,18 @@ export function validate(
     }
   }
 
+  // A split passage graph only matters when players are meant to reach one
+  // another. Tournament and gladiator-arena win conditions are scored / decided
+  // without a land route between sides — the official "Exodus" tournament map,
+  // for instance, splits into one isolated race track per player on purpose — so
+  // the split is by design there and we stay silent. For the remaining (combat)
+  // win conditions it is a soft warning, not a hard error: the engine itself
+  // doesn't require one connected graph, this is an editor heuristic.
+  const parallelWin = settings.tournamentEnabled || settings.gladiatorArenaEnabled;
   const components = connectedZoneComponents(zones, passableEdges);
-  if (components.length > 1) {
+  if (components.length > 1 && !parallelWin) {
     const groups = components.map((component) => component.join(", ")).join(" | ");
-    messages.push(["error", t("disconnectedGraph", { count: components.length, groups })]);
+    messages.push(["warn", t("disconnectedGraph", { count: components.length, groups })]);
   }
 
   // The game's parser requires weights.length === priceBounds.length + 1.

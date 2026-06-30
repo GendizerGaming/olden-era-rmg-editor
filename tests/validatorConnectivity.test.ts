@@ -74,3 +74,43 @@ describe("validator connectivity ignores springs", () => {
     expect(texts.some((text) => text.startsWith("disconnectedGraph"))).toBe(false);
   });
 });
+
+describe("validator connectivity is win-condition-aware", () => {
+  const settingsWith = (extra: Partial<MapSettings>) =>
+    ({ ...settings, ...extra }) as unknown as MapSettings;
+
+  // Two internally-connected halves joined only by a spring — the Exodus shape:
+  // each half is its own passage component, the only A<->B link is Proximity.
+  const splitMap = () => ({
+    zones: [zone("A1", 1), zone("A2"), zone("B1", 2), zone("B2")],
+    edges: [
+      edge("A1", "A2", "Direct"),
+      edge("B1", "B2", "Direct"),
+      edge("A1", "B1", "Proximity")
+    ]
+  });
+
+  it("warns (not errors) on a split passage graph for a combat win condition", () => {
+    const { zones, edges } = splitMap();
+    const graph = validate(settings, zones, edges, false, [], [], t)
+      .find(([, text]) => text.startsWith("disconnectedGraph"));
+    expect(graph).toBeDefined();
+    expect(graph![0]).toBe("warn"); // downgraded from a hard "error"
+  });
+
+  it("stays silent on a split passage graph for a tournament win condition", () => {
+    const { zones, edges } = splitMap();
+    const texts = validate(
+      settingsWith({ tournamentEnabled: true, tournamentDays: [], tournamentAnnounceDays: [] }),
+      zones, edges, false, [], [], t
+    ).map(([, text]) => text);
+    expect(texts.some((text) => text.startsWith("disconnectedGraph"))).toBe(false);
+  });
+
+  it("stays silent for a gladiator-arena win condition too", () => {
+    const { zones, edges } = splitMap();
+    const texts = validate(settingsWith({ gladiatorArenaEnabled: true }), zones, edges, false, [], [], t)
+      .map(([, text]) => text);
+    expect(texts.some((text) => text.startsWith("disconnectedGraph"))).toBe(false);
+  });
+});
