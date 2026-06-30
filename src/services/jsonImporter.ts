@@ -62,9 +62,8 @@ function groupZoneObjects(objects: ZoneObject[]): ZoneObject[] {
   return grouped;
 }
 
-// Force-Directed Layout Algorithm (Spring Physics)
-// Force-Directed Layout Algorithm (Spring Physics)
-function arrangeCoordinates(zones: Zone[], edges: Edge[]): void {
+// Force-directed layout (spring physics) for a single group of zones.
+function forceLayout(zones: Zone[], edges: Edge[]): void {
   const N = zones.length;
   if (N === 0) return;
 
@@ -205,6 +204,91 @@ function arrangeCoordinates(zones: Zone[], edges: Edge[]): void {
     // Keep within bounds
     z.x = Math.max(0.05, Math.min(0.95, z.x));
     z.y = Math.max(0.05, Math.min(0.95, z.y));
+  });
+}
+
+/**
+ * Passage connected components: Proximity springs only position zones, they
+ * don't create a passage, so they don't join groups (same rule the validator
+ * uses). A tournament map like "Exodus" therefore comes back as one component
+ * per player track.
+ */
+function passageComponents(zones: Zone[], edges: Edge[]): Zone[][] {
+  const byId = new Map(zones.map((z) => [z.id, z]));
+  const neighbors = new Map<string, string[]>(zones.map((z) => [z.id, []]));
+  for (const e of edges) {
+    if (e.connectionType === "Proximity") continue;
+    if (!neighbors.has(e.from) || !neighbors.has(e.to)) continue;
+    neighbors.get(e.from)!.push(e.to);
+    neighbors.get(e.to)!.push(e.from);
+  }
+  const seen = new Set<string>();
+  const components: Zone[][] = [];
+  for (const start of zones) {
+    if (seen.has(start.id)) continue;
+    const comp: Zone[] = [];
+    const stack = [start.id];
+    seen.add(start.id);
+    while (stack.length) {
+      const id = stack.pop()!;
+      comp.push(byId.get(id)!);
+      for (const n of neighbors.get(id) || []) {
+        if (!seen.has(n)) { seen.add(n); stack.push(n); }
+      }
+    }
+    components.push(comp);
+  }
+  return components;
+}
+
+/**
+ * Position zones on the canvas. A single passage-connected map keeps the
+ * whole-graph force layout. When the map splits into passage-isolated groups
+ * (e.g. the two race tracks of a tournament template, joined only by springs),
+ * each group is laid out on its own and packed into a separate grid cell so the
+ * structure reads as distinct clusters instead of one tangle; the cross-group
+ * springs are then drawn bridging the gaps.
+ */
+function arrangeCoordinates(zones: Zone[], edges: Edge[]): void {
+  const N = zones.length;
+  if (N === 0) return;
+  if (N === 1) { zones[0].x = 0.5; zones[0].y = 0.5; return; }
+
+  const components = passageComponents(zones, edges);
+  if (components.length <= 1) {
+    forceLayout(zones, edges);
+    return;
+  }
+
+  const cols = Math.ceil(Math.sqrt(components.length));
+  const rows = Math.ceil(components.length / cols);
+  const gap = 0.04;                                   // empty band between cells
+  const cellW = (0.9 - gap * (cols - 1)) / cols;      // usable canvas is [0.05, 0.95]
+  const cellH = (0.9 - gap * (rows - 1)) / rows;
+  const innerPad = 0.16;                              // fraction of a cell left as margin
+
+  components.forEach((comp, ci) => {
+    const ids = new Set(comp.map((z) => z.id));
+    const internalEdges = edges.filter((e) => ids.has(e.from) && ids.has(e.to));
+    forceLayout(comp, internalEdges);
+
+    const xs = comp.map((z) => z.x);
+    const ys = comp.map((z) => z.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs);
+    const minY = Math.min(...ys), maxY = Math.max(...ys);
+    const spanX = maxX - minX, spanY = maxY - minY;
+
+    const col = ci % cols;
+    const row = Math.floor(ci / cols);
+    const cellX0 = 0.05 + col * (cellW + gap);
+    const cellY0 = 0.05 + row * (cellH + gap);
+
+    comp.forEach((z) => {
+      const nx = spanX > 0.01 ? (z.x - minX) / spanX : 0.5;
+      const ny = spanY > 0.01 ? (z.y - minY) / spanY : 0.5;
+      z.x = cellX0 + (innerPad / 2 + nx * (1 - innerPad)) * cellW;
+      z.y = cellY0 + (innerPad / 2 + ny * (1 - innerPad)) * cellH;
+    });
   });
 }
 
