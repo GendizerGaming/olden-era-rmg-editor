@@ -90,12 +90,12 @@ describe("validator connectivity is win-condition-aware", () => {
     ]
   });
 
-  it("warns (not errors) on a split passage graph for a combat win condition", () => {
+  it("errors on a split passage graph for a combat win condition", () => {
     const { zones, edges } = splitMap();
     const graph = validate(settings, zones, edges, false, [], [], t)
       .find(([, text]) => text.startsWith("disconnectedGraph"));
     expect(graph).toBeDefined();
-    expect(graph![0]).toBe("warn"); // downgraded from a hard "error"
+    expect(graph![0]).toBe("error"); // classic/combat: players could never meet — broken map
   });
 
   it("stays silent on a split passage graph for a tournament win condition", () => {
