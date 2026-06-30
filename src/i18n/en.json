@@ -797,7 +797,7 @@
   "negativeGuard": "Negative guard value in link {id}.",
   "heroLimitInvalid": "Maximum heroes cannot be lower than starting heroes.",
   "disconnectedZone": "Zone {id} is not connected.",
-  "disconnectedGraph": "The design is split into {count} disconnected zone groups: {groups}. Every zone must belong to one connected graph.",
+  "disconnectedGraph": "The design splits into {count} isolated zone groups: {groups}. Players in different groups can't reach each other by land — only meaningful for tournament / arena win conditions.",
   "gladiatorArenaRequiresSpawns": "Gladiator Arena requires at least 2 player start zones (spawns).",
   "gladiatorArenaPrepDaysInvalid": "Gladiator Arena preparation days must be a positive number.",
   "tournamentRequiresSpawns": "Tournament Mode requires at least 2 player start zones (spawns).",
