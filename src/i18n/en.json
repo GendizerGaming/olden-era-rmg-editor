@@ -58,6 +58,7 @@
   "cityFactionRandom": "Random",
   "cityFactionConstrained": "Constrained random (from template)",
   "cityFactionSpawn": "Match a starting castle",
+  "cityFactionSpawnShort": "Like spawn",
   "cityFactionSpecific": "Specific",
   "citySpawnSource": "Starting castle",
   "selectSpawnSource": "Select a start zone",
