@@ -58,6 +58,7 @@
   "cityFactionRandom": "Случайная",
   "cityFactionConstrained": "Ограниченно случайная (из шаблона)",
   "cityFactionSpawn": "Как у стартового замка",
+  "cityFactionSpawnShort": "Как у старта",
   "cityFactionSpecific": "Конкретная",
   "citySpawnSource": "Стартовый замок",
   "selectSpawnSource": "Выберите стартовую зону",

@@ -898,8 +898,10 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
 
             // Collapsed-card summary pills (owner / faction) so a list of
             // castles stays scannable without expanding each one.
+            // The collapsed-card badge uses the short label so the title keeps
+            // room; the full "Match a starting castle" stays in the dropdown.
             const factionModeLabel = obj.factionMode === 'spawn'
-              ? t('cityFactionSpawn')
+              ? t('cityFactionSpawnShort')
               : obj.factionMode === 'specific'
                 ? t('cityFactionSpecific')
                 : t('cityFactionRandom');
