@@ -147,9 +147,11 @@ export function createConnectionActions(ctx: StoreContext): Pick<EditorActions, 
             return cloneEdgeOntoZones(src, zoneA, zoneB, newId);
           });
 
+          // The selection deliberately stays on the source: stamping the same
+          // bundle onto several pairs in a row shouldn't require re-selecting
+          // it every time. The toast and the new canvas line report the result.
           const nextState = {
             edges: [...state.edges, ...created],
-            selected: { type: 'edgePair' as const, id: edgePairKey(zoneA, zoneB) },
             notifications: [
               ...state.notifications,
               {

@@ -94,7 +94,11 @@ describe("addConnectionsBetweenZones (store action)", () => {
     const [cOld] = pairEdges(c, center);
     actions().updateEdgeField(cOld.id, { guardValue: 55555, guardMatchGroup: "spawn_side_guard" });
 
+    // Selection must stay on the source, so the same bundle can be stamped
+    // onto several pairs in a row without re-selecting it.
+    actions().setSelected({ type: "edge", id: a1.id });
     actions().addConnectionsBetweenZones([a1.id, a2.id], c, center);
+    expect(state().selected).toEqual({ type: "edge", id: a1.id });
 
     const after = pairEdges(c, center);
     // additive: the old weak one plus two clones

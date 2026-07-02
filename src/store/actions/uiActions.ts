@@ -5,7 +5,7 @@ import { uniqueKey } from '../ids';
 // Sections hidden in the simple mode cannot stay selected when switching.
 const EXPERT_ONLY_SELECTION_TYPES = new Set(['terrainProfile', 'contentLimits', 'contentPool', 'customList']);
 
-export function createUiActions(ctx: StoreContext): Pick<EditorActions, 'setSelected' | 'setMode' | 'setConnectStart' | 'startZonePick' | 'cancelZonePick' | 'pickZone' | 'toggleTheme' | 'setUiMode' | 'addNotification' | 'removeNotification' | 'toggleSnapToGrid'> {
+export function createUiActions(ctx: StoreContext): Pick<EditorActions, 'setSelected' | 'setMode' | 'setConnectStart' | 'startZonePick' | 'cancelZonePick' | 'pickZone' | 'setCopyTargets' | 'toggleTheme' | 'setUiMode' | 'addNotification' | 'removeNotification' | 'toggleSnapToGrid'> {
   const { set } = ctx;
   return {
       setSelected: (selected) => {
@@ -23,6 +23,9 @@ export function createUiActions(ctx: StoreContext): Pick<EditorActions, 'setSele
           if (!state.zonePick || state.zonePick.includes(zoneId) || state.zonePick.length >= 2) return {};
           return { zonePick: [...state.zonePick, zoneId] };
         });
+      },
+      setCopyTargets: (copyTargets) => {
+        set({ copyTargets });
       },
       setUiMode: (uiMode) => {
         set((state) => {

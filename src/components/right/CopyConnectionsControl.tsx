@@ -27,9 +27,15 @@ export const CopyConnectionsControl: React.FC<CopyConnectionsControlProps> = ({ 
   const [zoneB, setZoneB] = React.useState(first?.to ?? '');
   const zonePick = useEditorStore((state) => state.zonePick);
   const picking = zonePick !== null;
+  // The subscription below fires between renders; the ref keeps it aimed at
+  // the current source connections without re-subscribing.
+  const passagesRef = React.useRef(passages);
+  React.useEffect(() => {
+    passagesRef.current = passages;
+  });
 
-  // Canvas picks flow into the selects as they land; the second click ends
-  // the picking session.
+  // Canvas picks flow into the selects as they land; the second click applies
+  // the copy right away — same click-click rhythm as the connect tool.
   React.useEffect(() => {
     return useEditorStore.subscribe((state, prev) => {
       const pick = state.zonePick;
@@ -38,11 +44,23 @@ export const CopyConnectionsControl: React.FC<CopyConnectionsControlProps> = ({ 
       if (pick.length === 2) {
         setZoneB(pick[1]);
         actions.cancelZonePick();
+        actions.addConnectionsBetweenZones(passagesRef.current.map((e) => e.id), pick[0], pick[1]);
       }
     });
   }, [actions]);
 
-  // Leaving the picker (or the inspector) always ends the picking session.
+  // Publish the dropdown-chosen pair so the canvas can highlight the zones
+  // and preview the would-be connection with a ghost line.
+  React.useEffect(() => {
+    if (!open) {
+      actions.setCopyTargets(null);
+      return;
+    }
+    actions.setCopyTargets(zoneA && zoneB && zoneA !== zoneB ? { a: zoneA, b: zoneB } : null);
+  }, [open, zoneA, zoneB, actions]);
+
+  // Leaving the picker (or the inspector) always ends the picking session
+  // and drops the canvas preview.
   React.useEffect(() => {
     if (!open) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -52,6 +70,7 @@ export const CopyConnectionsControl: React.FC<CopyConnectionsControlProps> = ({ 
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       actions.cancelZonePick();
+      actions.setCopyTargets(null);
     };
   }, [open, actions]);
 

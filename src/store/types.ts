@@ -113,6 +113,9 @@ export interface EditorActions {
   startZonePick: () => void;
   cancelZonePick: () => void;
   pickZone: (zoneId: string) => void;
+  /** Publish (or clear) the copy-connections target pair so the canvas can
+   *  highlight the zones and draw the ghost preview line. */
+  setCopyTargets: (targets: { a: string; b: string } | null) => void;
   connectZones: (fromId: string, toId: string, connectionType?: ConnectionType) => void;
   deleteEdge: (edgeId: string) => void;
   /** Clone the given connections (springs skipped) onto the zoneA↔zoneB pair,

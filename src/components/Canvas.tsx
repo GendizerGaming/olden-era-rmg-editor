@@ -52,6 +52,7 @@ export const Canvas: React.FC = () => {
   const mode = useEditorStore((state) => state.mode);
   const connectStart = useEditorStore((state) => state.connectStart);
   const zonePick = useEditorStore((state) => state.zonePick);
+  const copyTargets = useEditorStore((state) => state.copyTargets);
   const snapToGrid = useEditorStore((state) => state.snapToGrid);
   const { sizeX, sizeZ, originalZoneLayouts } = useEditorStore((state) => state.settings);
   const past = useEditorStore((state) => state.history.past);
@@ -1048,12 +1049,40 @@ export const Canvas: React.FC = () => {
                 );
               })()}
               
+              {/* Ghost preview of the copy-connections target pair. Hidden
+                  while the click picker runs — its own highlight is enough. */}
+              {copyTargets && !zonePick && (() => {
+                const za = zones.find((z) => z.id === copyTargets.a);
+                const zb = zones.find((z) => z.id === copyTargets.b);
+                if (!za || !zb) return null;
+                const pa = toCanvas(za);
+                const pb = toCanvas(zb);
+                return (
+                  <line
+                    id="copy-preview-line"
+                    x1={pa.x}
+                    y1={pa.y}
+                    x2={pb.x}
+                    y2={pb.y}
+                    stroke="var(--accent-light)"
+                    strokeWidth={3}
+                    strokeDasharray="8 6"
+                    opacity={0.8}
+                    pointerEvents="none"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                );
+              })()}
+
               {/* Zone Layer */}
               <g id="zoneLayer">
                 {zones.map((zone) => {
                   const p = toCanvas(zone);
                   const isZoneSelected = selected?.type === 'zone' && selected.id === zone.id;
-                  const isConnectStart = connectStart === zone.id || (zonePick?.includes(zone.id) ?? false);
+                  const isConnectStart =
+                    connectStart === zone.id ||
+                    (zonePick?.includes(zone.id) ?? false) ||
+                    (!zonePick && !!copyTargets && (copyTargets.a === zone.id || copyTargets.b === zone.id));
                   const biomeId = getZoneActiveBiome(zone);
                   const labelStr = zone.label || zone.id;
 
