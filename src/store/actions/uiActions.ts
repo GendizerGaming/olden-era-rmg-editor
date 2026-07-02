@@ -5,11 +5,24 @@ import { uniqueKey } from '../ids';
 // Sections hidden in the simple mode cannot stay selected when switching.
 const EXPERT_ONLY_SELECTION_TYPES = new Set(['terrainProfile', 'contentLimits', 'contentPool', 'customList']);
 
-export function createUiActions(ctx: StoreContext): Pick<EditorActions, 'setSelected' | 'setMode' | 'setConnectStart' | 'toggleTheme' | 'setUiMode' | 'addNotification' | 'removeNotification' | 'toggleSnapToGrid'> {
+export function createUiActions(ctx: StoreContext): Pick<EditorActions, 'setSelected' | 'setMode' | 'setConnectStart' | 'startZonePick' | 'cancelZonePick' | 'pickZone' | 'toggleTheme' | 'setUiMode' | 'addNotification' | 'removeNotification' | 'toggleSnapToGrid'> {
   const { set } = ctx;
   return {
       setSelected: (selected) => {
         set({ selected });
+      },
+      startZonePick: () => {
+        // Picking must not fight the connect tool over zone clicks.
+        set({ zonePick: [], mode: 'select', connectStart: null });
+      },
+      cancelZonePick: () => {
+        set({ zonePick: null });
+      },
+      pickZone: (zoneId) => {
+        set((state) => {
+          if (!state.zonePick || state.zonePick.includes(zoneId) || state.zonePick.length >= 2) return {};
+          return { zonePick: [...state.zonePick, zoneId] };
+        });
       },
       setUiMode: (uiMode) => {
         set((state) => {
@@ -25,7 +38,7 @@ export function createUiActions(ctx: StoreContext): Pick<EditorActions, 'setSele
         });
       },
       setMode: (mode) => {
-        set({ mode, connectStart: null });
+        set({ mode, connectStart: null, zonePick: null });
       },
       setConnectStart: (connectStart) => {
         set({ connectStart });

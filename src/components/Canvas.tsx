@@ -51,6 +51,7 @@ export const Canvas: React.FC = () => {
   const selected = useEditorStore((state) => state.selected);
   const mode = useEditorStore((state) => state.mode);
   const connectStart = useEditorStore((state) => state.connectStart);
+  const zonePick = useEditorStore((state) => state.zonePick);
   const snapToGrid = useEditorStore((state) => state.snapToGrid);
   const { sizeX, sizeZ, originalZoneLayouts } = useEditorStore((state) => state.settings);
   const past = useEditorStore((state) => state.history.past);
@@ -340,6 +341,9 @@ export const Canvas: React.FC = () => {
   // Drag event handling
   const handleZonePointerDown = (e: React.PointerEvent<SVGElement>, zone: Zone) => {
     if (mode === 'connect') return;
+    // While the target picker is active, zones are pick targets, not
+    // drag/select targets — the click is handled by handleZoneClick.
+    if (zonePick) return;
     // Panning overrides dragging
     if (e.button === 1 || e.button === 2 || isSpacePressed) return;
     e.preventDefault();
@@ -512,6 +516,12 @@ export const Canvas: React.FC = () => {
 
   const handleZoneClick = (e: React.MouseEvent, zone: Zone) => {
     e.stopPropagation();
+    // The copy-connections target picker collects zone clicks without touching
+    // the selection, so the inspector (and the picker itself) stays open.
+    if (zonePick) {
+      actions.pickZone(zone.id);
+      return;
+    }
     if (mode === 'connect') {
       if (!connectStart) {
         actions.setConnectStart(zone.id);
@@ -527,6 +537,12 @@ export const Canvas: React.FC = () => {
 
   const handleCanvasClick = () => {
     if (!dragInfo) {
+      // While picking, an empty-canvas click cancels the pick but keeps the
+      // selection — clearing it would close the inspector holding the picker.
+      if (zonePick) {
+        actions.cancelZonePick();
+        return;
+      }
       actions.setSelected(null);
       if (mode === 'connect') {
         actions.setMode('select');
@@ -546,9 +562,14 @@ export const Canvas: React.FC = () => {
   };
 
   const getHintText = () => {
+    if (zonePick) {
+      return zonePick.length === 0
+        ? t("zonePickHintFirst")
+        : t("zonePickHintSecond", { zone: zonePick[0] });
+    }
     if (mode === 'connect') {
-      return connectStart 
-        ? t("connectHintPicked", { zone: connectStart }) 
+      return connectStart
+        ? t("connectHintPicked", { zone: connectStart })
         : t("connectHintEmpty");
     }
     return "";
@@ -1032,7 +1053,7 @@ export const Canvas: React.FC = () => {
                 {zones.map((zone) => {
                   const p = toCanvas(zone);
                   const isZoneSelected = selected?.type === 'zone' && selected.id === zone.id;
-                  const isConnectStart = connectStart === zone.id;
+                  const isConnectStart = connectStart === zone.id || (zonePick?.includes(zone.id) ?? false);
                   const biomeId = getZoneActiveBiome(zone);
                   const labelStr = zone.label || zone.id;
 

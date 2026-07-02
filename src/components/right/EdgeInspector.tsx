@@ -2,7 +2,7 @@ import React from 'react';
 import { useEditorStore } from '../../store/useEditorStore';
 import type { EditorActions } from '../../store/useEditorStore';
 import type { TranslationFunction } from '../../i18n/context';
-import type { Edge, ConnectionType } from '../../types/editor';
+import type { Edge, Zone, ConnectionType } from '../../types/editor';
 import type { RmgPlacementRule } from '../../types/rmg';
 import { CONNECTION_TYPES } from '../../types/editor';
 import { edgePairKey } from '../../store/zones';
@@ -10,6 +10,7 @@ import { resolveDistance, encodeDistance, ruleBounds } from '../../store/constan
 import { NumberField } from '../shared/NumberField';
 import { Field, FieldRow, Toggle } from '../shared/primitives';
 import { CollapsibleSubsection } from '../shared/CollapsibleSubsection';
+import { CopyConnectionsControl } from './CopyConnectionsControl';
 import { DistanceField } from '../shared/DistanceField';
 import { ValueBadge } from '../shared/ValueBadge';
 import { ArrowLeft } from 'lucide-react';
@@ -17,11 +18,12 @@ import { ArrowLeft } from 'lucide-react';
 interface EdgeInspectorProps {
   edge: Edge;
   edges: Edge[];
+  zones: Zone[];
   actions: EditorActions;
   t: TranslationFunction;
 }
 
-export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actions, t }) => {
+export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones, actions, t }) => {
   const isExpert = useEditorStore((state) => state.uiMode) === 'expert';
   const isProximity = edge.connectionType === 'Proximity';
   const isPortal = edge.connectionType === 'Portal';
@@ -264,6 +266,10 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, actio
           <p className="ui-field-hint">{t('springHelp')}</p>
           <p className="ui-field-hint" style={{ color: 'var(--accent-2)' }}>{t('springWarning')}</p>
         </div>
+      )}
+
+      {!isProximity && (
+        <CopyConnectionsControl sourceEdges={[edge]} zones={zones} actions={actions} t={t} />
       )}
     </div>
   );

@@ -619,6 +619,10 @@ export interface EditorState {
   selected: { type: 'zone' | 'edge' | 'edgePair' | 'preset' | 'customList' | 'elementsList' | 'terrainProfile' | 'contentLimits' | 'contentPool'; id: string } | null;
   mode: 'select' | 'connect';
   connectStart: string | null;
+  /** Zones picked so far by the interactive copy-connections target picker;
+   *  null when picking is off. While non-null, canvas zone clicks collect ids
+   *  here (up to 2) instead of changing the selection. */
+  zonePick: string[] | null;
   nextZoneNumber: number;
   presets: Record<string, Preset>;
   customObjectLists: Record<string, CustomObjectList>;

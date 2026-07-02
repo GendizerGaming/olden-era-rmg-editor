@@ -12,6 +12,50 @@ export function edgePairKey(a: string, b: string): string {
   return [a, b].sort().join('__');
 }
 
+/**
+ * Clone a connection onto a different zone pair, verbatim except for the two
+ * things that are identity/endpoint-bound rather than settings:
+ *  - `id` is regenerated (the caller passes a fresh unique one), so the export
+ *    name doesn't collide with the source connection.
+ *  - endpoints become the target zones, and `guardZone` — the only setting that
+ *    names a zone — is kept only when it still points at one of the new
+ *    endpoints (or is the generic "Center"/auto); otherwise it falls back to
+ *    auto instead of pointing at a zone this connection no longer touches.
+ * From/to orientation follows the shared endpoint when there is one, so any
+ * portal from/to placement rules stay on the matching side. `rawFields` (the
+ * source's raw import round-trip) is dropped and the clone is marked as
+ * editor-created.
+ */
+export function cloneEdgeOntoZones(source: Edge, zoneA: string, zoneB: string, newId: string): Edge {
+  let from = zoneA;
+  let to = zoneB;
+  if (zoneA === source.from || zoneB === source.to) {
+    from = zoneA;
+    to = zoneB;
+  } else if (zoneA === source.to || zoneB === source.from) {
+    from = zoneB;
+    to = zoneA;
+  }
+
+  let guardZone = source.guardZone;
+  if (guardZone && guardZone !== 'Center' && guardZone !== from && guardZone !== to) {
+    guardZone = undefined;
+  }
+
+  const clone: Edge = {
+    ...source,
+    id: newId,
+    from,
+    to,
+    guardZone,
+    portalPlacementRulesFrom: source.portalPlacementRulesFrom?.map((r) => ({ ...r })),
+    portalPlacementRulesTo: source.portalPlacementRulesTo?.map((r) => ({ ...r })),
+    imported: false
+  };
+  delete clone.rawFields;
+  return clone;
+}
+
 export function captureHistory(state: { settings: MapSettings; zones: Zone[]; edges: Edge[] }) {
   return {
     settings: JSON.parse(JSON.stringify(state.settings)),

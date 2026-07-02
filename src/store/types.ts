@@ -108,8 +108,16 @@ export interface EditorActions {
   setSelected: (selected: { type: 'zone' | 'edge' | 'edgePair' | 'preset' | 'customList' | 'elementsList' | 'terrainProfile' | 'contentLimits' | 'contentPool'; id: string } | null) => void;
   setMode: (mode: 'select' | 'connect') => void;
   setConnectStart: (zoneId: string | null) => void;
+  /** Interactive zone picking for the copy-connections target: while active,
+   *  canvas zone clicks collect ids (up to 2) instead of changing selection. */
+  startZonePick: () => void;
+  cancelZonePick: () => void;
+  pickZone: (zoneId: string) => void;
   connectZones: (fromId: string, toId: string, connectionType?: ConnectionType) => void;
   deleteEdge: (edgeId: string) => void;
+  /** Clone the given connections (springs skipped) onto the zoneA↔zoneB pair,
+   *  additively — existing connections there are left untouched. */
+  addConnectionsBetweenZones: (sourceEdgeIds: string[], zoneA: string, zoneB: string) => void;
   addObjectToZone: (zoneId: string, item: CatalogItem) => void;
   updateObjectField: (zoneId: string, objectKey: string, updates: Partial<ZoneObject>) => void;
   removeObjectFromZone: (zoneId: string, objectKey: string) => void;

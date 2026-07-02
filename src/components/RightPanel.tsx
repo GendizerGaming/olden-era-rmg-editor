@@ -127,6 +127,7 @@ export const RightPanel: React.FC = () => {
                 <EdgeInspector
                   edge={selectedEdge}
                   edges={edges}
+                  zones={zones}
                   actions={actions}
                   t={t}
                 />
@@ -135,6 +136,7 @@ export const RightPanel: React.FC = () => {
                 <EdgePairInspector
                   pairId={selected.id}
                   edges={edges}
+                  zones={zones}
                   actions={actions}
                   t={t}
                 />
