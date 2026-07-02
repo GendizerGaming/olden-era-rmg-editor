@@ -131,61 +131,6 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones
           </>
           )}
 
-          {isExpert && (
-          <CollapsibleSubsection id={`edge.advanced.${edge.id}`} title={t('edgeAdvancedSection')} defaultOpen={false}>
-            {(() => {
-              const guardZone = edge.guardZone ?? '';
-              const guardZoneKnown = ['', 'Center', edge.from, edge.to].includes(guardZone);
-              const gatePlacement = edge.gatePlacement ?? '';
-              const gateKnown = ['', 'Center'].includes(gatePlacement);
-              const matchGroups = [...new Set(
-                edges.map((e) => e.guardMatchGroup).filter((g): g is string => Boolean(g))
-              )].sort();
-              return (
-                <div style={{ display: 'grid', gap: '8px', padding: '6px 8px 10px' }}>
-                  <Field label={t('edgeGuardZone')} tip={t('edgeGuardZoneHelp')}>
-                    <select
-                      value={guardZone}
-                      onChange={(e) => actions.updateEdgeField(edge.id, { guardZone: e.target.value || undefined })}
-                    >
-                      <option value="">{t('edgeGuardZoneAuto')}</option>
-                      <option value="Center">{t('edgeGuardZoneCenter')}</option>
-                      <option value={edge.from}>{t('edgeGuardZoneIn', { id: edge.from })}</option>
-                      <option value={edge.to}>{t('edgeGuardZoneIn', { id: edge.to })}</option>
-                      {!guardZoneKnown && <option value={guardZone}>{guardZone}</option>}
-                    </select>
-                  </Field>
-
-                  <Field label={t('edgeGuardMatchGroup')} tip={t('edgeGuardMatchGroupHelp')}>
-                    <input
-                      type="text"
-                      list="edge-guard-match-groups"
-                      autoComplete="off"
-                      value={edge.guardMatchGroup ?? ''}
-                      onChange={(e) => actions.updateEdgeField(edge.id, { guardMatchGroup: e.target.value || undefined })}
-                      placeholder={t('edgeGuardMatchGroupPlaceholder')}
-                    />
-                    <datalist id="edge-guard-match-groups">
-                      {matchGroups.map((group) => <option key={group} value={group} />)}
-                    </datalist>
-                  </Field>
-
-                  <Field label={t('edgeGatePlacement')} tip={t('edgeGatePlacementHelp')}>
-                    <select
-                      value={gatePlacement}
-                      onChange={(e) => actions.updateEdgeField(edge.id, { gatePlacement: e.target.value || undefined })}
-                    >
-                      <option value="">{t('edgeGatePlacementAuto')}</option>
-                      <option value="Center">{t('edgeGatePlacementCenter')}</option>
-                      {!gateKnown && <option value={gatePlacement}>{gatePlacement}</option>}
-                    </select>
-                  </Field>
-                </div>
-              );
-            })()}
-          </CollapsibleSubsection>
-          )}
-
           {isPortal && isExpert && (
             <div style={{ display: 'grid', gap: '8px', border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', background: 'var(--panel-2)', padding: '8px' }}>
               <div className="control-label" style={{ margin: 0 }}>{t('portalPlacementSection')}</div>
@@ -242,6 +187,62 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones
                 </select>
               </Field>
             </>
+          )}
+
+          {/* Rarely-touched knobs go last, below the everyday controls. */}
+          {isExpert && (
+          <CollapsibleSubsection id={`edge.advanced.${edge.id}`} title={t('edgeAdvancedSection')} defaultOpen={false} boxed>
+            {(() => {
+              const guardZone = edge.guardZone ?? '';
+              const guardZoneKnown = ['', 'Center', edge.from, edge.to].includes(guardZone);
+              const gatePlacement = edge.gatePlacement ?? '';
+              const gateKnown = ['', 'Center'].includes(gatePlacement);
+              const matchGroups = [...new Set(
+                edges.map((e) => e.guardMatchGroup).filter((g): g is string => Boolean(g))
+              )].sort();
+              return (
+                <div style={{ display: 'grid', gap: '8px' }}>
+                  <Field label={t('edgeGuardZone')} tip={t('edgeGuardZoneHelp')}>
+                    <select
+                      value={guardZone}
+                      onChange={(e) => actions.updateEdgeField(edge.id, { guardZone: e.target.value || undefined })}
+                    >
+                      <option value="">{t('edgeGuardZoneAuto')}</option>
+                      <option value="Center">{t('edgeGuardZoneCenter')}</option>
+                      <option value={edge.from}>{t('edgeGuardZoneIn', { id: edge.from })}</option>
+                      <option value={edge.to}>{t('edgeGuardZoneIn', { id: edge.to })}</option>
+                      {!guardZoneKnown && <option value={guardZone}>{guardZone}</option>}
+                    </select>
+                  </Field>
+
+                  <Field label={t('edgeGuardMatchGroup')} tip={t('edgeGuardMatchGroupHelp')}>
+                    <input
+                      type="text"
+                      list="edge-guard-match-groups"
+                      autoComplete="off"
+                      value={edge.guardMatchGroup ?? ''}
+                      onChange={(e) => actions.updateEdgeField(edge.id, { guardMatchGroup: e.target.value || undefined })}
+                      placeholder={t('edgeGuardMatchGroupPlaceholder')}
+                    />
+                    <datalist id="edge-guard-match-groups">
+                      {matchGroups.map((group) => <option key={group} value={group} />)}
+                    </datalist>
+                  </Field>
+
+                  <Field label={t('edgeGatePlacement')} tip={t('edgeGatePlacementHelp')}>
+                    <select
+                      value={gatePlacement}
+                      onChange={(e) => actions.updateEdgeField(edge.id, { gatePlacement: e.target.value || undefined })}
+                    >
+                      <option value="">{t('edgeGatePlacementAuto')}</option>
+                      <option value="Center">{t('edgeGatePlacementCenter')}</option>
+                      {!gateKnown && <option value={gatePlacement}>{gatePlacement}</option>}
+                    </select>
+                  </Field>
+                </div>
+              );
+            })()}
+          </CollapsibleSubsection>
           )}
         </div>
       ) : (
