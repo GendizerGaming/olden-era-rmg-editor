@@ -27,3 +27,7 @@ tsconfig.tests.tmp.json
 *.njsproj
 *.sln
 *.sw?
+
+# Local diagnostic scripts (import-fidelity audit; depend on a local Steam path)
+tests/_audit.test.ts
+tests/_audit_report.txt

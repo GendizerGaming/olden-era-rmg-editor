@@ -1,18 +1,20 @@
 import React from 'react';
 import type { EditorActions } from '../../store/useEditorStore';
 import type { TranslationFunction } from '../../i18n/context';
-import type { Edge } from '../../types/editor';
+import type { Edge, Zone } from '../../types/editor';
 import { edgePairKey } from '../../store/zones';
+import { CopyConnectionsControl } from './CopyConnectionsControl';
 import { Plus, Trash2 } from 'lucide-react';
 
 interface EdgePairInspectorProps {
   pairId: string;
   edges: Edge[];
+  zones: Zone[];
   actions: EditorActions;
   t: TranslationFunction;
 }
 
-export const EdgePairInspector: React.FC<EdgePairInspectorProps> = ({ pairId, edges, actions, t }) => {
+export const EdgePairInspector: React.FC<EdgePairInspectorProps> = ({ pairId, edges, zones, actions, t }) => {
   const pairEdges = edges.filter((e) => edgePairKey(e.from, e.to) === pairId);
 
   if (pairEdges.length === 0) {
@@ -78,6 +80,10 @@ export const EdgePairInspector: React.FC<EdgePairInspectorProps> = ({ pairId, ed
       <div style={{ fontSize: 'var(--fz-emph)', fontWeight: 700 }}>
         {from} ↔ {to}
       </div>
+
+      {passages.length > 0 && (
+        <CopyConnectionsControl sourceEdges={passages} zones={zones} actions={actions} t={t} />
+      )}
 
       <div className="control-label">{t('pairPassages')} ({passages.length})</div>
       <div style={{ display: 'grid', gap: '4px' }}>

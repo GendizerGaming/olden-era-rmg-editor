@@ -505,6 +505,26 @@ textarea {
   margin: 10px 0 16px;
 }
 
+/* Boxed variant: the expanded body reads as a card attached to its header,
+   so the content doesn't blend with the siblings below the subsection. */
+.collapsible-subsection-body.boxed {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  margin: var(--space-1) 0 var(--space-3);
+}
+
+/* The indent guide line must end with the content: .ui-indent is a grid, so
+   trailing child margins don't collapse away — a last subsection would leave
+   empty painted-line space below itself. Drop its trailing margins. */
+.ui-indent > .collapsible-subsection:last-child {
+  margin-bottom: 0;
+}
+.ui-indent > .collapsible-subsection:last-child .collapsible-subsection-body {
+  margin-bottom: 0;
+}
+
 .compact-button {
   padding: 6px 9px;
   font-size: 12px;

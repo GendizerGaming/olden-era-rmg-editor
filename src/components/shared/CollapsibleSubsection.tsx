@@ -26,6 +26,9 @@ interface CollapsibleSubsectionProps {
   actions?: React.ReactNode;
   /** Initial state when nothing is stored yet. Defaults to open. */
   defaultOpen?: boolean;
+  /** Draw the expanded body as an inset card (panel background + border), so
+   *  its content doesn't blend with the siblings below the subsection. */
+  boxed?: boolean;
   children: React.ReactNode;
 }
 
@@ -42,6 +45,7 @@ export const CollapsibleSubsection: React.FC<CollapsibleSubsectionProps> = ({
   tip,
   actions,
   defaultOpen = true,
+  boxed = false,
   children
 }) => {
   const [open, setOpen] = useState(() => readOpen(id, defaultOpen));
@@ -78,7 +82,9 @@ export const CollapsibleSubsection: React.FC<CollapsibleSubsectionProps> = ({
             : <ChevronRight size={14} className="collapse-icon" />}
         </span>
       </button>
-      {open && <div className="collapsible-subsection-body">{children}</div>}
+      {open && (
+        <div className={`collapsible-subsection-body${boxed ? ' boxed' : ''}`}>{children}</div>
+      )}
     </div>
   );
 };

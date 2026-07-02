@@ -26,6 +26,8 @@ export const useEditorStore = createWithEqualityFn<EditorStoreState>((set, get) 
     selected: null,
     mode: 'select',
     connectStart: null,
+    zonePick: null,
+    copyTargets: null,
     missingImportedObjects: [],
     notifications: [],
     history: { past: [], future: [] },

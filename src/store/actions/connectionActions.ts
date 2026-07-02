@@ -2,9 +2,9 @@ import type { StoreContext } from '../context';
 import type { EditorActions } from '../types';
 import type { Edge } from '../../types/editor';
 import { uniqueKey } from '../ids';
-import { captureHistory, pushHistory, defaultGuardForPair, edgePairKey } from '../zones';
+import { captureHistory, pushHistory, defaultGuardForPair, edgePairKey, cloneEdgeOntoZones } from '../zones';
 
-export function createConnectionActions(ctx: StoreContext): Pick<EditorActions, 'connectZones' | 'updateEdgeField' | 'deleteEdge'> {
+export function createConnectionActions(ctx: StoreContext): Pick<EditorActions, 'connectZones' | 'updateEdgeField' | 'deleteEdge' | 'addConnectionsBetweenZones'> {
   const { set, saveToStorage } = ctx;
   return {
       connectZones: (fromId, toId, connectionType = 'Direct') => {
@@ -115,6 +115,51 @@ export function createConnectionActions(ctx: StoreContext): Pick<EditorActions, 
             notifications: [
               ...state.notifications,
               { id: uniqueKey(), key: 'notificationEdgeDeleted', type: 'info' as const }
+            ],
+            history: pushHistory(state, snapshot)
+          };
+          saveToStorage({ ...state, ...nextState });
+          return nextState;
+        });
+      },
+      addConnectionsBetweenZones: (sourceEdgeIds, zoneA, zoneB) => {
+        set((state) => {
+          if (!zoneA || !zoneB || zoneA === zoneB) return {};
+          const zoneIds = new Set(state.zones.map((z) => z.id));
+          if (!zoneIds.has(zoneA) || !zoneIds.has(zoneB)) return {};
+          // Springs (Proximity) are layout, not guarded passages — never cloned.
+          const sources = sourceEdgeIds
+            .map((id) => state.edges.find((e) => e.id === id))
+            .filter((e): e is Edge => !!e && e.connectionType !== 'Proximity');
+          if (sources.length === 0) return {};
+
+          const snapshot = captureHistory(state);
+          const existingIds = new Set(state.edges.map((e) => e.id));
+          const base = `${zoneA}__${zoneB}`;
+          const created: Edge[] = sources.map((src) => {
+            let newId = base;
+            let suffix = 1;
+            while (existingIds.has(newId)) {
+              newId = `${base}_${suffix}`;
+              suffix++;
+            }
+            existingIds.add(newId);
+            return cloneEdgeOntoZones(src, zoneA, zoneB, newId);
+          });
+
+          // The selection deliberately stays on the source: stamping the same
+          // bundle onto several pairs in a row shouldn't require re-selecting
+          // it every time. The toast and the new canvas line report the result.
+          const nextState = {
+            edges: [...state.edges, ...created],
+            notifications: [
+              ...state.notifications,
+              {
+                id: uniqueKey(),
+                key: 'notificationConnectionsCopied',
+                type: 'success' as const,
+                params: { count: created.length }
+              }
             ],
             history: pushHistory(state, snapshot)
           };
