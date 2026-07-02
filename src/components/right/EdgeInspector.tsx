@@ -80,6 +80,10 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones
         </Field>
       </FieldRow>
 
+      {!isProximity && (
+        <CopyConnectionsControl sourceEdges={[edge]} zones={zones} actions={actions} t={t} />
+      )}
+
       <Field label={t('connectionPurpose')}>
         <select
           value={edge.connectionType}
@@ -266,10 +270,6 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones
           <p className="ui-field-hint">{t('springHelp')}</p>
           <p className="ui-field-hint" style={{ color: 'var(--accent-2)' }}>{t('springWarning')}</p>
         </div>
-      )}
-
-      {!isProximity && (
-        <CopyConnectionsControl sourceEdges={[edge]} zones={zones} actions={actions} t={t} />
       )}
     </div>
   );

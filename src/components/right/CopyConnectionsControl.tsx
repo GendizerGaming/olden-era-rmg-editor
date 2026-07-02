@@ -79,10 +79,12 @@ export const CopyConnectionsControl: React.FC<CopyConnectionsControlProps> = ({ 
   const single = passages.length === 1;
   const canApply = Boolean(zoneA) && Boolean(zoneB) && zoneA !== zoneB;
 
+  // The panel deliberately stays open after applying (same as the canvas
+  // pick path) — stamping several pairs in a row is the whole point; the
+  // user collapses it when done.
   const apply = () => {
     if (!canApply) return;
     actions.addConnectionsBetweenZones(passages.map((e) => e.id), zoneA, zoneB);
-    setOpen(false);
   };
 
   return (

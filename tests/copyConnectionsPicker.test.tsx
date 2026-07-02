@@ -64,6 +64,28 @@ describe('CopyConnectionsControl canvas picking', () => {
     expect(clones[0].guardValue).toBe(66666);
   });
 
+  it('keeps the panel open after applying via the button, like the pick path', () => {
+    const a = addZone('spawn');
+    const b = addZone('neutral');
+    const c = addZone('spawn');
+    actions().connectZones(a, b);
+    const [source] = pairEdges(a, b);
+
+    const utils = render(
+      <CopyConnectionsControl sourceEdges={[source]} zones={state().zones} actions={actions()} t={t} />
+    );
+    fireEvent.click(utils.getByText('copyConnectionButton'));
+
+    // Aim the dropdowns at a new pair and apply.
+    fireEvent.change(utils.getAllByRole('combobox')[0], { target: { value: c } });
+    fireEvent.change(utils.getAllByRole('combobox')[1], { target: { value: b } });
+    fireEvent.click(utils.getByText('copyConnectionsApplyOne'));
+
+    expect(pairEdges(c, b)).toHaveLength(1);
+    // The panel stays open for stamping the next pair.
+    expect(utils.queryByText('copyConnectionsZoneA')).not.toBeNull();
+  });
+
   it('publishes the dropdown pair as copy targets for the canvas preview', () => {
     const a = addZone('spawn');
     const b = addZone('neutral');
