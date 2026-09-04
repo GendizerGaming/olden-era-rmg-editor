@@ -278,7 +278,9 @@ export interface RmgMandatoryObject extends JsonObject {
   soloEncounter?: boolean;
   designatedEncounter?: boolean;
   /** Inline weighted candidate list for a pool-slot object (when sid is absent). */
-  content?: Array<{ sid: string; weight: number }>;
+  /** Inline weighted candidates. `variant` picks a concrete item behind a sid
+   *  that covers several; omitted means the generator is free to choose. */
+  content?: Array<{ sid: string; weight: number; variant?: number }>;
   rules?: RmgPlacementRule[];
 }
 

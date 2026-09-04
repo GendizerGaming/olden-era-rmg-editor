@@ -68,3 +68,38 @@ describe("spring length", () => {
     expect(spring.length).toBe(4);
   });
 });
+
+describe("nested content variants", () => {
+  it("keeps a candidate's variant through the model, not just the raw passthrough", () => {
+    const tpl = {
+      name: "T", gameMode: "Classic", sizeX: 128, sizeZ: 128,
+      mandatoryContent: [{
+        name: "mc",
+        content: [{
+          name: "slot",
+          content: [
+            { sid: "mythic_scroll_box", variant: 0, weight: 0 },
+            { sid: "mythic_scroll_box", variant: 2, weight: 1 },
+            { sid: "pandora_box", weight: 3 }
+          ]
+        }]
+      }],
+      variants: [{ zones: [{ name: "A", size: 1, mandatoryContent: ["mc"] }], connections: [] }]
+    } as unknown as RmgTemplate;
+
+    const doc = importTemplateFromJson(tpl, [], []);
+    const nested = doc.zones[0].objects[0].nestedContent;
+    expect(nested).toEqual([
+      { sid: "mythic_scroll_box", variant: 0, weight: 0 },
+      { sid: "mythic_scroll_box", variant: 2, weight: 1 },
+      { sid: "pandora_box", weight: 3 }
+    ]);
+
+    const out = roundTripTemplate(tpl);
+    const cands = (out.mandatoryContent?.[0]?.content?.[0] as Record<string, unknown>).content as Array<Record<string, unknown>>;
+    expect(cands[0].variant).toBe(0);
+    expect(cands[1].variant).toBe(2);
+    // an unset variant must stay absent rather than becoming 0
+    expect("variant" in cands[2]).toBe(false);
+  });
+});

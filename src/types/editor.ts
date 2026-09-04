@@ -120,7 +120,7 @@ export interface ZoneObject {
   designatedEncounter?: boolean;
   /** Inline weighted candidate list for a pool-slot (list-kind) object: each
    *  entry is a candidate sid with its pick weight (≤0 = excluded from the roll). */
-  nestedContent?: Array<{ sid: string; weight: number }>;
+  nestedContent?: Array<{ sid: string; weight: number; variant?: number }>;
 }
 
 export interface Preset {

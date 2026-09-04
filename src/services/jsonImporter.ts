@@ -994,7 +994,13 @@ export function importTemplateFromJson(
               // Inline weighted candidate list (pool-slot objects); kept so it
               // round-trips and stays editable in the object's inspector.
               nestedContent: Array.isArray(obj.content)
-                ? obj.content.map((c) => ({ sid: String(c.sid), weight: Number(c.weight) || 0 }))
+                ? obj.content.map((c) => ({
+                    sid: String(c.sid),
+                    ...(c.variant !== undefined && c.variant !== null && Number.isFinite(Number(c.variant))
+                      ? { variant: Math.trunc(Number(c.variant)) }
+                      : {}),
+                    weight: Number(c.weight) || 0
+                  }))
                 : undefined,
               isMine: Boolean(obj.isMine),
               tag: catalogItem.tag,

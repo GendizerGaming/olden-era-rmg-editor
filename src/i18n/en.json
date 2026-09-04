@@ -312,6 +312,8 @@
   "objectOwnerHelp": "Player who owns this object from the start (e.g. a mine handed over on turn 1). Neutral = unowned, placed like normal content.",
   "nestedContentSection": "Weighted contents",
   "nestedContentHelp": "An inline weighted candidate list for this pool slot: which objects may spawn here and how likely each is (weight ≤ 0 = excluded from the roll).",
+  "nestedContentVariant": "Item variant (empty = any)",
+  "nestedContentVariantAny": "any",
   "nestedContentWeight": "Weight",
   "nestedContentRemove": "Remove candidate",
   "nestedContentAdd": "Add candidate",

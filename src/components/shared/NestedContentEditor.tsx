@@ -6,12 +6,16 @@ import { NumberField } from './NumberField';
 import { ListRow } from './primitives';
 import { Plus, Search, Trash2 } from 'lucide-react';
 
-type WeightedEntry = { sid: string; weight: number };
+type WeightedEntry = { sid: string; weight: number; variant?: number };
 
 /**
- * Inline weighted candidate list for a pool-slot object: rows of {sid, weight}
- * with add (by search) and remove. Clearing the last row drops the array so the
- * object exports without an inline `content`.
+ * Inline weighted candidate list for a pool-slot object: rows of
+ * {sid, variant, weight} with add (by search) and remove. Clearing the last row
+ * drops the array so the object exports without an inline `content`.
+ *
+ * The same sid may appear several times with different variants (one sid can
+ * cover several concrete items), so rows are addressed by index and the picker
+ * only hides a sid that is present without a variant.
  */
 export const NestedContentEditor: React.FC<{
   value?: WeightedEntry[];
@@ -42,17 +46,41 @@ export const NestedContentEditor: React.FC<{
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, objectLibrary, language]);
 
-  const present = new Set(entries.map((entry) => entry.sid));
+  // Only a plain (variant-less) row blocks re-picking; variants are additive.
+  const present = new Set(entries.filter((entry) => entry.variant === undefined).map((entry) => entry.sid));
 
   return (
     <div style={{ display: 'grid', gap: '4px' }}>
       {entries.map((entry, index) => (
         <ListRow
           key={`${entry.sid}:${index}`}
-          title={labelForSid(entry.sid)}
+          title={entry.variant === undefined
+            ? labelForSid(entry.sid)
+            : `${labelForSid(entry.sid)} · v${entry.variant}`}
           titleTooltip={entry.sid}
           trailing={
             <>
+              <input
+                type="number"
+                className="weight-field"
+                min={0}
+                step={1}
+                value={entry.variant ?? ''}
+                placeholder={t('nestedContentVariantAny')}
+                title={t('nestedContentVariant')}
+                onChange={(e) => {
+                  const raw = e.target.value.trim();
+                  const variant = raw === '' ? undefined : Math.max(0, Math.trunc(Number(raw)));
+                  setEntries(entries.map((candidate, i) => {
+                    if (i !== index) return candidate;
+                    const next: WeightedEntry = { ...candidate };
+                    if (variant === undefined) delete next.variant;
+                    else next.variant = variant;
+                    return next;
+                  }));
+                }}
+                style={{ width: '46px', flexShrink: 0 }}
+              />
               <NumberField
                 className="weight-field"
                 step={1}

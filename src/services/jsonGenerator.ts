@@ -181,7 +181,13 @@ function toMandatoryObject(
   if (entry.isMine) base.isMine = true;
   if (entry.owner) base.owner = `Player${entry.owner}`;
   if (entry.designatedEncounter !== undefined) base.designatedEncounter = entry.designatedEncounter;
-  if (entry.nestedContent?.length) base.content = entry.nestedContent.map((c) => ({ sid: c.sid, weight: c.weight }));
+  if (entry.nestedContent?.length) {
+    base.content = entry.nestedContent.map((c) => ({
+      sid: c.sid,
+      ...(c.variant !== undefined ? { variant: c.variant } : {}),
+      weight: c.weight
+    }));
+  }
   // Tri-state: omit isGuarded entirely when unset, so the engine applies its
   // own default instead of being pinned to false.
   if (entry.guarded !== undefined) base.isGuarded = entry.guarded;

@@ -135,7 +135,11 @@ export const resolveSavedObjects = (
         owner: saved.owner === null || saved.owner === undefined ? null : Math.trunc(Number(saved.owner)) || null,
         designatedEncounter: saved.designatedEncounter === undefined ? undefined : Boolean(saved.designatedEncounter),
         nestedContent: Array.isArray(saved.nestedContent)
-          ? saved.nestedContent.map((c) => ({ sid: String(c.sid), weight: Number(c.weight) || 0 }))
+          ? saved.nestedContent.map((c) => ({
+              sid: String(c.sid),
+              ...(c.variant !== undefined && c.variant !== null ? { variant: Math.trunc(Number(c.variant)) } : {}),
+              weight: Number(c.weight) || 0
+            }))
           : undefined,
         count: Math.max(1, Math.min(99, Math.trunc(Number(saved.count) || 1))),
         guarded: saved.guarded === undefined ? undefined : Boolean(saved.guarded),
@@ -164,7 +168,11 @@ export const normalizeSavedZoneObject = (
       owner: saved.owner === null || saved.owner === undefined ? null : Math.trunc(Number(saved.owner)) || null,
       designatedEncounter: saved.designatedEncounter === undefined ? undefined : Boolean(saved.designatedEncounter),
       nestedContent: Array.isArray(saved.nestedContent)
-        ? saved.nestedContent.map((c) => ({ sid: String(c.sid), weight: Number(c.weight) || 0 }))
+        ? saved.nestedContent.map((c) => ({
+            sid: String(c.sid),
+            ...(c.variant !== undefined && c.variant !== null ? { variant: Math.trunc(Number(c.variant)) } : {}),
+            weight: Number(c.weight) || 0
+          }))
         : undefined,
       sid: kind === "sid" ? saved.sid || id : undefined,
       includeList: kind === "list" ? saved.includeList || id : undefined,
