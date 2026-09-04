@@ -177,6 +177,10 @@ interface RmgConnectionBase extends JsonObject {
    *  source (From) and destination (To) zones, as distance/placement rules. */
   portalPlacementRulesTo?: RmgPlacementRule[];
   portalPlacementRulesFrom?: RmgPlacementRule[];
+  /** Portal mouths, one per side. Omitted means enabled (the engine default is
+   *  both sides on); setting one to false makes the portal one-way. */
+  portalFromEnabled?: boolean;
+  portalToEnabled?: boolean;
   length?: number;
 }
 
@@ -187,7 +191,9 @@ export interface RmgPassageConnection extends RmgConnectionBase {
 
 export interface RmgProximityConnection extends RmgConnectionBase {
   connectionType: "Proximity";
-  length: number;
+  /** Optional: shipped templates include springs with no length at all, and
+   *  the engine then applies its own default. */
+  length?: number;
 }
 
 export type RmgConnection = RmgPassageConnection | RmgProximityConnection;

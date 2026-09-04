@@ -276,6 +276,8 @@ export const normalizeSavedEdge = (edge: SavedEdge): Edge => ({
     guardMatchGroup: typeof edge.guardMatchGroup === "string" && edge.guardMatchGroup ? edge.guardMatchGroup : undefined,
     portalPlacementRulesTo: Array.isArray(edge.portalPlacementRulesTo) ? edge.portalPlacementRulesTo : undefined,
     portalPlacementRulesFrom: Array.isArray(edge.portalPlacementRulesFrom) ? edge.portalPlacementRulesFrom : undefined,
+    portalFromEnabled: typeof edge.portalFromEnabled === "boolean" ? edge.portalFromEnabled : undefined,
+    portalToEnabled: typeof edge.portalToEnabled === "boolean" ? edge.portalToEnabled : undefined,
     imported: edge.imported === true ? true : undefined,
     rawFields: edge.rawFields
   });

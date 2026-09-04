@@ -145,6 +145,25 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones
                 onChange={(v) => actions.updateEdgeField(edge.id, { portalPlacementRulesTo: buildPortalRules(edge.portalPlacementRulesTo, v) })}
               />
               <p className="ui-field-hint" style={{ margin: 0 }}>{t('portalPlacementHelp')}</p>
+
+              {/* Both mouths are open unless told otherwise, so the toggles
+                  write `false` only and clear back to undefined (omitted). */}
+              <div className="control-label" style={{ margin: '4px 0 0' }}>{t('portalDirectionSection')}</div>
+              <Toggle
+                checked={edge.portalFromEnabled !== false}
+                onChange={(v) => actions.updateEdgeField(edge.id, { portalFromEnabled: v ? undefined : false })}
+                label={t('portalMouthFrom', { zone: edge.from })}
+              />
+              <Toggle
+                checked={edge.portalToEnabled !== false}
+                onChange={(v) => actions.updateEdgeField(edge.id, { portalToEnabled: v ? undefined : false })}
+                label={t('portalMouthTo', { zone: edge.to })}
+              />
+              <p className="ui-field-hint" style={{ margin: 0 }}>
+                {edge.portalFromEnabled === false && edge.portalToEnabled === false
+                  ? t('portalDirectionNoneWarning')
+                  : t('portalDirectionHelp')}
+              </p>
             </div>
           )}
 
