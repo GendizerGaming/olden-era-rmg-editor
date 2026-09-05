@@ -161,10 +161,15 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones
                 const toOff = edge.portalToEnabled === false;
                 const oneWay = fromOff || toOff;
                 const entrance = fromOff && toOff ? 'none' : fromOff ? 'to' : 'from';
+                // Once one-way is on, both sides are written out explicitly, the
+                // way the engine authors document it: relying on the omitted
+                // side defaulting to true would break if that default ever
+                // changed. Switching one-way off drops both fields again, so a
+                // plain two-way portal stays byte-identical to how it imported.
                 const setEntrance = (next: string) =>
                   actions.updateEdgeField(edge.id, {
-                    portalFromEnabled: next === 'to' || next === 'none' ? false : undefined,
-                    portalToEnabled: next === 'from' || next === 'none' ? false : undefined
+                    portalFromEnabled: next !== 'to' && next !== 'none',
+                    portalToEnabled: next !== 'from' && next !== 'none'
                   });
                 return (
                   <>

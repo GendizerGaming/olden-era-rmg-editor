@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { importTemplateFromJson } from "../src/services/jsonImporter.ts";
 import type { RmgTemplate } from "../src/types/rmg.ts";
+import { validate } from "../src/services/validator.ts";
+import type { Edge, MapSettings } from "../src/types/editor.ts";
 import { roundTripTemplate } from "./helpers/gameTemplateRoundTrip.ts";
 
 /**
@@ -94,5 +96,48 @@ describe("nested content variants", () => {
     expect(cands[1].variant).toBe(2);
     // an unset variant must stay absent rather than becoming 0
     expect("variant" in cands[2]).toBe(false);
+  });
+});
+
+describe("one-way portals match the engine authors' recipe", () => {
+  it("writes both sides explicitly, so a changed engine default cannot flip it", () => {
+    // Their documented shape sets the open side to true rather than leaving it
+    // out; the round trip must carry that through untouched.
+    const out = roundTripTemplate(template([
+      { name: "Portal-A-B", from: "A", to: "B", connectionType: "Portal",
+        portalFromEnabled: true, portalToEnabled: false }
+    ]));
+    const c = (out.variants?.[0]?.connections ?? [])[0] as Record<string, unknown>;
+    expect(c.portalFromEnabled).toBe(true);
+    expect(c.portalToEnabled).toBe(false);
+  });
+
+  it("warns when a one-way portal has no placement rules for its exit", () => {
+    const tr = (key: string, params?: Record<string, string | number>) =>
+      params ? `${key} ${JSON.stringify(params)}` : key;
+    const settings = { sizeX: 128, sizeZ: 128, players: 2, victoryMode: "classic",
+      heroLimitMode: "fixed", terrainProfiles: [] } as unknown as MapSettings;
+    const zone = (id: string) => ({
+      id, label: id, type: "custom", x: 0.5, y: 0.5, size: 1, biomeMode: "random",
+      biomeSource: "", biomeId: "Grass", mainObjects: [], guardedValue: 0,
+      unguardedValue: 0, resourcesValue: 0, objects: []
+    });
+    const portal = (extra: Partial<Edge>): Edge => ({
+      id: "A__B", from: "A", to: "B", guardValue: 0, road: true,
+      connectionType: "Portal", ...extra
+    });
+    const warn = (edge: Edge) =>
+      validate(settings, [zone("A"), zone("B")] as never, [edge], false, [], [], tr)
+        .some(([, text]) => text.startsWith("oneWayPortalNeedsPlacement"));
+
+    expect(warn(portal({ portalFromEnabled: true, portalToEnabled: false }))).toBe(true);
+    // both mouths placed -> nothing to say
+    const rules = [{ type: "Crossroads", args: [], targetMin: 0, targetMax: 0.08, weight: 20 }];
+    expect(warn(portal({
+      portalFromEnabled: true, portalToEnabled: false,
+      portalPlacementRulesFrom: rules, portalPlacementRulesTo: rules
+    }))).toBe(false);
+    // a plain two-way portal is never nagged about placement
+    expect(warn(portal({}))).toBe(false);
   });
 });
