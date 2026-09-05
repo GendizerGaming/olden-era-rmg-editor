@@ -37,6 +37,19 @@ describe("one-way portals", () => {
     expect(explicit.portalFromEnabled).toBe(true);
   });
 
+  it("maps the three one-way shapes onto the flag pair", () => {
+    // entrance in From -> the To mouth is off, and vice versa; "none" is both.
+    const out = roundTripTemplate(template([
+      { name: "entryFrom", from: "A", to: "B", connectionType: "Portal", portalToEnabled: false },
+      { name: "entryTo", from: "A", to: "B", connectionType: "Portal", portalFromEnabled: false },
+      { name: "none", from: "A", to: "B", connectionType: "Portal", portalFromEnabled: false, portalToEnabled: false }
+    ]));
+    const c = (out.variants?.[0]?.connections ?? []) as Array<Record<string, unknown>>;
+    expect([c[0].portalToEnabled, "portalFromEnabled" in c[0]]).toEqual([false, false]);
+    expect([c[1].portalFromEnabled, "portalToEnabled" in c[1]]).toEqual([false, false]);
+    expect([c[2].portalFromEnabled, c[2].portalToEnabled]).toEqual([false, false]);
+  });
+
   it("round-trips a one-way portal and never invents the flags", () => {
     const out = roundTripTemplate(template([
       { name: "c1", from: "A", to: "B", connectionType: "Portal" },

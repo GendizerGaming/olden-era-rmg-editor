@@ -146,24 +146,56 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones
               />
               <p className="ui-field-hint" style={{ margin: 0 }}>{t('portalPlacementHelp')}</p>
 
-              {/* Both mouths are open unless told otherwise, so the toggles
-                  write `false` only and clear back to undefined (omitted). */}
-              <div className="control-label" style={{ margin: '4px 0 0' }}>{t('portalDirectionSection')}</div>
-              <Toggle
-                checked={edge.portalFromEnabled !== false}
-                onChange={(v) => actions.updateEdgeField(edge.id, { portalFromEnabled: v ? undefined : false })}
-                label={t('portalMouthFrom', { zone: edge.from })}
-              />
-              <Toggle
-                checked={edge.portalToEnabled !== false}
-                onChange={(v) => actions.updateEdgeField(edge.id, { portalToEnabled: v ? undefined : false })}
-                label={t('portalMouthTo', { zone: edge.to })}
-              />
-              <p className="ui-field-hint" style={{ margin: 0 }}>
-                {edge.portalFromEnabled === false && edge.portalToEnabled === false
-                  ? t('portalDirectionNoneWarning')
-                  : t('portalDirectionHelp')}
-              </p>
+              {(() => {
+                // A portal is two-way unless a side is switched off, so the
+                // toggle is derived state: on means some side carries `false`.
+                // The three one-way shapes map onto the pair of flags:
+                //   entrance in From -> the To mouth is off
+                //   entrance in To   -> the From mouth is off
+                //   none             -> both off (no way in at all)
+                const fromOff = edge.portalFromEnabled === false;
+                const toOff = edge.portalToEnabled === false;
+                const oneWay = fromOff || toOff;
+                const entrance = fromOff && toOff ? 'none' : fromOff ? 'to' : 'from';
+                const setEntrance = (next: string) =>
+                  actions.updateEdgeField(edge.id, {
+                    portalFromEnabled: next === 'to' || next === 'none' ? false : undefined,
+                    portalToEnabled: next === 'from' || next === 'none' ? false : undefined
+                  });
+                return (
+                  <>
+                    <Toggle
+                      checked={oneWay}
+                      onChange={(v) =>
+                        v
+                          ? setEntrance('from')
+                          : actions.updateEdgeField(edge.id, {
+                              portalFromEnabled: undefined,
+                              portalToEnabled: undefined
+                            })
+                      }
+                      label={t('portalOneWay')}
+                      tip={t('portalOneWayHelp')}
+                    />
+                    {oneWay && (
+                      <>
+                        <Field label={t('portalEntrance')}>
+                          <select value={entrance} onChange={(e) => setEntrance(e.target.value)}>
+                            <option value="from">{t('portalEntranceIn', { zone: edge.from })}</option>
+                            <option value="to">{t('portalEntranceIn', { zone: edge.to })}</option>
+                            <option value="none">{t('portalEntranceNone')}</option>
+                          </select>
+                        </Field>
+                        <p className="ui-field-hint" style={{ margin: 0, ...(entrance === 'none' ? { color: 'var(--accent-2)' } : {}) }}>
+                          {entrance === 'none'
+                            ? t('portalEntranceNoneHelp')
+                            : t('portalEntranceHelp', { entry: entrance === 'from' ? edge.from : edge.to, exit: entrance === 'from' ? edge.to : edge.from })}
+                        </p>
+                      </>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           )}
 
