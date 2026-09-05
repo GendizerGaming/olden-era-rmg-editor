@@ -788,6 +788,8 @@
   "pairAddSpring": "Add spring",
   "pairNoPassages": "No passages between these zones.",
   "pairNoSpring": "No spring between these zones.",
+  "springDistUnset": "Not set (game default)",
+  "springDistCustom": "Exact value",
   "springDistSnap": "Snap together (0.1)",
   "springDistClose": "Close (0.5)",
   "springDistMedium": "Normal (1.5)",

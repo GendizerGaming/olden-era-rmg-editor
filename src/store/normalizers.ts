@@ -274,7 +274,9 @@ export const normalizeSavedEdge = (edge: SavedEdge): Edge => ({
       (CONNECTION_TYPES as readonly string[]).includes(edge.connectionType)
         ? edge.connectionType
         : "Direct",
-    length: edge.length === undefined ? 0.1 : Number(edge.length),
+    // A spring with no authored length keeps none: the engine then applies its
+    // own default, and defaulting here would pin a value the author never set.
+    length: edge.length === undefined ? undefined : Number(edge.length),
     simTurnSquad: typeof edge.simTurnSquad === "boolean" ? edge.simTurnSquad : undefined,
     guardWeeklyIncrement: edge.guardWeeklyIncrement !== undefined ? Number(edge.guardWeeklyIncrement) : undefined,
     guardEscape: typeof edge.guardEscape === "boolean" ? edge.guardEscape : undefined,

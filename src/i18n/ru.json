@@ -788,6 +788,8 @@
   "pairAddSpring": "Добавить пружину",
   "pairNoPassages": "Проходов между зонами нет.",
   "pairNoSpring": "Пружины между зонами нет.",
+  "springDistUnset": "Не задана (по умолчанию игры)",
+  "springDistCustom": "Точное значение",
   "springDistSnap": "Стянуть вместе (0.1)",
   "springDistClose": "Рядом (0.5)",
   "springDistMedium": "Нормально (1.5)",

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { importTemplateFromJson } from "../src/services/jsonImporter.ts";
 import type { RmgTemplate } from "../src/types/rmg.ts";
 import { roundTripTemplate } from "./helpers/gameTemplateRoundTrip.ts";
+import { useEditorStore } from "../src/store/useEditorStore.ts";
+import { generateTemplate } from "../src/services/jsonGenerator.ts";
 
 /**
  * One-way portals (`portalFromEnabled` / `portalToEnabled`) and bare springs.
@@ -114,5 +116,28 @@ describe("nested content variants", () => {
     expect(cands[1].variant).toBe(2);
     // an unset variant must stay absent rather than becoming 0
     expect("variant" in cands[2]).toBe(false);
+  });
+});
+
+describe("spring length through the store (the path the app actually uses)", () => {
+  it("does not resurrect a default length when edges pass through the normalizers", () => {
+    const actions = useEditorStore.getState().actions;
+    actions.clearWorkspace();
+    // Same route as the Import button: parse, then hand the design to the store,
+    // which runs it through the normalizers the direct round-trip helper skips.
+    const design = importTemplateFromJson(template([
+      { name: "bare", from: "A", to: "B", connectionType: "Proximity" }
+    ]), [], []);
+    actions.importDesign(design);
+
+    const state = useEditorStore.getState();
+    const spring = state.edges.find((e) => e.connectionType === "Proximity")!;
+    expect(spring.length).toBeUndefined();
+
+    const out = generateTemplate(
+      state.settings, state.zones, state.edges, [], {}, state.presets, state.customObjectLists
+    ) as unknown as { variants: Array<{ connections: Array<Record<string, unknown>> }> };
+    const emitted = out.variants[0].connections.find((c) => c.connectionType === "Proximity")!;
+    expect("length" in emitted).toBe(false);
   });
 });

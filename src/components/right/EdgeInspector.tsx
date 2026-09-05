@@ -299,26 +299,68 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones
       ) : (
         <div className="ui-indent" style={{ display: 'grid', gap: '8px' }}>
           <div className="control-label">{t('springBehavior')}</div>
-          <div style={{ display: 'grid', gap: '6px', padding: '4px 0' }}>
-            {[
+          {(() => {
+            // Shipped templates use far more than the five handy presets: some
+            // springs carry no length at all (the engine then picks its own),
+            // and many carry values no preset matches. The control has to be
+            // able to show and keep every one of those, not round them off.
+            const presets = [
               { val: 0.1, key: 'springDistSnap' },
               { val: 0.5, key: 'springDistClose' },
               { val: 1.5, key: 'springDistMedium' },
               { val: 4.0, key: 'springDistFar' },
               { val: 6.0, key: 'springDistMax' }
-            ].map((item) => (
-              <label key={item.val} className="ui-toggle" style={{ margin: 0 }}>
-                <input
-                  type="radio"
-                  name="proximity-length"
-                  value={item.val}
-                  checked={Math.abs((edge.length ?? 0.1) - item.val) < 0.01}
-                  onChange={() => actions.updateEdgeField(edge.id, { length: item.val })}
-                />
-                <span className="ui-toggle-text">{t(item.key)}</span>
-              </label>
-            ))}
-          </div>
+            ];
+            const unset = edge.length === undefined;
+            const matched = presets.find((p) => edge.length !== undefined && Math.abs(edge.length - p.val) < 0.01);
+            const custom = !unset && !matched;
+            return (
+              <div style={{ display: 'grid', gap: '6px', padding: '4px 0' }}>
+                <label className="ui-toggle" style={{ margin: 0 }}>
+                  <input
+                    type="radio"
+                    name="proximity-length"
+                    checked={unset}
+                    onChange={() => actions.updateEdgeField(edge.id, { length: undefined })}
+                  />
+                  <span className="ui-toggle-text">{t('springDistUnset')}</span>
+                </label>
+                {presets.map((item) => (
+                  <label key={item.val} className="ui-toggle" style={{ margin: 0 }}>
+                    <input
+                      type="radio"
+                      name="proximity-length"
+                      value={item.val}
+                      checked={matched?.val === item.val}
+                      onChange={() => actions.updateEdgeField(edge.id, { length: item.val })}
+                    />
+                    <span className="ui-toggle-text">{t(item.key)}</span>
+                  </label>
+                ))}
+                <label className="ui-toggle" style={{ margin: 0 }}>
+                  <input
+                    type="radio"
+                    name="proximity-length"
+                    checked={custom}
+                    onChange={() => actions.updateEdgeField(edge.id, { length: edge.length ?? 1 })}
+                  />
+                  <span className="ui-toggle-text">{t('springDistCustom')}</span>
+                </label>
+                {custom && (
+                  <div style={{ paddingLeft: '22px' }}>
+                    <NumberField
+                      min={0}
+                      step={0.1}
+                      value={edge.length ?? 0}
+                      title={t('springDistCustom')}
+                      onCommit={(v) => actions.updateEdgeField(edge.id, { length: v })}
+                      style={{ width: '90px' }}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })()}
           <p className="ui-field-hint">{t('springHelp')}</p>
           <p className="ui-field-hint" style={{ color: 'var(--accent-2)' }}>{t('springWarning')}</p>
         </div>
