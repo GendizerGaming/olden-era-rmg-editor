@@ -25,6 +25,10 @@ interface EdgeInspectorProps {
 
 export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones, actions, t }) => {
   const isExpert = useEditorStore((state) => state.uiMode) === 'expert';
+  // Picking "exact value" is a UI choice, not something the number alone can
+  // tell us: a value that happens to equal a preset must still keep the box
+  // open. Keyed by edge id so selecting another connection resets it.
+  const [customLengthFor, setCustomLengthFor] = React.useState<string | null>(null);
   const isProximity = edge.connectionType === 'Proximity';
   const isPortal = edge.connectionType === 'Portal';
   const pairId = edgePairKey(edge.from, edge.to);
@@ -311,9 +315,13 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones
               { val: 4.0, key: 'springDistFar' },
               { val: 6.0, key: 'springDistMax' }
             ];
-            const unset = edge.length === undefined;
-            const matched = presets.find((p) => edge.length !== undefined && Math.abs(edge.length - p.val) < 0.01);
-            const custom = !unset && !matched;
+            const inCustomMode = customLengthFor === edge.id;
+            const presetHit = edge.length === undefined
+              ? undefined
+              : presets.find((p) => Math.abs((edge.length as number) - p.val) < 0.01);
+            const custom = inCustomMode || (edge.length !== undefined && !presetHit);
+            const unset = !custom && edge.length === undefined;
+            const matched = custom ? undefined : presetHit;
             return (
               <div style={{ display: 'grid', gap: '6px', padding: '4px 0' }}>
                 <label className="ui-toggle" style={{ margin: 0 }}>
@@ -321,7 +329,10 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones
                     type="radio"
                     name="proximity-length"
                     checked={unset}
-                    onChange={() => actions.updateEdgeField(edge.id, { length: undefined })}
+                    onChange={() => {
+                      setCustomLengthFor(null);
+                      actions.updateEdgeField(edge.id, { length: undefined });
+                    }}
                   />
                   <span className="ui-toggle-text">{t('springDistUnset')}</span>
                 </label>
@@ -332,7 +343,10 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones
                       name="proximity-length"
                       value={item.val}
                       checked={matched?.val === item.val}
-                      onChange={() => actions.updateEdgeField(edge.id, { length: item.val })}
+                      onChange={() => {
+                        setCustomLengthFor(null);
+                        actions.updateEdgeField(edge.id, { length: item.val });
+                      }}
                     />
                     <span className="ui-toggle-text">{t(item.key)}</span>
                   </label>
@@ -342,7 +356,10 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones
                     type="radio"
                     name="proximity-length"
                     checked={custom}
-                    onChange={() => actions.updateEdgeField(edge.id, { length: edge.length ?? 1 })}
+                    onChange={() => {
+                      setCustomLengthFor(edge.id);
+                      if (edge.length === undefined) actions.updateEdgeField(edge.id, { length: 1 });
+                    }}
                   />
                   <span className="ui-toggle-text">{t('springDistCustom')}</span>
                 </label>
