@@ -272,6 +272,30 @@ export function validate(
       })]);
     }
   }
+
+  // A mandatory-content preset is one named entry in the file that several
+  // zones point at, but the editor holds a copy per zone. The export collapses
+  // them back by name and the last zone wins, so once the copies diverge the
+  // edits made in the others are dropped without a trace. The runtime object
+  // key is per-zone and never reaches the file, so it stays out of the compare.
+  const presetUsers = new Map<string, Zone[]>();
+  for (const zone of zones) {
+    const name = zone.mandatoryContent?.[0];
+    if (!name) continue;
+    if (!presetUsers.has(name)) presetUsers.set(name, []);
+    presetUsers.get(name)!.push(zone);
+  }
+  const contentSignature = (zone: Zone): string =>
+    JSON.stringify(zone.objects ?? [], (key, value) => (key === "key" ? undefined : value));
+  for (const [name, users] of presetUsers) {
+    if (users.length < 2) continue;
+    if (new Set(users.map(contentSignature)).size < 2) continue;
+    messages.push(["warn", t("sharedPresetDiverged", {
+      name,
+      count: users.length,
+      winner: users[users.length - 1].id
+    })]);
+  }
   
   for (const edgeData of edges) {
     if (!ids.has(edgeData.from) || !ids.has(edgeData.to)) {

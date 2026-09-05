@@ -819,6 +819,7 @@
   "duplicateZone": "Duplicate zone ID: {id}.",
   "emptyZone": "Zone {id} has no mandatory objects.",
   "brokenEdge": "Link {id} references a removed zone.",
+  "sharedPresetDiverged": "The {name} content set is shared by {count} zones but their contents have diverged. Only the one from {winner} is exported; edits made in the other zones are lost.",
   "negativeGuard": "Negative guard value in link {id}.",
   "heroLimitInvalid": "Maximum heroes cannot be lower than starting heroes.",
   "disconnectedZone": "Zone {id} is not connected.",
