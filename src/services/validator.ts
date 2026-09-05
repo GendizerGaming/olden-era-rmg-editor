@@ -280,15 +280,6 @@ export function validate(
     if (Number(edgeData.guardValue) < 0) {
       messages.push(["error", t("negativeGuard", { id: edgeData.id })]);
     }
-    // A one-way portal still needs both mouths placed: the exit has to land
-    // somewhere even though nobody can enter through it.
-    if (
-      edgeData.connectionType === "Portal" &&
-      (edgeData.portalFromEnabled === false || edgeData.portalToEnabled === false) &&
-      !(edgeData.portalPlacementRulesFrom?.length && edgeData.portalPlacementRulesTo?.length)
-    ) {
-      messages.push(["warn", t("oneWayPortalNeedsPlacement", { id: edgeData.id })]);
-    }
   }
   
   // Springs (Proximity) only pull zones together without creating a passage,

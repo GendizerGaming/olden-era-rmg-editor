@@ -819,7 +819,6 @@
   "duplicateZone": "Duplicate zone ID: {id}.",
   "emptyZone": "Zone {id} has no mandatory objects.",
   "brokenEdge": "Link {id} references a removed zone.",
-  "oneWayPortalNeedsPlacement": "Connection {id}: a one-way portal needs placement rules on both sides. The exit still has to be placed even though it cannot be used as an entrance.",
   "negativeGuard": "Negative guard value in link {id}.",
   "heroLimitInvalid": "Maximum heroes cannot be lower than starting heroes.",
   "disconnectedZone": "Zone {id} is not connected.",
