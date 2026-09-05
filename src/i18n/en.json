@@ -352,7 +352,7 @@
   "portalPlacementFrom": "Entrance in {zone}",
   "portalPlacementTo": "Exit in {zone}",
   "portalOneWay": "One-way portal",
-  "portalOneWayHelp": "A portal works both ways by default. No official template uses one-way portals and the in-game behaviour is unverified, so test before relying on it.",
+  "portalOneWayHelp": "A portal works both ways by default. A one-way portal lets heroes through in one direction only: it can be entered from the side you pick.",
   "portalEntrance": "Entrance",
   "portalEntranceIn": "In {zone}",
   "portalEntranceNone": "None",
