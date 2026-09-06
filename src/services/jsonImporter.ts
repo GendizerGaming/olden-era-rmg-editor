@@ -655,7 +655,8 @@ export function importTemplateFromJson(
       'name', 'from', 'to', 'guardValue', 'road', 'connectionType', 'length',
       'simTurnSquad', 'guardWeeklyIncrement', 'guardEscape', 'guardRandomization',
       'guardZone', 'gatePlacement', 'guardMatchGroup',
-      'portalPlacementRulesTo', 'portalPlacementRulesFrom'
+      'portalPlacementRulesTo', 'portalPlacementRulesFrom',
+      'portalFromEnabled', 'portalToEnabled'
     ];
     const rawFields = pickUnknownFields(conn, knownKeys);
     if (!conn.from || !conn.to) {
@@ -681,6 +682,8 @@ export function importTemplateFromJson(
       gatePlacement: typeof conn.gatePlacement === 'string' && conn.gatePlacement ? conn.gatePlacement : undefined,
       guardMatchGroup: typeof conn.guardMatchGroup === 'string' && conn.guardMatchGroup ? conn.guardMatchGroup : undefined,
       portalPlacementRulesTo: Array.isArray(conn.portalPlacementRulesTo) ? (conn.portalPlacementRulesTo as RmgPlacementRule[]).map((r) => ({ ...r })) : undefined,
+      portalFromEnabled: typeof conn.portalFromEnabled === 'boolean' ? conn.portalFromEnabled : undefined,
+      portalToEnabled: typeof conn.portalToEnabled === 'boolean' ? conn.portalToEnabled : undefined,
       portalPlacementRulesFrom: Array.isArray(conn.portalPlacementRulesFrom) ? (conn.portalPlacementRulesFrom as RmgPlacementRule[]).map((r) => ({ ...r })) : undefined,
       imported: true,
       rawFields: Object.keys(rawFields).length ? rawFields : undefined
@@ -991,7 +994,13 @@ export function importTemplateFromJson(
               // Inline weighted candidate list (pool-slot objects); kept so it
               // round-trips and stays editable in the object's inspector.
               nestedContent: Array.isArray(obj.content)
-                ? obj.content.map((c) => ({ sid: String(c.sid), weight: Number(c.weight) || 0 }))
+                ? obj.content.map((c) => ({
+                    sid: String(c.sid),
+                    ...(c.variant !== undefined && c.variant !== null && Number.isFinite(Number(c.variant))
+                      ? { variant: Math.trunc(Number(c.variant)) }
+                      : {}),
+                    weight: Number(c.weight) || 0
+                  }))
                 : undefined,
               isMine: Boolean(obj.isMine),
               tag: catalogItem.tag,

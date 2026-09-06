@@ -181,7 +181,13 @@ function toMandatoryObject(
   if (entry.isMine) base.isMine = true;
   if (entry.owner) base.owner = `Player${entry.owner}`;
   if (entry.designatedEncounter !== undefined) base.designatedEncounter = entry.designatedEncounter;
-  if (entry.nestedContent?.length) base.content = entry.nestedContent.map((c) => ({ sid: c.sid, weight: c.weight }));
+  if (entry.nestedContent?.length) {
+    base.content = entry.nestedContent.map((c) => ({
+      sid: c.sid,
+      ...(c.variant !== undefined ? { variant: c.variant } : {}),
+      weight: c.weight
+    }));
+  }
   // Tri-state: omit isGuarded entirely when unset, so the engine applies its
   // own default instead of being pinned to false.
   if (entry.guarded !== undefined) base.isGuarded = entry.guarded;
@@ -863,9 +869,11 @@ export function generateTemplate(
         name: connectionName(edgeData),
         from: edgeData.from,
         to: edgeData.to,
-        connectionType: 'Proximity',
-        length: edgeData.length ?? 0.1
+        connectionType: 'Proximity'
       };
+      // Springs with no authored length exist in shipped templates (Sprint);
+      // emitting a default would pin a value the engine would otherwise pick.
+      if (edgeData.length !== undefined) connection.length = edgeData.length;
       if (edgeData.guardValue !== 0) {
         connection.guardValue = Number(edgeData.guardValue);
       }
@@ -892,6 +900,10 @@ export function generateTemplate(
     if (edgeData.guardMatchGroup !== undefined) connection.guardMatchGroup = edgeData.guardMatchGroup;
     if (edgeData.portalPlacementRulesTo) connection.portalPlacementRulesTo = edgeData.portalPlacementRulesTo.map((r) => ({ ...r }));
     if (edgeData.portalPlacementRulesFrom) connection.portalPlacementRulesFrom = edgeData.portalPlacementRulesFrom.map((r) => ({ ...r }));
+    // Portal mouths: omitted means both sides open, so only a deliberate
+    // false (a one-way portal) is written out.
+    if (edgeData.portalFromEnabled !== undefined) connection.portalFromEnabled = edgeData.portalFromEnabled;
+    if (edgeData.portalToEnabled !== undefined) connection.portalToEnabled = edgeData.portalToEnabled;
     return connection;
   });
   

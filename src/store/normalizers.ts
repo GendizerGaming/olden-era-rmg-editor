@@ -135,7 +135,11 @@ export const resolveSavedObjects = (
         owner: saved.owner === null || saved.owner === undefined ? null : Math.trunc(Number(saved.owner)) || null,
         designatedEncounter: saved.designatedEncounter === undefined ? undefined : Boolean(saved.designatedEncounter),
         nestedContent: Array.isArray(saved.nestedContent)
-          ? saved.nestedContent.map((c) => ({ sid: String(c.sid), weight: Number(c.weight) || 0 }))
+          ? saved.nestedContent.map((c) => ({
+              sid: String(c.sid),
+              ...(c.variant !== undefined && c.variant !== null ? { variant: Math.trunc(Number(c.variant)) } : {}),
+              weight: Number(c.weight) || 0
+            }))
           : undefined,
         count: Math.max(1, Math.min(99, Math.trunc(Number(saved.count) || 1))),
         guarded: saved.guarded === undefined ? undefined : Boolean(saved.guarded),
@@ -164,7 +168,11 @@ export const normalizeSavedZoneObject = (
       owner: saved.owner === null || saved.owner === undefined ? null : Math.trunc(Number(saved.owner)) || null,
       designatedEncounter: saved.designatedEncounter === undefined ? undefined : Boolean(saved.designatedEncounter),
       nestedContent: Array.isArray(saved.nestedContent)
-        ? saved.nestedContent.map((c) => ({ sid: String(c.sid), weight: Number(c.weight) || 0 }))
+        ? saved.nestedContent.map((c) => ({
+            sid: String(c.sid),
+            ...(c.variant !== undefined && c.variant !== null ? { variant: Math.trunc(Number(c.variant)) } : {}),
+            weight: Number(c.weight) || 0
+          }))
         : undefined,
       sid: kind === "sid" ? saved.sid || id : undefined,
       includeList: kind === "list" ? saved.includeList || id : undefined,
@@ -266,7 +274,9 @@ export const normalizeSavedEdge = (edge: SavedEdge): Edge => ({
       (CONNECTION_TYPES as readonly string[]).includes(edge.connectionType)
         ? edge.connectionType
         : "Direct",
-    length: edge.length === undefined ? 0.1 : Number(edge.length),
+    // A spring with no authored length keeps none: the engine then applies its
+    // own default, and defaulting here would pin a value the author never set.
+    length: edge.length === undefined ? undefined : Number(edge.length),
     simTurnSquad: typeof edge.simTurnSquad === "boolean" ? edge.simTurnSquad : undefined,
     guardWeeklyIncrement: edge.guardWeeklyIncrement !== undefined ? Number(edge.guardWeeklyIncrement) : undefined,
     guardEscape: typeof edge.guardEscape === "boolean" ? edge.guardEscape : undefined,
@@ -276,6 +286,8 @@ export const normalizeSavedEdge = (edge: SavedEdge): Edge => ({
     guardMatchGroup: typeof edge.guardMatchGroup === "string" && edge.guardMatchGroup ? edge.guardMatchGroup : undefined,
     portalPlacementRulesTo: Array.isArray(edge.portalPlacementRulesTo) ? edge.portalPlacementRulesTo : undefined,
     portalPlacementRulesFrom: Array.isArray(edge.portalPlacementRulesFrom) ? edge.portalPlacementRulesFrom : undefined,
+    portalFromEnabled: typeof edge.portalFromEnabled === "boolean" ? edge.portalFromEnabled : undefined,
+    portalToEnabled: typeof edge.portalToEnabled === "boolean" ? edge.portalToEnabled : undefined,
     imported: edge.imported === true ? true : undefined,
     rawFields: edge.rawFields
   });

@@ -120,7 +120,7 @@ export interface ZoneObject {
   designatedEncounter?: boolean;
   /** Inline weighted candidate list for a pool-slot (list-kind) object: each
    *  entry is a candidate sid with its pick weight (≤0 = excluded from the roll). */
-  nestedContent?: Array<{ sid: string; weight: number }>;
+  nestedContent?: Array<{ sid: string; weight: number; variant?: number }>;
 }
 
 export interface Preset {
@@ -374,6 +374,11 @@ export interface Edge {
    *  inspector edits the leading rule's distance, the rest round-trips. */
   portalPlacementRulesTo?: RmgPlacementRule[];
   portalPlacementRulesFrom?: RmgPlacementRule[];
+  /** Portal mouths, one per side; undefined = field omitted (the engine
+   *  enables both). Turning one off makes the portal one-way: heroes can
+   *  enter from the other side only. */
+  portalFromEnabled?: boolean;
+  portalToEnabled?: boolean;
   /** True for connections that came from a template import (vs created in the
    *  editor). Lets the export reconcile zone roads — original connections keep
    *  their roads, new ones get one. Not emitted to the .rmg.json. */

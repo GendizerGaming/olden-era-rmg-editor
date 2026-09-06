@@ -25,6 +25,10 @@ interface EdgeInspectorProps {
 
 export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones, actions, t }) => {
   const isExpert = useEditorStore((state) => state.uiMode) === 'expert';
+  // Picking "exact value" is a UI choice, not something the number alone can
+  // tell us: a value that happens to equal a preset must still keep the box
+  // open. Keyed by edge id so selecting another connection resets it.
+  const [customLengthFor, setCustomLengthFor] = React.useState<string | null>(null);
   const isProximity = edge.connectionType === 'Proximity';
   const isPortal = edge.connectionType === 'Portal';
   const pairId = edgePairKey(edge.from, edge.to);
@@ -145,6 +149,62 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones
                 onChange={(v) => actions.updateEdgeField(edge.id, { portalPlacementRulesTo: buildPortalRules(edge.portalPlacementRulesTo, v) })}
               />
               <p className="ui-field-hint" style={{ margin: 0 }}>{t('portalPlacementHelp')}</p>
+
+              {(() => {
+                // A portal is two-way unless a side is switched off, so the
+                // toggle is derived state: on means some side carries `false`.
+                // The three one-way shapes map onto the pair of flags:
+                //   entrance in From -> the To mouth is off
+                //   entrance in To   -> the From mouth is off
+                //   none             -> both off (no way in at all)
+                const fromOff = edge.portalFromEnabled === false;
+                const toOff = edge.portalToEnabled === false;
+                const oneWay = fromOff || toOff;
+                const entrance = fromOff && toOff ? 'none' : fromOff ? 'to' : 'from';
+                // Once one-way is on, both sides are written out explicitly, the
+                // way the engine authors document it: relying on the omitted
+                // side defaulting to true would break if that default ever
+                // changed. Switching one-way off drops both fields again, so a
+                // plain two-way portal stays byte-identical to how it imported.
+                const setEntrance = (next: string) =>
+                  actions.updateEdgeField(edge.id, {
+                    portalFromEnabled: next !== 'to' && next !== 'none',
+                    portalToEnabled: next !== 'from' && next !== 'none'
+                  });
+                return (
+                  <>
+                    <Toggle
+                      checked={oneWay}
+                      onChange={(v) =>
+                        v
+                          ? setEntrance('from')
+                          : actions.updateEdgeField(edge.id, {
+                              portalFromEnabled: undefined,
+                              portalToEnabled: undefined
+                            })
+                      }
+                      label={t('portalOneWay')}
+                      tip={t('portalOneWayHelp')}
+                    />
+                    {oneWay && (
+                      <>
+                        <Field label={t('portalEntrance')}>
+                          <select value={entrance} onChange={(e) => setEntrance(e.target.value)}>
+                            <option value="from">{t('portalEntranceIn', { zone: edge.from })}</option>
+                            <option value="to">{t('portalEntranceIn', { zone: edge.to })}</option>
+                            <option value="none">{t('portalEntranceNone')}</option>
+                          </select>
+                        </Field>
+                        <p className="ui-field-hint" style={{ margin: 0, ...(entrance === 'none' ? { color: 'var(--accent-2)' } : {}) }}>
+                          {entrance === 'none'
+                            ? t('portalEntranceNoneHelp')
+                            : t('portalEntranceHelp', { entry: entrance === 'from' ? edge.from : edge.to, exit: entrance === 'from' ? edge.to : edge.from })}
+                        </p>
+                      </>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           )}
 
@@ -248,26 +308,81 @@ export const EdgeInspector: React.FC<EdgeInspectorProps> = ({ edge, edges, zones
       ) : (
         <div className="ui-indent" style={{ display: 'grid', gap: '8px' }}>
           <div className="control-label">{t('springBehavior')}</div>
-          <div style={{ display: 'grid', gap: '6px', padding: '4px 0' }}>
-            {[
+          {(() => {
+            // Shipped templates use far more than the five handy presets: some
+            // springs carry no length at all (the engine then picks its own),
+            // and many carry values no preset matches. The control has to be
+            // able to show and keep every one of those, not round them off.
+            const presets = [
               { val: 0.1, key: 'springDistSnap' },
               { val: 0.5, key: 'springDistClose' },
               { val: 1.5, key: 'springDistMedium' },
               { val: 4.0, key: 'springDistFar' },
               { val: 6.0, key: 'springDistMax' }
-            ].map((item) => (
-              <label key={item.val} className="ui-toggle" style={{ margin: 0 }}>
-                <input
-                  type="radio"
-                  name="proximity-length"
-                  value={item.val}
-                  checked={Math.abs((edge.length ?? 0.1) - item.val) < 0.01}
-                  onChange={() => actions.updateEdgeField(edge.id, { length: item.val })}
-                />
-                <span className="ui-toggle-text">{t(item.key)}</span>
-              </label>
-            ))}
-          </div>
+            ];
+            const inCustomMode = customLengthFor === edge.id;
+            const presetHit = edge.length === undefined
+              ? undefined
+              : presets.find((p) => Math.abs((edge.length as number) - p.val) < 0.01);
+            const custom = inCustomMode || (edge.length !== undefined && !presetHit);
+            const unset = !custom && edge.length === undefined;
+            const matched = custom ? undefined : presetHit;
+            return (
+              <div style={{ display: 'grid', gap: '6px', padding: '4px 0' }}>
+                <label className="ui-toggle" style={{ margin: 0 }}>
+                  <input
+                    type="radio"
+                    name="proximity-length"
+                    checked={unset}
+                    onChange={() => {
+                      setCustomLengthFor(null);
+                      actions.updateEdgeField(edge.id, { length: undefined });
+                    }}
+                  />
+                  <span className="ui-toggle-text">{t('springDistUnset')}</span>
+                </label>
+                {presets.map((item) => (
+                  <label key={item.val} className="ui-toggle" style={{ margin: 0 }}>
+                    <input
+                      type="radio"
+                      name="proximity-length"
+                      value={item.val}
+                      checked={matched?.val === item.val}
+                      onChange={() => {
+                        setCustomLengthFor(null);
+                        actions.updateEdgeField(edge.id, { length: item.val });
+                      }}
+                    />
+                    <span className="ui-toggle-text">{t(item.key)}</span>
+                  </label>
+                ))}
+                <label className="ui-toggle" style={{ margin: 0 }}>
+                  <input
+                    type="radio"
+                    name="proximity-length"
+                    checked={custom}
+                    onChange={() => {
+                      setCustomLengthFor(edge.id);
+                      if (edge.length === undefined) actions.updateEdgeField(edge.id, { length: 1 });
+                    }}
+                  />
+                  <span className="ui-toggle-text">{t('springDistCustom')}</span>
+                </label>
+                {custom && (
+                  <div style={{ paddingLeft: '22px' }}>
+                    <NumberField
+                      min={0}
+                      step={0.1}
+                      value={edge.length ?? 0}
+                      title={t('springDistCustom')}
+                      onCommit={(v) => actions.updateEdgeField(edge.id, { length: v })}
+                      style={{ width: '90px' }}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })()}
           <p className="ui-field-hint">{t('springHelp')}</p>
           <p className="ui-field-hint" style={{ color: 'var(--accent-2)' }}>{t('springWarning')}</p>
         </div>
