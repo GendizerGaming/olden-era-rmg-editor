@@ -630,6 +630,25 @@ label textarea {
   margin-top: auto;
 }
 
+/* One elevation variant: weight, min and max with a delete button. Labels sit
+   on the first grid row and the controls on the second, so the button centres
+   against the inputs instead of against a label-plus-input stack. */
+.elevation-variant-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: var(--space-1) var(--space-2);
+  align-items: center;
+  /* The labels stand on their own here rather than inside a .ui-field, so the
+     row carries the field typography they would otherwise inherit from it. */
+  font-size: var(--fz-base);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.elevation-variant-row input {
+  width: 100%;
+}
+
 .ui-indent {
   border-left: 2px solid var(--accent);
   padding-left: var(--space-2);

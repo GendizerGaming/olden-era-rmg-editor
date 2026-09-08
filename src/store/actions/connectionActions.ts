@@ -2,7 +2,7 @@ import type { StoreContext } from '../context';
 import type { EditorActions } from '../types';
 import type { Edge } from '../../types/editor';
 import { uniqueKey } from '../ids';
-import { captureHistory, pushHistory, defaultGuardForPair, edgePairKey, cloneEdgeOntoZones } from '../zones';
+import { captureHistory, pushHistory, defaultGuardForPair, edgePairKey, cloneEdgeOntoZones, syncZoneRoadsForEdge } from '../zones';
 
 export function createConnectionActions(ctx: StoreContext): Pick<EditorActions, 'connectZones' | 'updateEdgeField' | 'deleteEdge' | 'addConnectionsBetweenZones'> {
   const { set, saveToStorage } = ctx;
@@ -92,10 +92,19 @@ export function createConnectionActions(ctx: StoreContext): Pick<EditorActions, 
 
           const snapshot = captureHistory(state);
           const nextEdges = state.edges.map(e => e.id === edgeId ? { ...e, ...updates } : e);
-          const nextState = {
+          const nextState: { edges: Edge[]; zones?: typeof state.zones; history: ReturnType<typeof pushHistory> } = {
             edges: nextEdges,
             history: pushHistory(state, snapshot)
           };
+          // Turning the road off has to take the zones' road segments with it:
+          // a road that runs up to a roadless passage contradicts it. Only the
+          // toggle does this, so an imported template nobody touched keeps
+          // whatever its author wrote.
+          if (updates.road !== undefined && updates.road !== edge.road) {
+            const next = { ...edge, ...updates };
+            const zones = syncZoneRoadsForEdge(state.zones, next, updates.road);
+            if (zones !== state.zones) nextState.zones = zones;
+          }
           saveToStorage({ ...state, ...nextState });
           return nextState;
         });

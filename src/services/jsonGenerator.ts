@@ -466,6 +466,12 @@ function toRmgZone(zone: Zone, edges: Edge[], presets: Record<string, Preset>, s
     from: { type: "Crossroads" },
     to: { type: "Connection", args: [connectionName(edgeData)] }
   });
+  // Never lay a road up to a passage the author marked roadless: springs have
+  // no road at all, and "road": false says the passage carries none. Existing
+  // segments are left alone here — a handful of official templates do pair the
+  // two, and dropping theirs on a plain round-trip would rewrite their file.
+  const wantsRoad = (edgeData: Edge): boolean =>
+    edgeData.connectionType !== "Proximity" && edgeData.road !== false;
 
   // Reconcile passthrough roads with the current graph: keep internal roads and
   // roads to still-existing connections (rewriting the Stone/Dirt surface), drop
@@ -490,7 +496,7 @@ function toRmgZone(zone: Zone, edges: Edge[], presets: Record<string, Preset>, s
       });
     const covered = new Set(kept.map(connectionOf).filter((id): id is string => Boolean(id)));
     const added = relatedEdges
-      .filter((edgeData) => !edgeData.imported && !covered.has(edgeData.id))
+      .filter((edgeData) => !edgeData.imported && !covered.has(edgeData.id) && wantsRoad(edgeData))
       .map(crossroadsRoad);
     return [...kept, ...added];
   };
@@ -499,7 +505,7 @@ function toRmgZone(zone: Zone, edges: Edge[], presets: Record<string, Preset>, s
     rmgZone.roads = reconcileRoads(zone.roads);
   } else if (!zone.importedObjects) {
     // Editor-created zone: a crossroads road for each of its connections.
-    rmgZone.roads = relatedEdges.map(crossroadsRoad);
+    rmgZone.roads = relatedEdges.filter(wantsRoad).map(crossroadsRoad);
   } else {
     // Imported zone that had no roads of its own — still wire up new connections.
     const reconciled = reconcileRoads([]);

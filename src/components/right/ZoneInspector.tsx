@@ -1326,6 +1326,19 @@ export const ZoneInspector: React.FC<ZoneInspectorProps> = ({ zone, zones, facti
                     <Badge tone="neutral">{guardStr}</Badge>
                   </>
                 }
+                // Removing an object used to mean opening it and scrolling past
+                // every field to the button at the bottom; the row carries it too.
+                actions={
+                  <button
+                    type="button"
+                    className="compact-button danger"
+                    title={t('removeObject')}
+                    style={{ flexShrink: 0 }}
+                    onClick={() => handleRemoveObject(obj.key)}
+                  >
+                    <Trash2 size={10} />
+                  </button>
+                }
               >
                     <div className="object-description">
                       <strong>{t('objectDescription')}</strong>
