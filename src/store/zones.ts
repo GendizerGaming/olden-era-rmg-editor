@@ -1,4 +1,5 @@
 import type { Zone, ZoneType, Faction, ZoneMainObject, MapSettings, Edge, Preset, CatalogItem } from '../types/editor';
+import type { RmgRoad } from '../types/rmg';
 import type { HistorySnapshot } from './types';
 import { uniqueKey, safeName } from './ids';
 import { resolvePresetToZoneObjects } from './catalog';
@@ -54,6 +55,44 @@ export function cloneEdgeOntoZones(source: Edge, zoneA: string, zoneB: string, n
   };
   delete clone.rawFields;
   return clone;
+}
+
+/** The connection a road segment leads to, if it leads to one at all. */
+function roadConnectionRef(segment: RmgRoad): string | undefined {
+  return [segment.from, segment.to].find((term) => term?.type === 'Connection')?.args?.[0];
+}
+
+/**
+ * Keeps the zones' road segments in step with a connection's road toggle.
+ *
+ * Only the toggle calls this. Zones that carry no explicit road list are left
+ * alone: the export builds theirs from the graph and skips roadless passages on
+ * its own, and materialising a list here would freeze roads the user never set.
+ */
+export function syncZoneRoadsForEdge(zones: Zone[], edge: Edge, road: boolean): Zone[] {
+  if (edge.connectionType === 'Proximity') return zones;
+  let changed = false;
+  const next = zones.map((zone) => {
+    if (zone.id !== edge.from && zone.id !== edge.to) return zone;
+    if (zone.roads === undefined) return zone;
+    if (road) {
+      if (zone.roads.some((segment) => roadConnectionRef(segment) === edge.id)) return zone;
+      changed = true;
+      return {
+        ...zone,
+        roads: [...zone.roads, {
+          type: edge.roadType ?? 'Stone',
+          from: { type: 'Crossroads' as const },
+          to: { type: 'Connection' as const, args: [edge.id] }
+        }]
+      };
+    }
+    const kept = zone.roads.filter((segment) => roadConnectionRef(segment) !== edge.id);
+    if (kept.length === zone.roads.length) return zone;
+    changed = true;
+    return { ...zone, roads: kept };
+  });
+  return changed ? next : zones;
 }
 
 export function captureHistory(state: { settings: MapSettings; zones: Zone[]; edges: Edge[] }) {
