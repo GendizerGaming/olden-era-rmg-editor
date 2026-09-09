@@ -1,6 +1,6 @@
-import type { Zone, ZoneType, Faction, ZoneMainObject, MapSettings, Edge, Preset, CatalogItem } from '../types/editor';
+import type { Zone, ZoneType, Faction, ZoneMainObject, MapSettings, Edge, Preset, CatalogItem, CustomObjectList } from '../types/editor';
 import type { RmgRoad } from '../types/rmg';
-import type { HistorySnapshot } from './types';
+import type { HistorySnapshot, HistoryState } from './types';
 import { uniqueKey, safeName } from './ids';
 import { resolvePresetToZoneObjects } from './catalog';
 
@@ -95,11 +95,21 @@ export function syncZoneRoadsForEdge(zones: Zone[], edge: Edge, road: boolean): 
   return changed ? next : zones;
 }
 
-export function captureHistory(state: { settings: MapSettings; zones: Zone[]; edges: Edge[] }) {
+export function captureHistory(state: {
+  settings: MapSettings;
+  zones: Zone[];
+  edges: Edge[];
+  presets: Record<string, Preset>;
+  customObjectLists: Record<string, CustomObjectList>;
+  nextZoneNumber: number;
+}): HistorySnapshot {
   return {
     settings: JSON.parse(JSON.stringify(state.settings)),
     zones: JSON.parse(JSON.stringify(state.zones)),
-    edges: JSON.parse(JSON.stringify(state.edges))
+    edges: JSON.parse(JSON.stringify(state.edges)),
+    presets: JSON.parse(JSON.stringify(state.presets)),
+    customObjectLists: JSON.parse(JSON.stringify(state.customObjectLists)),
+    nextZoneNumber: state.nextZoneNumber
   };
 }
 
@@ -108,13 +118,45 @@ const HISTORY_LIMIT = 50;
 
 /** The standard history push used by every undoable action: append the snapshot, clear redo. */
 export function pushHistory(
-  state: { history: { past: HistorySnapshot[] } },
-  snapshot: HistorySnapshot
-): { past: HistorySnapshot[]; future: HistorySnapshot[] } {
+  state: { history: HistoryState },
+  snapshot: HistorySnapshot,
+  /** Marks the step as continuable — see `historyForEdit`. Omitted for one-off
+   *  actions, which also seals whatever session was open. */
+  editKey?: string
+): HistoryState {
   return {
     past: [...state.history.past, snapshot].slice(-HISTORY_LIMIT),
-    future: []
+    future: [],
+    editKey
   };
+}
+
+/**
+ * History for an edit that may continue the step already on top of the stack.
+ *
+ * Typing a name is one intent but dozens of store writes, and a step per
+ * keystroke both buried the useful steps under the 50-step cap and made undo
+ * walk back letter by letter. Consecutive writes carrying the same key fold
+ * into the step opened by the first one: the snapshot then holds the state
+ * from before the first keystroke, which is what undo should restore.
+ *
+ * The key identifies the field session — the entity plus the fields being
+ * written. Any other action pushes without a key and seals the session, as
+ * does leaving the input (see `sealHistory`).
+ */
+export function historyForEdit(
+  state: Parameters<typeof captureHistory>[0] & { history: HistoryState },
+  editKey: string
+): HistoryState {
+  if (state.history.editKey === editKey && state.history.past.length > 0) {
+    return state.history;
+  }
+  return pushHistory(state, captureHistory(state), editKey);
+}
+
+/** Key for one field session: same entity, same fields, consecutive writes. */
+export function editKeyFor(kind: string, id: string, updates: object): string {
+  return `${kind}:${id}:${Object.keys(updates).sort().join(',')}`;
 }
 
 export function zoneIdPrefix(type: ZoneType): string {

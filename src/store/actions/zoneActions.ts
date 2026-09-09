@@ -5,7 +5,7 @@ import type { RmgRoad } from '../../types/rmg';
 import { defaultPresets } from '../presets';
 import { zoneTypes, biomeIds } from '../constants';
 import { uniqueKey, safeName } from '../ids';
-import { captureHistory, pushHistory, edgePairKey, makeDefaultSpawnObject, makeZone, nextPlayerNumber, scalePresetValues, uniqueZoneId, zoneContentScale, zoneIdPrefix } from '../zones';
+import { captureHistory, pushHistory, historyForEdit, editKeyFor, edgePairKey, makeDefaultSpawnObject, makeZone, nextPlayerNumber, scalePresetValues, uniqueZoneId, zoneContentScale, zoneIdPrefix } from '../zones';
 import { resolvePresetToZoneObjects } from '../catalog';
 
 export function createZoneActions(ctx: StoreContext): Pick<EditorActions, 'addZone' | 'deleteSelected' | 'updateZoneField' | 'setZoneRoads' | 'setZonePosition' | 'rescaleZoneValues' | 'duplicateSelected'> {
@@ -159,8 +159,10 @@ export function createZoneActions(ctx: StoreContext): Pick<EditorActions, 'addZo
         set((state) => {
           const zoneIndex = state.zones.findIndex(z => z.id === zoneId);
           if (zoneIndex < 0) return {};
-          
-          const snapshot = captureHistory(state);
+
+          // Typing into a field writes on every keystroke; those fold into one
+          // undo step instead of one per letter.
+          const nextHistory = historyForEdit(state, editKeyFor('zone', zoneId, updates));
           const updatedZones = [...state.zones];
           const oldZone = updatedZones[zoneIndex];
           
@@ -333,7 +335,7 @@ export function createZoneActions(ctx: StoreContext): Pick<EditorActions, 'addZo
             edges: nextEdges,
             settings: nextSettings,
             selected: nextSelected,
-            history: pushHistory(state, snapshot)
+            history: nextHistory
           };
           saveToStorage({ ...state, ...nextState });
           return nextState;

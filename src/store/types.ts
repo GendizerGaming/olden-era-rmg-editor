@@ -87,11 +87,21 @@ export interface HistorySnapshot {
   settings: MapSettings;
   zones: Zone[];
   edges: Edge[];
+  /** Zone presets and custom object lists are top-level state that undoable
+   *  actions change too — without them here, creating a preset could not be
+   *  undone at all. */
+  presets: Record<string, Preset>;
+  customObjectLists: Record<string, CustomObjectList>;
+  /** Zone-name counter; without it undo leaves a gap in the numbering. */
+  nextZoneNumber: number;
 }
 
 export interface HistoryState {
   past: HistorySnapshot[];
   future: HistorySnapshot[];
+  /** Open field session, if any: consecutive edits carrying this key fold into
+   *  the step on top instead of pushing their own. Runtime only. */
+  editKey?: string;
 }
 
 export interface EditorActions {
@@ -171,6 +181,8 @@ export interface EditorActions {
   // Undo/Redo & Utility Actions
   undo: () => void;
   redo: () => void;
+  /** Ends the open field session, so the next edit starts its own undo step. */
+  sealHistory: () => void;
   toggleSnapToGrid: () => void;
 
   // Preset Actions

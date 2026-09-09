@@ -1,7 +1,7 @@
 import type { StoreContext } from '../context';
 import type { EditorActions } from '../types';
 import type { Preset, ZoneObject, CatalogItem } from '../../types/editor';
-import { captureHistory, pushHistory } from '../zones';
+import { captureHistory, pushHistory, historyForEdit, editKeyFor } from '../zones';
 import { buildDefaultPresets, defaultPresets } from '../presets';
 import { uniqueKey } from '../ids';
 import { cloneEntry } from '../catalog';
@@ -92,12 +92,12 @@ export function createPresetActions(ctx: StoreContext): Pick<EditorActions, 'cre
         set((state) => {
           const preset = state.presets[id];
           if (!preset) return {};
-          const snapshot = captureHistory(state);
           const updatedPreset = { ...preset, ...updates };
           const nextPresets = { ...state.presets, [id]: updatedPreset };
           const nextState = {
             presets: nextPresets,
-            history: pushHistory(state, snapshot)
+            // Typing a preset label writes per keystroke; one undo step.
+            history: historyForEdit(state, editKeyFor('preset', id, updates))
           };
           saveToStorage({ ...state, ...nextState });
           return nextState;
@@ -266,7 +266,7 @@ export function createPresetActions(ctx: StoreContext): Pick<EditorActions, 'cre
         set((state) => {
           const preset = state.presets[presetId];
           if (!preset) return {};
-          const snapshot = captureHistory(state);
+          const nextHistory = historyForEdit(state, editKeyFor('presetObject', `${presetId}/${objectKey}`, updates));
 
           const nextPreset = {
             ...preset,
@@ -275,7 +275,7 @@ export function createPresetActions(ctx: StoreContext): Pick<EditorActions, 'cre
 
           const nextState = {
             presets: { ...state.presets, [presetId]: nextPreset },
-            history: pushHistory(state, snapshot)
+            history: nextHistory
           };
           saveToStorage({ ...state, ...nextState });
           return nextState;
