@@ -1,4 +1,4 @@
-import type { Zone, ZoneType, Faction, ZoneMainObject, MapSettings, Edge, Preset, CatalogItem } from '../types/editor';
+import type { Zone, ZoneType, Faction, ZoneMainObject, MapSettings, Edge, Preset, CatalogItem, CustomObjectList } from '../types/editor';
 import type { RmgRoad } from '../types/rmg';
 import type { HistorySnapshot, HistoryState } from './types';
 import { uniqueKey, safeName } from './ids';
@@ -95,11 +95,21 @@ export function syncZoneRoadsForEdge(zones: Zone[], edge: Edge, road: boolean): 
   return changed ? next : zones;
 }
 
-export function captureHistory(state: { settings: MapSettings; zones: Zone[]; edges: Edge[] }) {
+export function captureHistory(state: {
+  settings: MapSettings;
+  zones: Zone[];
+  edges: Edge[];
+  presets: Record<string, Preset>;
+  customObjectLists: Record<string, CustomObjectList>;
+  nextZoneNumber: number;
+}): HistorySnapshot {
   return {
     settings: JSON.parse(JSON.stringify(state.settings)),
     zones: JSON.parse(JSON.stringify(state.zones)),
-    edges: JSON.parse(JSON.stringify(state.edges))
+    edges: JSON.parse(JSON.stringify(state.edges)),
+    presets: JSON.parse(JSON.stringify(state.presets)),
+    customObjectLists: JSON.parse(JSON.stringify(state.customObjectLists)),
+    nextZoneNumber: state.nextZoneNumber
   };
 }
 
@@ -135,7 +145,7 @@ export function pushHistory(
  * does leaving the input (see `sealHistory`).
  */
 export function historyForEdit(
-  state: { settings: MapSettings; zones: Zone[]; edges: Edge[]; history: HistoryState },
+  state: Parameters<typeof captureHistory>[0] & { history: HistoryState },
   editKey: string
 ): HistoryState {
   if (state.history.editKey === editKey && state.history.past.length > 0) {

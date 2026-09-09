@@ -24,8 +24,25 @@ function selectionAfterRollback<T extends { type: string; id: string } | null>(
       return snapshot.edges.some((edge) => edgePairKey(edge.from, edge.to) === selected.id)
         ? selected
         : null;
-    // Presets, terrain profiles, pools and the element list are not part of the
-    // snapshot, so a rollback cannot invalidate them.
+    // These live inside settings, which the snapshot carries too, so undoing
+    // their creation does take them away.
+    case 'terrainProfile':
+      return snapshot.settings.terrainProfiles.some((profile) => profile.name === selected.id)
+        ? selected
+        : null;
+    case 'contentLimits':
+      return snapshot.settings.contentLimitPresets.some((preset) => preset.name === selected.id)
+        ? selected
+        : null;
+    case 'contentPool':
+      return snapshot.settings.contentPoolPresets.some((preset) => preset.name === selected.id)
+        ? selected
+        : null;
+    case 'preset':
+      return selected.id in snapshot.presets ? selected : null;
+    case 'customList':
+      return selected.id in snapshot.customObjectLists ? selected : null;
+    // The element list is a panel mode rather than an element.
     default:
       return selected;
   }
@@ -44,13 +61,19 @@ export function createHistoryActions(ctx: StoreContext): Pick<EditorActions, 'un
           const current = {
             settings: state.settings,
             zones: state.zones,
-            edges: state.edges
+            edges: state.edges,
+            presets: state.presets,
+            customObjectLists: state.customObjectLists,
+            nextZoneNumber: state.nextZoneNumber
           };
           
           const nextState = {
             settings: previous.settings,
             zones: previous.zones,
             edges: previous.edges,
+            presets: previous.presets,
+            customObjectLists: previous.customObjectLists,
+            nextZoneNumber: previous.nextZoneNumber,
             selected: selectionAfterRollback(state.selected, previous),
             history: {
               past: newPast,
@@ -71,13 +94,19 @@ export function createHistoryActions(ctx: StoreContext): Pick<EditorActions, 'un
           const current = {
             settings: state.settings,
             zones: state.zones,
-            edges: state.edges
+            edges: state.edges,
+            presets: state.presets,
+            customObjectLists: state.customObjectLists,
+            nextZoneNumber: state.nextZoneNumber
           };
           
           const nextState = {
             settings: next.settings,
             zones: next.zones,
             edges: next.edges,
+            presets: next.presets,
+            customObjectLists: next.customObjectLists,
+            nextZoneNumber: next.nextZoneNumber,
             selected: selectionAfterRollback(state.selected, next),
             history: {
               past: [...past, current],

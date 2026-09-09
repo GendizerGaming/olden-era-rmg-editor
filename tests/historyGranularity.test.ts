@@ -138,6 +138,43 @@ describe("undo granularity", () => {
   });
 });
 
+describe("what undo rolls back", () => {
+  it("takes zone presets with it", () => {
+    const before = Object.keys(state().presets).length;
+    actions().createPreset("Mine", "custom");
+    expect(Object.keys(state().presets)).toHaveLength(before + 1);
+
+    actions().undo();
+
+    // Presets are top-level state; leaving them out of the snapshot made
+    // creating one silently unundoable.
+    expect(Object.keys(state().presets)).toHaveLength(before);
+  });
+
+  it("takes custom object lists with it", () => {
+    const before = Object.keys(state().customObjectLists).length;
+    actions().createCustomList("my_list", "My list");
+    expect(Object.keys(state().customObjectLists)).toHaveLength(before + 1);
+
+    actions().undo();
+
+    expect(Object.keys(state().customObjectLists)).toHaveLength(before);
+  });
+
+  it("restores a preset's edited values", () => {
+    const before = Object.keys(state().presets);
+    actions().createPreset("Mine", "custom");
+    const id = Object.keys(state().presets).find((key) => !before.includes(key))!;
+    actions().sealHistory();
+    actions().updatePreset(id, { guardedValue: 12345 });
+
+    actions().undo();
+
+    expect(state().presets[id]).toBeDefined();
+    expect(state().presets[id].guardedValue).not.toBe(12345);
+  });
+});
+
 describe("selection after undo", () => {
   it("keeps the selection when its element survives the rollback", () => {
     const id = addZone();
@@ -179,16 +216,51 @@ describe("selection after undo", () => {
     expect(state().selected).toBeNull();
   });
 
-  it("leaves selections the snapshot knows nothing about alone", () => {
+  it("keeps a selection the rollback left in place", () => {
     const id = addZone();
     actions().updateZoneField(id, { label: "Hills" });
-    // Terrain profiles live in settings, not in the zones/edges a rollback
-    // rewrites, so this selection can never be invalidated by one.
-    actions().setSelected({ type: "terrainProfile", id: "visual_editor_layout_neutral" });
+    actions().setSelected({ type: "preset", id: "neutral" });
 
     actions().undo();
 
-    expect(state().selected).toEqual({ type: "terrainProfile", id: "visual_editor_layout_neutral" });
+    expect(state().selected).toEqual({ type: "preset", id: "neutral" });
+  });
+
+  it("drops a preset selection the rollback removed", () => {
+    const before = Object.keys(state().presets);
+    actions().createPreset("Mine", "custom");
+    const created = Object.keys(state().presets).find((key) => !before.includes(key))!;
+    actions().setSelected({ type: "preset", id: created });
+
+    actions().undo();
+
+    expect(created in state().presets).toBe(false);
+    expect(state().selected).toBeNull();
+  });
+
+  it("drops a settings-level selection the rollback removed", () => {
+    // Terrain profiles, content limits and pools live inside settings, which
+    // the snapshot carries — undoing their creation does take them away.
+    actions().addTerrainProfile();
+    const created = state().settings.terrainProfiles.at(-1)!.name;
+    actions().setSelected({ type: "terrainProfile", id: created });
+
+    actions().undo();
+
+    expect(state().settings.terrainProfiles.some((p) => p.name === created)).toBe(false);
+    expect(state().selected).toBeNull();
+  });
+
+  it("keeps a settings-level selection the rollback left in place", () => {
+    actions().addTerrainProfile();
+    const created = state().settings.terrainProfiles.at(-1)!.name;
+    actions().setSelected({ type: "terrainProfile", id: created });
+    actions().updateTerrainProfile(created, { obstaclesFill: 0.5 });
+
+    actions().undo();
+
+    expect(state().settings.terrainProfiles.some((p) => p.name === created)).toBe(true);
+    expect(state().selected).toEqual({ type: "terrainProfile", id: created });
   });
 
   it("keeps the selection on redo as well", () => {

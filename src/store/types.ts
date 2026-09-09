@@ -87,6 +87,13 @@ export interface HistorySnapshot {
   settings: MapSettings;
   zones: Zone[];
   edges: Edge[];
+  /** Zone presets and custom object lists are top-level state that undoable
+   *  actions change too — without them here, creating a preset could not be
+   *  undone at all. */
+  presets: Record<string, Preset>;
+  customObjectLists: Record<string, CustomObjectList>;
+  /** Zone-name counter; without it undo leaves a gap in the numbering. */
+  nextZoneNumber: number;
 }
 
 export interface HistoryState {
