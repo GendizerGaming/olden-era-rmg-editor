@@ -2,7 +2,7 @@ import type { StoreContext } from '../context';
 import type { EditorActions } from '../types';
 import type { Edge } from '../../types/editor';
 import { uniqueKey } from '../ids';
-import { captureHistory, pushHistory, defaultGuardForPair, edgePairKey, cloneEdgeOntoZones, syncZoneRoadsForEdge } from '../zones';
+import { captureHistory, pushHistory, historyForEdit, editKeyFor, defaultGuardForPair, edgePairKey, cloneEdgeOntoZones, syncZoneRoadsForEdge } from '../zones';
 
 export function createConnectionActions(ctx: StoreContext): Pick<EditorActions, 'connectZones' | 'updateEdgeField' | 'deleteEdge' | 'addConnectionsBetweenZones'> {
   const { set, saveToStorage } = ctx;
@@ -90,11 +90,12 @@ export function createConnectionActions(ctx: StoreContext): Pick<EditorActions, 
             };
           }
 
-          const snapshot = captureHistory(state);
+          // Consecutive writes to the same field (typing a guard value, a
+          // match group) fold into one undo step.
           const nextEdges = state.edges.map(e => e.id === edgeId ? { ...e, ...updates } : e);
           const nextState: { edges: Edge[]; zones?: typeof state.zones; history: ReturnType<typeof pushHistory> } = {
             edges: nextEdges,
-            history: pushHistory(state, snapshot)
+            history: historyForEdit(state, editKeyFor('edge', edgeId, updates))
           };
           // Turning the road off has to take the zones' road segments with it:
           // a road that runs up to a roadless passage contradicts it. Only the

@@ -2,7 +2,7 @@ import type { StoreContext } from '../context';
 import type { EditorActions } from '../types';
 import type { TerrainProfile } from '../../types/editor';
 import { defaultTerrainProfiles, isBuiltInProfileName } from '../constants';
-import { captureHistory, pushHistory } from '../zones';
+import { captureHistory, pushHistory, historyForEdit, editKeyFor } from '../zones';
 import { uniqueKey, safeName } from '../ids';
 
 function uniqueProfileName(profiles: TerrainProfile[], base: string): string {
@@ -142,7 +142,9 @@ export function createTerrainActions(ctx: StoreContext): Pick<EditorActions, 'ad
         const profiles = state.settings.terrainProfiles;
         const index = profiles.findIndex((profile) => profile.name === name);
         if (index < 0) return {};
-        const snapshot = captureHistory(state);
+        // Dragging a number or typing a name writes repeatedly; those fold
+        // into one undo step.
+        const nextHistory = historyForEdit(state, editKeyFor('terrain', name, updates));
 
         // Renames keep zone references intact by rewriting them along.
         // Built-in names are the contract behind the "Auto" option — fixed.
@@ -167,7 +169,7 @@ export function createTerrainActions(ctx: StoreContext): Pick<EditorActions, 'ad
           selected: state.selected?.type === 'terrainProfile' && state.selected.id === name
             ? { type: 'terrainProfile' as const, id: nextName }
             : state.selected,
-          history: pushHistory(state, snapshot)
+          history: nextHistory
         };
         saveToStorage({ ...state, ...nextState });
         return nextState;

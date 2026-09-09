@@ -1,6 +1,6 @@
 import type { StoreContext } from '../context';
 import type { EditorActions, EditorStoreState } from '../types';
-import { captureHistory, pushHistory } from '../zones';
+import { historyForEdit } from '../zones';
 import { normalizeSettings } from '../normalizers';
 
 export function createSettingsActions(ctx: StoreContext): Pick<EditorActions, 'updateSettings'> {
@@ -17,14 +17,16 @@ export function createSettingsActions(ctx: StoreContext): Pick<EditorActions, 'u
             normalized.orientationAnchor = state.zones.find((z) => z.type === "spawn")?.id || state.zones[0]?.id || "";
           }
           
-          const changed = JSON.stringify(state.settings) !== JSON.stringify(normalized);
-          const snapshot = captureHistory(state);
-          
+          const touched = (Object.keys(normalized) as Array<keyof typeof normalized>)
+            .filter((key) => JSON.stringify(state.settings[key]) !== JSON.stringify(normalized[key]));
+
           const nextState: Partial<EditorStoreState> = {
             settings: normalized
           };
-          if (changed) {
-            nextState.history = pushHistory(state, snapshot);
+          if (touched.length > 0) {
+            // The updater can be a function, so the session is identified by
+            // whichever settings actually moved: typing a map name is one step.
+            nextState.history = historyForEdit(state, `settings::${touched.sort().join(',')}`);
           }
           saveToStorage({ ...state, ...nextState });
           return nextState;

@@ -92,6 +92,9 @@ export interface HistorySnapshot {
 export interface HistoryState {
   past: HistorySnapshot[];
   future: HistorySnapshot[];
+  /** Open field session, if any: consecutive edits carrying this key fold into
+   *  the step on top instead of pushing their own. Runtime only. */
+  editKey?: string;
 }
 
 export interface EditorActions {
@@ -171,6 +174,8 @@ export interface EditorActions {
   // Undo/Redo & Utility Actions
   undo: () => void;
   redo: () => void;
+  /** Ends the open field session, so the next edit starts its own undo step. */
+  sealHistory: () => void;
   toggleSnapToGrid: () => void;
 
   // Preset Actions

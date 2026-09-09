@@ -1,6 +1,6 @@
 import type { StoreContext } from '../context';
 import type { EditorActions } from '../types';
-import { captureHistory, pushHistory } from '../zones';
+import { captureHistory, pushHistory, historyForEdit, editKeyFor } from '../zones';
 import { cloneEntry } from '../catalog';
 import { uniqueKey } from '../ids';
 
@@ -50,7 +50,9 @@ export function createObjectActions(ctx: StoreContext): Pick<EditorActions, 'add
           const zoneIndex = state.zones.findIndex(z => z.id === zoneId);
           if (zoneIndex < 0) return {};
           
-          const snapshot = captureHistory(state);
+          // Editing an object's count/variant/name writes per keystroke; those
+          // fold into one undo step.
+          const nextHistory = historyForEdit(state, editKeyFor('object', `${zoneId}/${objectKey}`, updates));
           const updatedZones = [...state.zones];
           const zone = { ...updatedZones[zoneIndex] };
           
@@ -75,7 +77,7 @@ export function createObjectActions(ctx: StoreContext): Pick<EditorActions, 'add
           updatedZones[zoneIndex] = zone;
           const nextState = {
             zones: updatedZones,
-            history: pushHistory(state, snapshot)
+            history: nextHistory
           };
           saveToStorage({ ...state, ...nextState });
           return nextState;

@@ -76,6 +76,16 @@ function App() {
     loadCache();
   }, [actions]);
 
+  // Leaving a control ends its undo step: everything typed while the field held
+  // focus is one step, however slowly it was typed. Inside the field the
+  // browser's own undo still walks the characters, because the hotkeys below
+  // deliberately skip inputs.
+  useEffect(() => {
+    const seal = () => actions.sealHistory();
+    document.addEventListener('focusout', seal);
+    return () => document.removeEventListener('focusout', seal);
+  }, [actions]);
+
   // Bind editor keyboard shortcuts (undo/redo, delete, connect mode)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
